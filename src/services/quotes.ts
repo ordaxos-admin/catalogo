@@ -1,3 +1,5 @@
+import { catalogApiUrl, catalogRuntime } from '../config/catalogRuntime'
+
 export type QuotePayload = {
   name: string
   email: string
@@ -12,19 +14,17 @@ export type QuoteSubmitResult = {
   deduplicated?: boolean
 }
 
-const apiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
-
 function demoReference() {
   const compact = crypto.randomUUID().replace(/-/g, '').slice(0, 20).toUpperCase()
   return `DEMO-${compact.match(/.{1,4}/g)?.join('-') ?? compact}`
 }
 
 export async function submitQuoteRequest(payload: QuotePayload): Promise<QuoteSubmitResult> {
-  if (!apiBase) {
+  if (catalogRuntime.mode === 'demo') {
     return { reference: demoReference(), mode: 'demo', deduplicated: false }
   }
 
-  const response = await fetch(`${apiBase}/api/quotes`, {
+  const response = await fetch(catalogApiUrl('/api/quotes'), {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
     body: JSON.stringify(payload),
