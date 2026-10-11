@@ -33,12 +33,11 @@ jobs:
         shell: bash
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          VITE_MEDIA_BASE_URL: ${{ vars.VITE_MEDIA_BASE_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
         run: |
           set -euo pipefail
           missing=()
-          for name in VITE_API_BASE_URL VITE_MEDIA_BASE_URL VITE_TURNSTILE_SITE_KEY; do
+          for name in VITE_API_BASE_URL VITE_TURNSTILE_SITE_KEY; do
             [ -n "${!name:-}" ] || missing+=("$name")
           done
           if [ "${#missing[@]}" -gt 0 ]; then
@@ -49,8 +48,15 @@ jobs:
         run: npm run build
         env:
           VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
-          VITE_MEDIA_BASE_URL: ${{ vars.VITE_MEDIA_BASE_URL }}
           VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}
+      - name: Reject legacy public R2 endpoint from generated frontend
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R --binary-files=without-match -nE 'https://[^"'"'"' ]+\.r2\.dev' dist; then
+            echo '::error::Build contém endpoint público r2.dev; mídia deve sair exclusivamente pelo Worker.'
+            exit 1
+          fi
       - name: Validate generated brand artifacts
         run: npm run brand:dist
       - name: Configure Pages
