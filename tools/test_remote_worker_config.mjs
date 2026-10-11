@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { assertRemoteWorkerConfig, expectedRemoteWorkerConfig } from './check_remote_worker_config.mjs'
+import {
+  assertManagedR2PrivateAccess,
+  assertRemoteWorkerConfig,
+  expectedRemoteWorkerConfig,
+  fetchRemoteR2ManagedDomain,
+} from './check_remote_worker_config.mjs'
 
 const canonical = {
   name: 'tonecos-catalogo-api',
@@ -109,4 +114,60 @@ test('local-only D1 metadata is intentionally not compared with remote bindings'
   config.d1_databases[0].migrations_dir = 'different-local-migrations-dir'
   const semanticExpected = expectedRemoteWorkerConfig(config)
   assert.doesNotThrow(() => assertRemoteWorkerConfig(semanticExpected, remote()))
+})
+
+test('R2 managed public development access must remain disabled', () => {
+  assert.doesNotThrow(() => assertManagedR2PrivateAccess({ enabled: false }))
+  assert.throws(
+    () => assertManagedR2PrivateAccess({ enabled: true }),
+    /public development access drift: expected enabled=false, found enabled=true/,
+  )
+  assert.throws(
+    () => assertManagedR2PrivateAccess({}),
+    /managed-domain response is invalid/,
+  )
+})
+
+test('R2 managed-domain state is read from the canonical MEDIA bucket', async () => {
+  const calls = []
+  const result = await fetchRemoteR2ManagedDomain({
+    accountId: 'account-test',
+    apiToken: 'token-test',
+    bucketName: 'tonecos-catalogo-media',
+    async fetchImpl(url, init) {
+      calls.push({ url, init })
+      return {
+        ok: true,
+        status: 200,
+        async json() {
+          return { success: true, result: { enabled: false } }
+        },
+      }
+    },
+  })
+
+  assert.deepEqual(result, { enabled: false })
+  assert.equal(calls.length, 1)
+  assert.match(calls[0].url, /\/r2\/buckets\/tonecos-catalogo-media\/domains\/managed$/)
+  assert.equal(calls[0].init.headers.Authorization, 'Bearer token-test')
+})
+
+test('R2 managed-domain API failure is fail-closed', async () => {
+  await assert.rejects(
+    () => fetchRemoteR2ManagedDomain({
+      accountId: 'account-test',
+      apiToken: 'token-test',
+      bucketName: 'tonecos-catalogo-media',
+      async fetchImpl() {
+        return {
+          ok: false,
+          status: 403,
+          async json() {
+            return { success: false, errors: [{ code: 10000, message: 'forbidden' }] }
+          },
+        }
+      },
+    }),
+    /Unable to read remote R2 managed-domain state \(403\): 10000:forbidden/,
+  )
 })
