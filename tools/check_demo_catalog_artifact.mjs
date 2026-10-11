@@ -40,12 +40,19 @@ for (const file of files) {
 }
 
 if (expectation === 'absent') {
+  const publicSourceMaps = files
+    .map((file) => path.relative(root, file))
+    .filter((file) => file.endsWith('.map'))
+  if (publicSourceMaps.length) {
+    throw new Error(`Production artifact must not publish source maps: ${publicSourceMaps.join(', ')}`)
+  }
+
   const leaked = [...hits].filter(([, locations]) => locations.length)
   if (leaked.length) {
     const detail = leaked.map(([marker, locations]) => `${marker}: ${locations.join(', ')}`).join('; ')
     throw new Error(`Production artifact contains demo-only catalog data: ${detail}`)
   }
-  console.log(`Production artifact is free of ${markers.length} demo-only sentinels across ${files.length} files`)
+  console.log(`Production artifact has no public source maps and is free of ${markers.length} demo-only sentinels across ${files.length} files`)
 } else {
   const missing = [...hits].filter(([, locations]) => !locations.length).map(([marker]) => marker)
   if (missing.length) throw new Error(`Explicit demo artifact is missing demo sentinels: ${missing.join(', ')}`)
