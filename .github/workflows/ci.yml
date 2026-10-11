@@ -41,6 +41,8 @@ jobs:
         run: npm run test:known-cache
       - name: Test canonical Wrangler config
         run: npm run test:wrangler-config
+      - name: Test operational continuity SSOT
+        run: node --test tools/test_operational_continuity.mjs
       - name: Test Cloudflare deploy-state contract
         run: npm run test:cloudflare-deploy-state
       - name: Test canonical Worker release smoke
