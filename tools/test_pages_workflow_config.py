@@ -5,7 +5,8 @@ from pathlib import Path
 class PagesWorkflowConfigTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.workflow = (Path(__file__).resolve().parents[1] / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
+        cls.root = Path(__file__).resolve().parents[1]
+        cls.workflow = (cls.root / ".github" / "workflows" / "pages.yml").read_text(encoding="utf-8")
 
     def test_runtime_secrets_and_endpoints_use_repository_variables(self):
         required = [
@@ -18,29 +19,26 @@ class PagesWorkflowConfigTests(unittest.TestCase):
         self.assertNotIn("VITE_PUBLIC_SITE_URL: ${{ vars.VITE_PUBLIC_SITE_URL }}", self.workflow)
 
     def test_public_site_url_comes_from_versioned_ssot(self):
-        root = Path(__file__).resolve().parents[1]
-        runtime = (root / "config" / "public-runtime.json").read_text(encoding="utf-8")
-        vite = (root / "vite.config.ts").read_text(encoding="utf-8")
+        runtime = (self.root / "config" / "public-runtime.json").read_text(encoding="utf-8")
+        vite = (self.root / "vite.config.ts").read_text(encoding="utf-8")
         self.assertIn("https://acheguese.com.br/tonecosstudios/", runtime)
         self.assertIn("publicRuntime.publicSiteUrl", vite)
         self.assertIn("config/public-runtime.json", self.workflow)
 
     def test_public_domain_documentation_matches_versioned_ssot(self):
-        root = Path(__file__).resolve().parents[1]
-        documentation = (root / "docs" / "DOMINIO-E-URL-PUBLICA.md").read_text(encoding="utf-8")
+        documentation = (self.root / "docs" / "DOMINIO-E-URL-PUBLICA.md").read_text(encoding="utf-8")
         self.assertIn("config/public-runtime.json", documentation)
         self.assertIn("https://acheguese.com.br/tonecosstudios/", documentation)
         self.assertIn("src/shared/config/publicExternalApps.config.ts", documentation)
         self.assertNotIn("Configure a Repository Variable `VITE_PUBLIC_SITE_URL`", documentation)
 
     def test_legacy_catalog_public_url_is_not_canonical_anymore(self):
-        root = Path(__file__).resolve().parents[1]
         legacy_url = "https://acheguese.com.br/catalogo/"
         checked = [
-            root / "config" / "public-runtime.json",
-            root / "README.md",
-            root / "docs" / "DOMINIO-E-URL-PUBLICA.md",
-            root / "docs" / "CLOUDFLARE_DEPLOY.md",
+            self.root / "config" / "public-runtime.json",
+            self.root / "README.md",
+            self.root / "docs" / "DOMINIO-E-URL-PUBLICA.md",
+            self.root / "docs" / "CLOUDFLARE_DEPLOY.md",
         ]
         for path in checked:
             self.assertNotIn(legacy_url, path.read_text(encoding="utf-8"), str(path))
@@ -66,19 +64,23 @@ class PagesWorkflowConfigTests(unittest.TestCase):
         self.assertIn("mídia deve sair exclusivamente pelo Worker", self.workflow)
 
     def test_catalog_uses_first_party_api_proxy_only_on_acheguese_domain(self):
-        root = Path(__file__).resolve().parents[1]
-        source = (root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
+        source = (self.root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
         self.assertIn("hostname === 'acheguese.com.br'", source)
         self.assertIn("hostname === 'www.acheguese.com.br'", source)
         self.assertIn("${window.location.origin}/catalogo-api", source)
         self.assertIn("return configuredApiBase", source)
 
-    def test_media_build_alias_is_derived_only_from_api_base(self):
-        root = Path(__file__).resolve().parents[1]
-        vite = (root / "vite.config.ts").read_text(encoding="utf-8")
-        self.assertIn("environment.VITE_API_BASE_URL", vite)
-        self.assertIn("'import.meta.env.VITE_MEDIA_BASE_URL': JSON.stringify(apiBase)", vite)
-        self.assertNotIn("environment.VITE_MEDIA_BASE_URL", vite)
+    def test_media_urls_share_the_resolved_api_origin_without_legacy_env_alias(self):
+        source = (self.root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
+        vite = (self.root / "vite.config.ts").read_text(encoding="utf-8")
+        env_types = (self.root / "src" / "vite-env.d.ts").read_text(encoding="utf-8")
+
+        self.assertIn("if (!key || !apiBase) return undefined", source)
+        self.assertIn("return `${apiBase}/${key.split('/').map(encodeURIComponent).join('/')}`", source)
+        self.assertNotIn("VITE_MEDIA_BASE_URL", source)
+        self.assertNotIn("VITE_MEDIA_BASE_URL", vite)
+        self.assertNotIn("VITE_MEDIA_BASE_URL", env_types)
+        self.assertNotIn("loadEnv", vite)
 
     def test_published_brand_assets_are_validated_from_ssot(self):
         required = [
