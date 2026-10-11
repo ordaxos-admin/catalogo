@@ -1,10 +1,11 @@
-import { defineConfig, loadEnv } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import brand from './config/brand.json'
 import publicRuntime from './config/public-runtime.json'
 
 const catalogName = `${brand.catalogLabel} ${brand.name}`
 const catalogPageTitle = `${brand.catalogLabel} — ${brand.name}`
+const publicSiteUrl = publicRuntime.publicSiteUrl.replace(/\/?$/, '/')
 const brandInitial = Array.from(brand.shortName.trim())[0]?.toLocaleUpperCase('pt-BR') ?? '?'
 const faviconSource = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
   <rect width="64" height="64" rx="12" fill="#071817"/>
@@ -41,52 +42,43 @@ function applyBrandTokens(html: string) {
     .replaceAll('__CATALOG_PAGE_TITLE__', catalogPageTitle)
 }
 
-export default defineConfig(({ mode }) => {
-  const publicSiteUrl = publicRuntime.publicSiteUrl.replace(/\/?$/, '/')
-  const environment = loadEnv(mode, '.', '')
-  const apiBase = environment.VITE_API_BASE_URL?.trim().replace(/\/$/, '') ?? ''
-
-  return {
-    base: './',
-    define: {
-      'import.meta.env.VITE_MEDIA_BASE_URL': JSON.stringify(apiBase),
-    },
-    plugins: [
-      react(),
-      {
-        name: 'catalog-branding',
-        transformIndexHtml(html) {
-          return applyBrandTokens(html).replaceAll('__PUBLIC_SITE_URL__', publicSiteUrl)
-        },
-        configureServer(server) {
-          server.middlewares.use('/site.webmanifest', (_request, response) => {
-            response.statusCode = 200
-            response.setHeader('Content-Type', 'application/manifest+json; charset=utf-8')
-            response.end(manifestSource)
-          })
-          server.middlewares.use('/favicon.svg', (_request, response) => {
-            response.statusCode = 200
-            response.setHeader('Content-Type', 'image/svg+xml; charset=utf-8')
-            response.end(faviconSource)
-          })
-        },
-        generateBundle() {
-          this.emitFile({
-            type: 'asset',
-            fileName: 'site.webmanifest',
-            source: manifestSource,
-          })
-          this.emitFile({
-            type: 'asset',
-            fileName: 'favicon.svg',
-            source: faviconSource,
-          })
-        },
+export default defineConfig({
+  base: './',
+  plugins: [
+    react(),
+    {
+      name: 'catalog-branding',
+      transformIndexHtml(html) {
+        return applyBrandTokens(html).replaceAll('__PUBLIC_SITE_URL__', publicSiteUrl)
       },
-    ],
-    build: {
-      target: 'es2022',
-      sourcemap: true,
+      configureServer(server) {
+        server.middlewares.use('/site.webmanifest', (_request, response) => {
+          response.statusCode = 200
+          response.setHeader('Content-Type', 'application/manifest+json; charset=utf-8')
+          response.end(manifestSource)
+        })
+        server.middlewares.use('/favicon.svg', (_request, response) => {
+          response.statusCode = 200
+          response.setHeader('Content-Type', 'image/svg+xml; charset=utf-8')
+          response.end(faviconSource)
+        })
+      },
+      generateBundle() {
+        this.emitFile({
+          type: 'asset',
+          fileName: 'site.webmanifest',
+          source: manifestSource,
+        })
+        this.emitFile({
+          type: 'asset',
+          fileName: 'favicon.svg',
+          source: faviconSource,
+        })
+      },
     },
-  }
+  ],
+  build: {
+    target: 'es2022',
+    sourcemap: true,
+  },
 })
