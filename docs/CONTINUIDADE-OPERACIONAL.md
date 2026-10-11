@@ -2,409 +2,235 @@
 
 > **SSOT de continuidade.** Leia este arquivo antes de continuar o projeto em outra conversa, máquina ou sessão.
 >
-> Atualizado em **2026-10-10**. O objetivo é registrar o estado operacional medido, evitar reprocessamento e impedir decisões divergentes. Documentação conceitual pertence aos arquivos específicos em `docs/`; este arquivo é um checkpoint, não um histórico acumulativo.
+> Atualizado em **2026-10-11**. Este arquivo registra somente o estado operacional necessário para a próxima execução. Histórico detalhado pertence aos runbooks e documentos de migração; não acumular aqui gates encerrados, PRs antigas ou bloqueios expirados.
 
-## Autoridade e estado atual
+## Autoridade
 
 - Repositório: `washingtonmsdj/catalogo`.
-- Branch autoritativa de produção: `main`.
-- Cutover Cloudflare para **Tonecos Studio** concluído; a infraestrutura Washington permanece apenas como rollback.
-- A PR **#144** foi mergeada e o gate externo do token foi encerrado; a issue **#103** está fechada como concluída.
-- O deploy canônico validado em produção é **Deploy Cloudflare API #109**, com staged smoke, promoção 100%, auditoria D1 e rollback não acionado.
-- As PRs **#150** e **#151** separaram manutenção de dados do deploy e eliminaram o auto-trigger de deploy por mudanças apenas de orquestração.
-- `main` no checkpoint desta reconciliação: `08d3f523868c257e267745a06a3a864405b35b79`.
-- A PR **#152** está aberta apenas para atualizar o Wrangler/toolchain; não deve ser mergeada enquanto a cota diária de leitura do D1 Free estiver saturada, porque `package.json` é gatilho intencional de deploy.
+- Branch autoritativa: `main`.
+- Antes de qualquer mutação, conferir novamente `main`, PRs/issues abertas, CI, Pages e estado Cloudflare.
+- Nunca tratar SHA antigo gravado em documentação como autoridade de execução.
+- `wrangler.jsonc` é o SSOT do Worker, D1, R2, CORS e segredo obrigatório.
+- `config/public-runtime.json` é o SSOT versionado da superfície pública.
+- O resolvedor de runtime do frontend deve continuar explícito/fail-closed; não recriar fallback implícito nem segunda origem paralela.
+- Mudança de runtime só é concluída quando os gates do escopo realmente afetado ficam verdes.
 
-Sempre conferir `main`, workflows e estado Cloudflare antes de executar. Se este arquivo divergir do estado medido no repositório/produção, corrigir este SSOT no mesmo trabalho; não criar documento paralelo.
+## Estado reconciliado
+
+No momento desta reconciliação:
+
+- `main`: **`2c3d3b76fcc0d70b30ba1d7fb5ecb9939c97e946`** — PR **#166**, runtime do Catálogo fail-closed e SSOT;
+- CI **#1016**: verde;
+- Pages **#739**: verde;
+- a #166 não alterou Worker/schema e, corretamente, não abriu deploy Cloudflare desnecessário.
+
+A última linhagem que alterou e promoveu o Worker é o commit **`5134897ff4a387a5302e16d78124bf39e46ab56e`**, PR **#161**:
+
+- Deploy Cloudflare API **#117** verde;
+- staged smoke verde;
+- promoção 100% verde;
+- gateway de mídia real verde;
+- Workers Cache verde;
+- rollback não executado;
+- D1 migrations/auditoria estrutural corretamente puladas por ausência de mudança de schema;
+- Worker promovido: **`ac611817-e85c-4cba-a4a0-87551cbf702f`**, 100% no momento da validação.
+
+Esses IDs são evidência conhecida boa, não substituto de medição atual.
 
 ## Superfície pública
 
 - URL pública canônica: `https://acheguese.com.br/tonecosstudios/`.
-- Origem/preview independente: `https://washingtonmsdj.github.io/catalogo/`.
-- `washingtonmsdj/acheguese` continua dono do domínio `acheguese.com.br`.
-- `washingtonmsdj/catalogo` continua dono do frontend e pipeline do Catálogo.
-- `/catalogo` é rota legada e redireciona para `/tonecosstudios/`.
-- `/tonecosstudios/*` é encaminhado para a origem GitHub Pages do Catálogo.
-- `/catalogo-api/*` é encaminhado para o Worker do Catálogo.
-- no domínio Achegue-se, o frontend usa a API first-party `/catalogo-api`;
-- no GitHub Pages, o preview usa `VITE_API_BASE_URL`.
-- `config/public-runtime.json` é o SSOT versionado da URL pública canônica.
+- Preview independente: `https://washingtonmsdj.github.io/catalogo/`.
+- `/tonecosstudios/*` é a superfície pública do Catálogo dentro do Achegue-se.
+- `/catalogo-api/*` é o boundary first-party usado no domínio Achegue-se.
+- No GitHub Pages, o runtime explícito resolve a API a partir da configuração canônica.
+- `/catalogo` permanece apenas como compatibilidade de rota para `/tonecosstudios/`.
 
-A superfície pública temporária do Achegue-se pode redirecionar páginas de visitante para `/tonecosstudios/`; o aplicativo Achegue-se permanece separado e não deve ser copiado para este repositório.
+O Catálogo não deve copiar o aplicativo Achegue-se nem assumir propriedade de `acheguese.com.br`.
 
-## Cloudflare — recursos canônicos Tonecos
+## Cloudflare — recursos canônicos Tonecos Studio
 
-Conta **Tonecos Studio**:
+- Account ID: `8827c547d6def5ee5b9ca550fdd5680a`.
+- Worker: `tonecos-catalogo-api`.
+- API: `https://tonecos-catalogo-api.tonecosstudio.workers.dev`.
+- D1: `tonecos-catalogo` (`87006366-60f3-4937-af73-2ef5a5f901fb`).
+- R2: `tonecos-catalogo-media`.
+- Turnstile sitekey pública: `0x4AAAAAAFSpOhaAFp6Gsjqd`.
+- `TURNSTILE_SECRET_KEY` é segredo obrigatório e não pertence ao Git.
 
-- Account ID: `8827c547d6def5ee5b9ca550fdd5680a`;
-- Worker: `tonecos-catalogo-api`;
-- API: `https://tonecos-catalogo-api.tonecosstudio.workers.dev`;
-- D1: `tonecos-catalogo` (`87006366-60f3-4937-af73-2ef5a5f901fb`);
-- R2: `tonecos-catalogo-media`;
-- mídia pública: `https://pub-bc7ed3247d8d4391946761221e77e6b9.r2.dev`;
-- Turnstile sitekey: `0x4AAAAAAFSpOhaAFp6Gsjqd`.
+A infraestrutura antiga da conta Washington é somente rollback histórico. Não mover DNS, zona ou recursos de outra conta para facilitar o Catálogo.
 
-O cutover público para Tonecos Studio já foi concluído e validado. Workers/Workflows temporários de migração foram removidos. A infraestrutura antiga da conta Washington continua preservada apenas como rollback e **não deve ser apagada** até o encerramento formal dessa janela.
+## Mídia — arquitetura atual obrigatória
 
-Não mover zona/DNS comercial nem criar domínio alternativo hardcoded apenas para substituir `workers.dev`/`r2.dev`. Domínio customizado é mudança independente, com DNS e rollback próprios.
+A mídia **não possui origem pública separada**.
 
-## Baseline público atual
+- O bucket `tonecos-catalogo-media` permanece privado.
+- O Public Development URL do R2 deve permanecer **desabilitado**.
+- Não existe variável pública separada para origem de mídia.
+- O frontend monta mídia a partir do mesmo `apiBase` usado pela API.
+- O Worker serve objetos por `/media/*` usando o binding privado `MEDIA`.
+- `worker/entry.ts` resolve `/media/*` antes do handler principal da API; leitura de mídia não depende de D1.
+- O gateway preserva metadata HTTP, ETag e Range, rejeita traversal/chaves inválidas e usa cache público explícito.
 
-Baseline medido após a consolidação revisada das galerias legadas:
+O deploy Cloudflare valida o Worker remoto contra o SSOT e também consulta o estado managed do bucket. Se a exposição pública direta do R2 voltar a ser habilitada, o deploy falha **antes de qualquer write**.
 
-- **2.564 modelos publicados**;
-- **2.596 imagens públicas** preservadas nas galerias lógicas;
-- **21 galerias canônicas consolidadas**, agregando logicamente 53 imagens/fichas físicas revisadas;
-- **32 fichas-fonte aposentadas** por relação canônico→fonte, sem DELETE;
-- os **2.564 rows publicados** continuam com `image_count=1` físico; nos 21 canônicos revisados, a API compõe a galeria pública a partir do canônico + fontes relacionadas;
-- 6 categorias;
-- 250 franquias;
-- 1.063 pastas;
-- `model_image_sources`: **2.596/2.596** modelos indexados por SHA;
-- 0 grupos de SHA compartilhado entre modelos;
-- 0 fontes duplicadas em relações de galeria;
-- 0 autorrelações;
-- 0 canônicos aposentados;
-- 0 fontes relacionadas ainda publicadas;
-- `models_fts`: **2.596 rows físicos**; a busca pública continua filtrando `published=1`, portanto fontes aposentadas não reaparecem como cards;
-- `franchises_fts`: 250/250.
+O Pages também deve rejeitar artefato que contenha endpoint público direto de R2.
 
-Os 32 modelos aposentados continuam no D1 como fontes históricas/aliases e sua mídia continua no R2. Não interpretar a redução 2.596→2.564 como exclusão de produto ou perda de imagem.
+## Runtime do frontend — regra fail-closed
 
-Não substituir esses números por expectativa de branch. Eles só mudam depois de mutação real + auditoria.
+A PR #166 tornou o runtime explícito e centralizado. Preservar estas invariantes:
 
-## Gate operacional temporário
+- um único contrato/resolvedor de runtime;
+- modo de execução explícito;
+- preview e superfície Achegue-se resolvidos pelo mesmo SSOT;
+- orçamento e demais consumidores usam o runtime canônico, sem resolvedor próprio;
+- configuração ausente/inválida falha fechado;
+- não criar fallback silencioso para hostname, localhost ou Worker hardcoded;
+- proxy Achegue-se precisa continuar alinhado ao contrato do runtime.
 
-O gate externo de credencial foi **fechado**:
+Qualquer nova superfície deve estender o contrato central; não duplicar lógica de detecção por `window.location`, hostname ou pathname espalhada pela aplicação.
 
-- `CLOUDFLARE_API_TOKEN` está configurado como GitHub Actions Secret e foi provado pelo pipeline real contra Worker, D1 e R2;
-- `TURNSTILE_SECRET_KEY` permanece segredo obrigatório e não é exposto pelo repositório;
-- `CLOUDFLARE_ACCOUNT_ID` aponta para Tonecos Studio;
-- o UUID D1 pertence ao `wrangler.jsonc` e não é Repository Variable concorrente.
+## Deploy Cloudflare
 
-O bloqueio operacional temporário deste checkpoint é outro: a conta D1 Free esgotou o limite diário de **row reads** durante backfill/auditorias. Isso pode fazer endpoints públicos retornarem `D1_ERROR` até o reset de cota e **não deve ser tratado como falha de schema, Worker ou reparo de galeria**.
+Fluxo canônico de `.github/workflows/cloudflare.yml`:
 
-Enquanto a cota estiver saturada:
+1. preflight fail-closed;
+2. detectar mudança real de schema D1;
+3. validar credenciais/configuração;
+4. renderizar configuração de produção;
+5. validar Worker remoto e estado privado do R2 contra o SSOT;
+6. capturar a versão atualmente servindo produção;
+7. validar o bucket R2;
+8. enviar nova versão do Worker sem tráfego;
+9. registrar staged em 0%;
+10. aplicar somente migrations compatíveis quando houver mudança de schema;
+11. executar staged smoke com version override;
+12. promover para 100% somente após staged verde;
+13. validar release público;
+14. validar objeto R2 real por `/media/*`;
+15. exigir Workers Cache `HIT` dentro de janela bounded;
+16. restaurar a versão anterior se smoke staged ou pós-promoção falhar;
+17. executar auditoria D1 somente quando o escopo de schema exigir.
 
-- não repetir deploy, migration, backfill ou reparo apenas para obter um run verde;
-- não criar cache/bypass/gambiarra para esconder o limite;
-- não reaplicar as 32 relações de galeria;
-- após o reset, usar somente a operação read-only `verify-legacy-gallery-repairs` do workflow `Maintain Catalog Data` para fechar o smoke público pendente.
-
-## SSOT de deploy Cloudflare
-
-`wrangler.jsonc` é a autoridade versionada para:
-
-- nome do Worker;
-- binding D1 `DB` e UUID do banco Tonecos;
-- bucket R2 `MEDIA`;
-- `CORS_ORIGINS`;
-- `preview_urls`;
-- contrato de segredo obrigatório.
-
-`tools/render_wrangler_config.mjs` não substitui silenciosamente o D1. Se `CLOUDFLARE_D1_DATABASE_ID` for fornecido em contexto manual, funciona somente como asserção e divergência falha fechado.
-
-O fluxo canônico de `.github/workflows/cloudflare.yml` é:
-
-1. preflight fail-closed de credenciais/configuração;
-2. capturar a versão que está efetivamente servindo 100% antes de qualquer write;
-3. validar R2;
-4. enviar código + `TURNSTILE_SECRET_KEY` juntos com `wrangler versions upload --strict --secrets-file`, sem tráfego;
-5. extrair o Version ID staged do NDJSON oficial do Wrangler;
-6. validar `config/migration-deploy-policy.json`;
-7. aplicar somente migrations expand/backward-compatible ainda pendentes;
-8. criar deployment **versão anterior 100% / versão staged 0%**;
-9. executar staged smoke com `Cloudflare-Workers-Version-Overrides`;
-10. retry do staged smoke é bounded: 5 tentativas, 2 s, somente leitura; nenhuma mutação é repetida;
-11. promover staged para 100% somente após smoke verde;
-12. repetir gates públicos sem override;
-13. falha depois do deployment 100/0 ou após promoção restaura explicitamente `PREVIOUS_WORKER_VERSION_ID`;
-14. a auditoria estrutural pós-release fecha o deploy; manutenção de dados pertence exclusivamente a `.github/workflows/catalog-maintenance.yml`.
-
-`wrangler secret put` é proibido nesse pipeline porque cria uma nova versão e a implanta imediatamente. O segredo é materializado apenas em arquivo efêmero `0600` dentro de `$RUNNER_TEMP`, removido por `trap`.
-
-O CI de PR usa `wrangler versions upload --dry-run --strict --secrets-file` com segredo sintético temporário, exercitando o mesmo binding sem consumir segredo real.
+Mudança apenas de frontend/orquestração que não toca Worker/schema não deve consumir deploy D1/Worker por hábito.
 
 Runbook detalhado: `docs/CLOUDFLARE_DEPLOY.md`.
 
-## Migrations e schema
+## Schema e migrations
 
-Produção medida está aplicada até:
+Produção está aplicada até `0019_model_variant_name.sql`.
 
-- `0001_catalog.sql` … **`0019_model_variant_name.sql`**.
+Regras:
 
-`config/catalog-schema-contract.json` está em **version 3** e o health público validado exige 19 migrations e 30 estruturas físicas verificadas.
+- `config/catalog-schema-contract.json` define estruturas exigidas pelo Worker;
+- migrations novas passam por `config/migration-deploy-policy.json`;
+- nenhuma migration destrutiva é aplicada para destravar deploy;
+- mudança runtime-only não deve provocar leitura/auditoria D1 desnecessária;
+- manutenção de dados pertence a `.github/workflows/catalog-maintenance.yml`, não ao deploy comum.
 
-As migrations 0011–0019 já estão em produção:
+## Identidade de produto e galeria
 
-- `0011_model_gallery_members.sql` — canônico → fontes de galeria;
-- `0012_folder_materialized_counts.sql` — `direct_model_count`/`subtree_model_count`;
-- `0013_model_image_sources.sql` — índice consultável de SHA por imagem/modelo/versão;
-- `0014_gallery_member_integrity.sql` — bloqueia ciclos/cadeias/escopo incompatível;
-- `0015_gallery_publication_invariant.sql` — aposenta fonte no mesmo statement e impede republicação acidental;
-- `0016_public_gallery_revision.sql` — revisão pública monotônica da galeria;
-- `0017_gallery_lifecycle_integrity.sql` — protege lifecycle de canônico/fonte;
-- `0018_gallery_alias_immutability.sql` — protege identidade/alias enquanto a relação existe;
-- `0019_model_variant_name.sql` — variante pública explícita do modelo.
+Regra principal: **modelo não é imagem**.
 
-`config/migration-deploy-policy.json` continua classificando migrations migration-first e bloqueando operações destrutivas. Novas migrations devem avançar pelo workflow de deploy canônico; não aplicar manualmente para contornar gate ou quota.
-
-## Identidade: modelo não é imagem
-
-Regra obrigatória:
-
-- um produto/modelo 3D é a entidade principal;
-- frente, costas, laterais, detalhes e outras vistas do mesmo produto pertencem à galeria do mesmo modelo;
-- produtos diferentes do mesmo personagem continuam modelos distintos;
-- nome do personagem, pasta ou franquia nunca bastam para unir produtos;
-- `modelo_publico` explícito é a maior autoridade de identidade quando presente;
-- novos lotes devem preservar um identificador estável de produto;
-- redução/união automática por heurística é proibida.
-
-O pipeline já protege:
-
-- 1 identidade pública → 1 modelo com N imagens;
-- produtos distintos continuam separados;
+- frente, costas, laterais e detalhes do mesmo produto pertencem à mesma galeria;
+- produtos diferentes do mesmo personagem continuam modelos diferentes;
+- nome, pasta ou franquia não bastam para unir produtos;
+- `modelo_publico` explícito tem maior autoridade quando presente;
 - troca de capa não muda ID/nome/slug;
-- R2/D1 precisam concordar em `imageCount`, `galleryVersion`, manifest e variantes;
-- expansão 1→3 imagens preserva identidade e mantém um único registro D1.
+- R2, manifests e D1 precisam concordar em identidade, `imageCount`, `galleryVersion` e variantes;
+- redução automática de galeria é proibida;
+- similaridade visual gera revisão, não exclusão automática.
 
-## Galerias legadas
+## Galerias legadas já reconciliadas
 
-A dívida revisada foi aplicada de forma não destrutiva:
+`config/catalog-legacy-gallery-overrides.json` continua sendo o registro canônico dos grupos revisados.
 
-- `config/catalog-legacy-gallery-overrides.json` continua sendo o registro canônico dos **21 grupos** revisados;
-- eram 53 slugs/fichas físicas e 32 cards excedentes;
-- foram criadas **32 relações** canônico→fonte;
-- **21 canônicos** permanecem publicados;
-- **32 fontes** foram aposentadas pelas invariantes do banco;
-- **0 DELETEs** foram executados;
-- o preflight SHA verificou 53/53 membros e encontrou 0 SHA duplicado dentro dos grupos;
-- contadores materializados ficaram sem divergência após a aplicação.
+Estado estrutural consolidado conhecido:
 
-`tools/apply_legacy_gallery_repairs.py` continua sendo o único caminho de write autorizado e é idempotente/fail-closed, mas **não deve ser reaplicado** para fechar o smoke deste checkpoint.
+- 21 canônicos preservados;
+- 32 fontes aposentadas por relação canônico→fonte;
+- 32 relações de galeria;
+- nenhuma exclusão destrutiva como mecanismo de consolidação;
+- aliases antigos continuam resolvendo para o canônico;
+- mídia histórica permanece no R2;
+- IDs/slugs aposentados não podem ser reciclados.
 
-A manutenção agora é separada do deploy em `.github/workflows/catalog-maintenance.yml`, manual-only, com uma operação explícita por execução:
+`tools/apply_legacy_gallery_repairs.py` é o único caminho explícito de write para essa família e não deve ser reaplicado sem nova evidência de drift.
 
-- `audit` — somente leitura;
-- `backfill-image-sha` — backfill SHA controlado;
-- `apply-legacy-gallery-repairs` — write explícito para grupos revisados;
-- `verify-legacy-gallery-repairs` — verificação pós-reparo estritamente read-only.
+## Índice SHA e integridade
 
-O apply real concluiu; a única verificação pendente é repetir `verify-legacy-gallery-repairs` após o reset da cota D1. O run anterior falhou no endpoint de imagens exclusivamente por limite diário de row reads, confirmado pela observabilidade Cloudflare.
+`model_image_sources` guarda metadados de auditoria; R2/manifests continuam sendo a fonte da galeria.
 
-### Android 18
+O backfill inicial foi concluído e não deve ser refeito por rotina. Novos backfills processam apenas versões ainda não indexadas e continuam sem baixar binários quando manifests já fornecem SHA suficiente.
 
-O bug de vistas separadas permanece protegido por regressão. A inferência conservadora só remove sufixos reconhecidos de vista e só agrupa quando 2+ imagens da mesma hierarquia resolvem para a mesma família. Qualificadores semânticos como `realista`, `chibi`, `diorama` etc. não são descartados.
+Ferramentas centrais:
 
-No recorte auditado, 17 registros brutos representam 11 produtos reais. A compatibilidade de aliases permanece para URLs/IDs históricos; não recriar cards aposentados.
+- `tools/backfill_image_source_index.py`;
+- `tools/plan_gallery_merge.py`;
+- `tools/resolve_gallery_merge.py`;
+- `tools/build_gallery_promotion_manifest.py`;
+- `tools/verify_gallery_promotion_manifest.py`;
+- `tools/audit_d1_integrity.py`;
+- `tools/verify_public_catalog.py`.
 
-## Referências aposentadas continuam válidas
+## Conteúdo local — checkpoint preservado
 
-Consolidação é mudança de identidade pública, não exclusão destrutiva:
+O catálogo mestre operacional permanece fora do repositório público. Antes de qualquer mutação local, localizar o caminho real no dispositivo e conferir o estado atual; não assumir equivalência entre unidade sincronizada e cópia local.
 
-- slug antigo resolve para o canônico;
-- endpoint de imagens do slug antigo abre a galeria canônica;
-- IDs antigos de Favoritos/Minha lista/orçamento resolvem para o ID canônico;
-- IDs equivalentes são deduplicados antes de criar orçamento/coleção;
-- coleções antigas continuam válidas;
-- fonte aposentada permanece no D1 e mídia permanece no R2;
-- não reciclar ID, slug ou código de uma ficha-fonte aposentada.
+Último checkpoint local conhecido:
 
-`worker/modelAliases.ts` centraliza esse contrato.
-
-## Irmãos numerados e cópias
-
-Números no fim do slug são **evidência de revisão, não duplicata**.
-
-Baseline auditado:
-
-- 49 grupos-base;
-- 114 irmãos numerados;
-- 0 modelos publicados com marcador explícito de cópia e base correspondente;
-- 0 grupos reutilizando o mesmo `image_id` entre fichas públicas diferentes.
-
-`config/catalog-numbered-sibling-review.json` mantém a fila com estados `pending`, `distinct`, `mixed` ou `gallery`. Novo grupo numerado ou mudança silenciosa da lista bloqueia publicação até revisão consciente.
-
-## Continuidade histórica de identidade
-
-`config/catalog-model-identity-aliases.json` registra somente renomes aprovados. Não usar aliases para forçar agrupamentos duvidosos.
-
-- ID técnico e `TS-*` derivam da identidade histórica canônica;
-- `identityKey` preserva o canônico e `sourceIdentityKey` registra o snapshot atual;
-- `media-build-state.json` mantém `identityHistory` por SHA e não poda histórico só porque um produto some temporariamente;
-- reaparecimento do mesmo SHA sob outra identidade sem alias aprovado falha fechado;
-- o preflight de produção repete a prova contra `model_image_sources`.
-
-## Índice SHA no D1
-
-`0013_model_image_sources.sql` materializa somente metadados de auditoria (`model_id`, `image_id`, posição, role, `source_sha256`, `gallery_version`). R2/manifest continuam sendo a fonte canônica da galeria.
-
-O backfill inicial está **concluído**:
-
-- escopo: 2.596 modelos físicos;
-- indexados: **2.596/2.596**;
-- pendentes: 0;
-- colisões SHA exatas entre modelos: 0;
-- binários baixados pelo backfill: 0;
-- deletes destrutivos: 0.
-
-`tools/backfill_image_source_index.py` continua:
-
-- medindo cobertura por padrão;
-- escrevendo somente com `--apply`;
-- lendo apenas manifests JSON, nunca binários;
-- validando model/version/count/capa/IDs/SHA;
-- processando somente versões sem índice;
-- exigindo cobertura total ao concluir.
-
-Novos backfills devem ser disparados somente pela operação `backfill-image-sha` do workflow `Maintain Catalog Data`, quando houver nova versão de modelo sem índice. Não reconstruir SHA lendo binários locais e não rerodar o backfill concluído por rotina.
-
-## Política de imagens
-
-`tools/plan_gallery_merge.py` aplica política não destrutiva:
-
-- SHA igual → não republicar a mesma imagem;
-- vista nova → adicionar à galeria;
-- similaridade perceptual → revisão, nunca exclusão automática;
-- substituir uma vista exige decisão explícita de qualidade;
-- arquivos mestres nunca são apagados;
-- aumento de `imageCount` é permitido quando manifest/version mudam coerentemente;
-- redução é bloqueada por padrão e exige aprovação CSV exata;
-- um `galleryManifestKey` content-addressed nunca pode representar contagem/capa/versão divergentes.
-
-“Modelo já existente” não significa “todas as imagens já existem”. Imagens secundárias da fonte externa ainda precisam de auditoria por produto.
-
-## Checkpoint local — não refazer
-
-O catálogo mestre operacional fica no Google Drive do desktop. Antes de qualquer mutação, confirmar o caminho real no dispositivo; não assumir equivalência entre unidade sincronizada e cópia local.
-
-Checkpoint SHA preservado:
-
-- SHA V4: **3.649 / 3.649**;
+- SHA V4: 3.649 / 3.649;
 - `catalog_complete=true`;
 - 0 caminhos duplicados no cache;
 - 0 hashes inválidos;
-- `Novos`: **56 imagens**;
-- fila final: **40 promoção controlada + 16 quarentena privada**;
-- nenhuma das 16 deve ser apagada.
+- `Novos`: 56 imagens;
+- fila: 40 promoção controlada + 16 quarentena privada;
+- nenhuma das 16 de quarentena deve ser apagada.
 
-O auditor local antigo incluiu material de referência/legado no escopo público e gerou **111 grupos falsos/ambíguos**. A fronteira pública correta agora é `config/public-catalog-roots.json`, carregada por `tools/catalog_scope.py`.
+`config/public-catalog-roots.json` é a fronteira pública canônica. Não voltar a auditar conteúdo privado/referência como catálogo publicável.
 
-Categorias públicas canônicas:
-
-1. Animes & Desenhos
-2. Games
-3. Filmes & Séries
-4. Marvel & DC
-5. Tokusatsu & Cultura Japonesa
-6. Pessoas
-
-Não reiniciar SHA V4 por conveniência. Corrigir o helper local para consumir o SSOT, migrar/revalidar o inventário existente e reutilizar hashes válidos. Reset total só com prova de que migração é impossível.
-
-### Alterações locais já concluídas
-
-Não refazer do zero:
-
-- `catalogo-pastas-publicas.ps1` corrigido para `Resolve-PublicCatalogFile -AllowMissingDirectories` com pasta existente e folha ainda ausente;
-- `testar-integridade-automacao.ps1` ganhou regressão correspondente;
-- último preflight local registrado: **225 checks, 0 falhas críticas, 0 warnings**;
-- `executar-consolidacao-novos.ps1` voltou a avançar em dry-run;
-- 56 itens em `Novos`, todos com decisão preservada;
-- seis destinos com mojibake já possuem caminho físico Unicode correto; não criar árvores duplicadas.
-
-Artefatos a localizar antes de criar alternativa:
-
-- `auditar-sha-catalogo-novos.ps1`;
-- `catalogo-pastas-publicas.ps1`;
-- `testar-integridade-automacao.ps1`;
-- `executar-consolidacao-novos.ps1`;
-- `preparar-fila-revisao-novos-catalogo.ps1`;
-- `verificar-portao-publicacao.ps1`;
-- `planejar-correcao-catalogo-oficial.ps1`;
-- `auditoria-sha-novos-catalogo-state.json`;
-- `auditoria-sha-catalogo-cache.csv`;
-- `auditoria-sha-novos-catalogo.csv`;
-- `fila-revisao-novos-catalogo-resumo.json`;
-- `portao-publicacao-resumo.json`.
-
-O último acesso remoto observado continuava bloqueado pela cota mensal do Desktop Commander. Não reconectar/repetir em loop nem contornar por outro controlador do PC; usar o desktop apenas quando a ferramenta voltar a permitir operações.
-
-## Fonte externa privada — checkpoint
-
-O nome comercial da fonte não deve ser gravado no repositório público; o pipeline permanece neutro.
-
-Inventário previamente confirmado:
-
-- aproximadamente **12.105 imagens**;
-- aproximadamente **1.514 produtos/slugs**;
-- **428 imagens principais** já passaram pela consolidação inicial;
-- classificação V2: **353 modelos já representados + 75 não duplicados**;
-- dentro dos 75, **40 de alta confiança** já foram colocados em `Novos`;
-- esses 40 já constam por SHA em `Novos`; não copiá-los novamente.
-
-Os 353 “já representados” foram deduplicados em nível de modelo, não em nível de galeria. Imagens secundárias ainda precisam ser auditadas para aproveitar vistas e qualidade.
+Não reiniciar SHA V4 por conveniência. Reaproveitar hashes válidos e migrar/revalidar estado existente.
 
 ## Próxima sequência de conteúdo
 
-Depois de fechar o gate de infraestrutura #144, retomar conteúdo nesta ordem:
+Quando houver acesso ao catálogo mestre/local:
 
-1. corrigir o escopo público do auditor local usando `config/public-catalog-roots.json`;
-2. migrar/revalidar o checkpoint SHA reaproveitando cache;
-3. revalidar os 40 de promoção e 16 de quarentena;
-4. auditar a fonte externa **por produto**, com mapa explícito `incoming_model,target_model`;
-5. usar `tools/plan_gallery_merge.py --mapping` e `tools/resolve_gallery_merge.py`;
-6. gerar `gallery-promotions.csv` com `tools/build_gallery_promotion_manifest.py`;
-7. validar com `tools/verify_gallery_promotion_manifest.py`; só `ready=true` libera cópia;
-8. preservar STL/GLB/3MF/OBJ/fontes e nunca apagar mestre antigo por substituição de vista;
-9. gerar bundle/mídia, executar `publish_d1.py --check-production` antes do R2, publicar delta R2 e só então `publish_d1.py --apply`;
-10. validar produção com `verify_public_catalog.py --exhaustive --all-galleries`;
-11. atualizar este checkpoint uma única vez com os totais realmente medidos.
+1. confirmar que helpers locais ainda consomem `config/public-catalog-roots.json`;
+2. revalidar o checkpoint SHA sem reset total;
+3. revalidar 40 itens de promoção e 16 de quarentena;
+4. auditar nova fonte por produto, com mapeamento explícito `incoming_model,target_model`;
+5. usar `tools/plan_gallery_merge.py --mapping` e resolver revisões conscientemente;
+6. gerar e validar manifesto de promoção;
+7. preservar arquivos mestres e nunca apagar fonte antiga por substituição de vista;
+8. gerar bundle/mídia;
+9. executar `publish_d1.py --check-production` antes de writes;
+10. publicar somente delta R2 necessário;
+11. aplicar D1 de forma idempotente;
+12. validar produção com `verify_public_catalog.py --exhaustive --all-galleries`;
+13. atualizar este checkpoint apenas com fatos realmente medidos.
 
 ## O que não fazer
 
 - não recomeçar o catálogo do zero;
-- não reprocessar pastas/imagens concluídas sem motivo técnico;
-- não reiniciar SHA V4 por conveniência;
-- não copiar toda a fonte privada indiscriminadamente;
-- não interpretar “modelo duplicado” como “todas as imagens duplicadas”;
-- não juntar produtos diferentes só por personagem/pasta/nome;
-- não criar árvores paralelas por prefixo `OK -`, sufixo `[N]` ou mojibake;
-- não deletar STL/GLB/3MF/OBJ/fontes;
-- não tocar em fotos pessoais ou processos de outros projetos;
-- não criar fallback Cloudflare, hardcode de credencial ou segredo no Git.
-
-## Arquivos técnicos centrais
-
-- `wrangler.jsonc` — SSOT Worker/D1/R2/CORS;
-- `config/catalog-schema-contract.json` — contrato de schema exigido pelo Worker;
-- `config/migration-deploy-policy.json` — política migration-first;
-- `docs/CLOUDFLARE_DEPLOY.md` — runbook de deploy;
-- `config/public-catalog-roots.json` — raízes públicas canônicas;
-- `tools/catalog_scope.py` — carregamento/validação do escopo;
-- `tools/ingest_catalog.py` — ingestão auditada;
-- `tools/build_media_bundle.py` — variantes/manifest/identidade;
-- `tools/publish_r2.py` — upload incremental de mídia;
-- `tools/publish_d1.py` — preflight + upsert idempotente;
-- `tools/audit_d1_integrity.py` — auditoria estrutural;
-- `tools/verify_public_catalog.py` — gate público;
-- `tools/check_staged_worker_version.mjs` — smoke de versão 0% antes da promoção;
-- `tools/cloudflare_deploy_state.mjs` — captura determinística de versões/deployments;
-- `tools/apply_legacy_gallery_repairs.py` — reparos legados explícitos;
-- `tools/backfill_image_source_index.py` — índice SHA;
-- `config/catalog-legacy-gallery-overrides.json` — grupos legados revisados;
-- `config/catalog-numbered-sibling-review.json` — fila de irmãos numerados;
-- `config/catalog-model-identity-aliases.json` — renomes aprovados;
-- este arquivo — checkpoint operacional.
+- não reprocessar dados concluídos sem evidência técnica;
+- não criar segunda origem de runtime ou mídia;
+- não expor R2 diretamente ao público;
+- não criar fallback de infraestrutura ou credencial hardcoded;
+- não mover domínio de outra conta como atalho;
+- não juntar produtos diferentes só por nome/personagem/pasta;
+- não apagar STL/GLB/3MF/OBJ/fontes;
+- não recriar árvore paralela por mojibake/prefixo/sufixo;
+- não executar manutenção de dados automaticamente junto com mudança sem relação com dados/schema.
 
 ## Regra para futuras sessões
 
 Antes de trabalhar:
 
 1. ler este arquivo;
-2. conferir `main`, PRs abertas e CI atual;
-3. medir produção/local antes de assumir que os totais ainda são os mesmos;
-4. continuar do próximo gate pendente;
-5. atualizar este checkpoint somente após mudança operacional relevante.
+2. conferir estado atual de `main`, PRs/issues e workflows;
+3. medir Cloudflare/produção em vez de assumir que IDs deste checkpoint ainda são atuais;
+4. localizar o próximo problema concreto;
+5. corrigir causa raiz e adicionar gate quando houver risco real de regressão;
+6. atualizar este arquivo somente quando mudar uma decisão operacional relevante.
 
-Sem gambiarras, sem paliativos, sem duplicação de SSOT e sem manter instrução obsoleta “por segurança”. O estado medido e os contratos versionados prevalecem.
+Sem gambiarras, sem paliativos, sem hardcoded concorrente, sem duplicação de SSOT e sem manter instrução obsoleta “por segurança”. O estado medido e os contratos versionados prevalecem.
