@@ -1,0 +1,46 @@
+name: Verify R2 custom domain
+
+on:
+  workflow_dispatch:
+    inputs:
+      require_r2_dev_disabled:
+        description: Require the legacy r2.dev public URL to be disabled
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Install
+        run: npm ci
+      - name: Validate custom R2 domain state
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          VITE_MEDIA_BASE_URL: ${{ vars.VITE_MEDIA_BASE_URL }}
+          REQUIRE_R2_DEV_DISABLED: ${{ inputs.require_r2_dev_disabled && '1' || '0' }}
+        run: node tools/check_r2_public_domain.mjs
+      - name: Smoke public media through configured origin
+        env:
+          VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}
+          VITE_MEDIA_BASE_URL: ${{ vars.VITE_MEDIA_BASE_URL }}
+        run: |
+          set -euo pipefail
+          python tools/verify_public_catalog.py \
+            --api-base "$VITE_API_BASE_URL" \
+            --media-base "$VITE_MEDIA_BASE_URL"
