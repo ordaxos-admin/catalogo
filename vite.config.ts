@@ -43,7 +43,7 @@ function applyBrandTokens(html: string) {
 
 export default defineConfig(({ mode }) => {
   const publicSiteUrl = publicRuntime.publicSiteUrl.replace(/\/?$/, '/')
-  const environment = loadEnv(mode, process.cwd(), '')
+  const environment = loadEnv(mode, '.', '')
   const apiBase = environment.VITE_API_BASE_URL?.trim().replace(/\/$/, '') ?? ''
 
   return {
