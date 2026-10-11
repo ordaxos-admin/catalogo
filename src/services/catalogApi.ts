@@ -69,7 +69,6 @@ type GalleryCacheEntry = {
 }
 
 const configuredApiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
-const mediaBase = (import.meta.env.VITE_MEDIA_BASE_URL as string | undefined)?.replace(/\/$/, '')
 
 function resolveApiBase() {
   if (typeof window !== 'undefined') {
@@ -155,8 +154,8 @@ export async function listCatalogFolders(category: string, franchise: string, pa
 }
 
 function mediaObjectUrl(key: string | null | undefined) {
-  if (!key || !mediaBase) return undefined
-  return `${mediaBase}/${key.split('/').map(encodeURIComponent).join('/')}`
+  if (!key || !apiBase) return undefined
+  return `${apiBase}/${key.split('/').map(encodeURIComponent).join('/')}`
 }
 
 function liveSearchTerm(value?: string) {
