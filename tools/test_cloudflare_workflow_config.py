@@ -42,6 +42,12 @@ class CloudflareWorkflowConfigTests(unittest.TestCase):
         self.assertNotIn("missing+=(CLOUDFLARE_D1_DATABASE_ID)", self.workflow)
         self.assertNotIn("vars.CLOUDFLARE_D1_DATABASE_ID", self.maintenance)
 
+    def test_worker_entrypoint_owns_api_and_private_r2_media(self):
+        self.assertEqual("worker/entry.ts", self.wrangler.get("main"))
+        buckets = self.wrangler.get("r2_buckets")
+        self.assertIsInstance(buckets, list)
+        self.assertEqual([{"binding": "MEDIA", "bucket_name": "tonecos-catalogo-media"}], buckets)
+
     def test_production_cors_contains_only_public_origins(self):
         origins = self.wrangler.get("vars", {}).get("CORS_ORIGINS", "")
         self.assertEqual(
@@ -117,6 +123,16 @@ class CloudflareWorkflowConfigTests(unittest.TestCase):
         self.assertIn("check_promoted_worker_version.mjs", self.workflow)
         self.assertLess(self.workflow.index("Promote staged Worker version"), self.workflow.index(gate))
 
+    def test_public_media_gateway_is_proved_after_promotion_before_cache_gate(self):
+        release_gate = "Verify promoted Worker deployment and full public release"
+        media_gate = "Verify public media gateway after promotion"
+        cache_gate = "Verify Workers Cache hit after promotion"
+        self.assertIn(media_gate, self.workflow)
+        self.assertIn('python tools/verify_public_catalog.py --api-base "$CATALOG_API_URL"', self.workflow)
+        self.assertNotIn("VITE_MEDIA_BASE_URL", self.workflow)
+        self.assertLess(self.workflow.index(release_gate), self.workflow.index(media_gate))
+        self.assertLess(self.workflow.index(media_gate), self.workflow.index(cache_gate))
+
     def test_failed_staged_or_promoted_release_restores_explicit_previous_version(self):
         gate = "Verify promoted Worker deployment and full public release"
         restore_name = "Restore previous Worker after failed staged or production smoke"
@@ -126,6 +142,7 @@ class CloudflareWorkflowConfigTests(unittest.TestCase):
         restore = self.workflow.index(restore_name)
         self.assertLess(self.workflow.index("Smoke staged Worker version before promotion"), restore)
         self.assertLess(self.workflow.index(gate), restore)
+        self.assertLess(self.workflow.index("Verify public media gateway after promotion"), restore)
         self.assertLess(restore, self.workflow.index("Audit D1 structural integrity"))
 
     def test_migration_policy_gate_runs_before_remote_migrations(self):
@@ -159,6 +176,7 @@ class CloudflareWorkflowConfigTests(unittest.TestCase):
             "tools/check_remote_worker_config.mjs",
             "tools/check_staged_worker_version.mjs",
             "tools/check_promoted_worker_version.mjs",
+            "tools/verify_public_catalog.py",
             "tools/check_migration_deploy_policy.py",
             "tools/check_worker_health.mjs",
             "tools/audit_d1_integrity.py",
@@ -239,10 +257,10 @@ class CatalogMaintenanceWorkflowConfigTests(unittest.TestCase):
         self.assertNotIn("verify-legacy-gallery-repairs' }}\n        run: python tools/apply_legacy_gallery_repairs.py --apply", self.workflow)
         self.assertNotIn("verify-legacy-gallery-repairs' }}\n        run: python tools/backfill_image_source_index.py --apply", self.workflow)
 
-    def test_media_url_is_required_only_for_sha_backfill(self):
-        self.assertIn("CATALOG_MEDIA_URL: ${{ vars.VITE_MEDIA_BASE_URL }}", self.workflow)
-        self.assertIn("if [ \"$OPERATION\" = 'backfill-image-sha' ]", self.workflow)
-        self.assertIn("missing+=(VITE_MEDIA_BASE_URL)", self.workflow)
+    def test_media_origin_is_derived_from_canonical_api_without_separate_repository_variable(self):
+        self.assertNotIn("vars.VITE_MEDIA_BASE_URL", self.workflow)
+        self.assertIn('echo "CATALOG_MEDIA_URL=${CATALOG_API_URL%/}" >> "$GITHUB_ENV"', self.workflow)
+        self.assertIn("Validate maintenance credentials and derive media origin", self.workflow)
 
 
 if __name__ == "__main__":
