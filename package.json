@@ -9,7 +9,7 @@
     "brand:source": "python -m unittest -q tools.test_brand_identity",
     "test:known-cache": "node --experimental-strip-types --test tools/test_known_model_cache.mjs",
     "test:main-provenance": "node --test tools/test_main_push_provenance.mjs",
-    "test:catalog-runtime": "node --experimental-strip-types --test tools/test_catalog_runtime_contract.mjs tools/test_catalog_runtime_ssot.mjs",
+    "test:catalog-runtime": "node --experimental-strip-types --test tools/test_catalog_runtime_contract.mjs tools/test_catalog_runtime_ssot.mjs tools/test_demo_catalog_source_contract.mjs",
     "brand:dist": "node tools/check_generated_brand.mjs",
     "budget:frontend": "node tools/check_frontend_budget.mjs",
     "typecheck:worker": "tsc -p tsconfig.worker.json --noEmit",
