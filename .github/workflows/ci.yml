@@ -83,6 +83,17 @@ jobs:
         run: npm run dialog:a11y
       - name: Build frontend
         run: npm run build
+      - name: Verify live artifact excludes demo catalog data
+        run: node tools/check_demo_catalog_artifact.mjs dist absent
+      - name: Build explicit demo artifact
+        env:
+          VITE_CATALOG_MODE: demo
+          DEMO_ARTIFACT_DIR: ${{ runner.temp }}/catalog-demo-artifact
+        run: npx vite build --outDir "$DEMO_ARTIFACT_DIR"
+      - name: Verify explicit demo artifact contains demo catalog data
+        env:
+          DEMO_ARTIFACT_DIR: ${{ runner.temp }}/catalog-demo-artifact
+        run: node tools/check_demo_catalog_artifact.mjs "$DEMO_ARTIFACT_DIR" present
       - name: Check frontend performance budget
         run: npm run budget:frontend
       - name: Typecheck Cloudflare Worker

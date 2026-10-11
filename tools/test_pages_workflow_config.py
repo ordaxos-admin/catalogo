@@ -63,6 +63,15 @@ class PagesWorkflowConfigTests(unittest.TestCase):
         self.assertIn("\\.r2\\.dev", self.workflow)
         self.assertIn("mídia deve sair exclusivamente pelo Worker", self.workflow)
 
+    def test_pages_rejects_demo_catalog_data_from_live_artifact(self):
+        self.assertIn("Verify live artifact excludes demo catalog data", self.workflow)
+        self.assertIn("node tools/check_demo_catalog_artifact.mjs dist absent", self.workflow)
+        build_index = self.workflow.index("- name: Build\n")
+        demo_gate_index = self.workflow.index("Verify live artifact excludes demo catalog data")
+        upload_index = self.workflow.index("- name: Upload artifact")
+        self.assertLess(build_index, demo_gate_index)
+        self.assertLess(demo_gate_index, upload_index)
+
     def test_catalog_uses_first_party_api_proxy_only_through_runtime_ssot(self):
         contract = (self.root / "src" / "config" / "catalogRuntimeContract.ts").read_text(encoding="utf-8")
         runtime = (self.root / "src" / "config" / "catalogRuntime.ts").read_text(encoding="utf-8")
