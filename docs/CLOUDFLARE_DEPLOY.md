@@ -1,6 +1,6 @@
 # Deploy Cloudflare
 
-O Catálogo usa `https://acheguese.com.br/tonecosstudios/` como URL pública canônica. O frontend é publicado no GitHub Pages e montado sob o Achegue-se por reverse proxy. A Cloudflare é responsável pela API, D1, R2 e Turnstile.
+O Catálogo usa `https://acheguese.com.br/tonecosstudios/` como URL pública canônica. O frontend é publicado no GitHub Pages e montado sob o Achegue-se. A Cloudflare é responsável pelo Worker, D1, R2 e Turnstile.
 
 ## Recursos canônicos de produção
 
@@ -9,20 +9,28 @@ Conta: **Tonecos Studio**.
 - Worker: `tonecos-catalogo-api`
 - D1: `tonecos-catalogo`
 - D1 ID: `87006366-60f3-4937-af73-2ef5a5f901fb`
-- R2: `tonecos-catalogo-media`
+- R2 privado: `tonecos-catalogo-media`
 - binding D1: `DB`
 - binding R2: `MEDIA`
+- entrypoint: `worker/entry.ts`
 - segredo obrigatório: `TURNSTILE_SECRET_KEY`
 
-`wrangler.jsonc` é a SSOT versionada para nome do Worker, D1, R2, CORS, compatibility, observability e contrato de segredo. O UUID do D1 é configuração de infraestrutura, não segredo, e não deve ser duplicado como Repository Variable de produção.
+`wrangler.jsonc` é a SSOT versionada para Worker, D1, R2, CORS, compatibility, cache, observability e contrato de segredo. O UUID do D1 é infraestrutura versionada, não segredo.
 
-O CORS de produção contém somente origens públicas autorizadas:
+## Origem pública única
 
-- `https://washingtonmsdj.github.io`
-- `https://acheguese.com.br`
-- `https://www.acheguese.com.br`
+O backend possui uma única origem pública configurável:
 
-`localhost` e `127.0.0.1` não pertencem ao SSOT de produção; desenvolvimento local deve usar configuração de desenvolvimento separada.
+- `VITE_API_BASE_URL`
+
+O mesmo Worker atende:
+
+- `/api/*` — catálogo, busca, galeria e formulários;
+- `/media/*` — objetos do bucket R2 privado pelo binding `MEDIA`.
+
+Não existe `VITE_MEDIA_BASE_URL` como configuração de produção. Não existe dependência pública de `r2.dev`. O build do Pages falha se detectar `r2.dev` no artefato gerado.
+
+A entrypoint `worker/entry.ts` intercepta `/media/*` antes do handler da API. Por isso uma leitura de mídia não consulta D1. O gateway preserva metadata HTTP, ETag e Range, rejeita traversal/chaves inválidas e usa cache público explícito.
 
 ## GitHub
 
@@ -30,7 +38,6 @@ O CORS de produção contém somente origens públicas autorizadas:
 
 - `CLOUDFLARE_ACCOUNT_ID`
 - `VITE_API_BASE_URL`
-- `VITE_MEDIA_BASE_URL`
 - `VITE_TURNSTILE_SITE_KEY`
 
 ### Repository Secrets
@@ -38,7 +45,7 @@ O CORS de produção contém somente origens públicas autorizadas:
 - `CLOUDFLARE_API_TOKEN`
 - `TURNSTILE_SECRET_KEY`
 
-O workflow deriva `CLOUDFLARE_D1_DATABASE_ID` do `wrangler.jsonc` somente para o processo em execução. Esse valor derivado não é outra fonte de verdade.
+O workflow deriva `CLOUDFLARE_D1_DATABASE_ID` do `wrangler.jsonc` somente para o processo em execução. Manutenções que precisam de `CATALOG_MEDIA_URL` derivam o valor de `CATALOG_API_URL`; não existe segunda fonte de verdade.
 
 ## Token Cloudflare
 
@@ -50,169 +57,97 @@ O token de CI deve ser dedicado ao Catálogo, restrito à conta Tonecos e usar o
 
 Não conceder Workers Admin, Workers Routes Write, R2 Write, Billing ou administração de API Tokens apenas por conveniência.
 
+## CORS
+
+As origens de produção ficam no `wrangler.jsonc`:
+
+- `https://washingtonmsdj.github.io`
+- `https://acheguese.com.br`
+- `https://www.acheguese.com.br`
+
+`localhost` e `127.0.0.1` não pertencem ao SSOT de produção.
+
 ## Gate de drift remoto
 
-Antes de qualquer write no Worker, `tools/check_remote_worker_config.mjs` consulta a configuração remota da Cloudflare e compara somente propriedades que existem e são semanticamente gerenciadas pelo SSOT:
+Antes de qualquer write no Worker, `tools/check_remote_worker_config.mjs` compara o remoto com o SSOT versionado, incluindo compatibility, observability, bindings, CORS, D1, R2 e secret binding. Divergência falha fechado antes do upload.
 
-- `compatibility_date`;
-- `compatibility_flags`;
-- `observability.enabled`;
-- conjunto exato de bindings esperados;
-- `CORS_ORIGINS`;
-- ID físico do D1;
-- bucket R2;
-- presença do binding secreto `TURNSTILE_SECRET_KEY`.
-
-Qualquer divergência falha fechado antes do upload.
-
-### Por que o upload remoto não usa `wrangler --strict`
-
-No primeiro deploy automatizado pós-cutover, Wrangler `4.147.0` bloqueou `versions upload --strict` embora os recursos físicos estivessem corretos. A comparação remota tratou metadados locais do binding D1 — como `database_name` e `migrations_dir` — como conflito, embora esses campos não façam parte do binding remoto retornado pela API. O mesmo run também revelou `localhost` no CORS local de produção, que foi removido do SSOT.
-
-Não removemos a proteção contra drift. O `--strict` remoto foi substituído pelo gate semântico acima, que compara explicitamente o estado que a Cloudflare realmente persiste. Isso evita tanto falso positivo quanto upload sobre drift real.
-
-O CI de PR **continua** executando:
-
-```text
-wrangler versions upload --dry-run --strict --secrets-file <segredo-sintetico>
-```
-
-Esse dry-run valida localmente schema/configuração, empacotamento e secret binding sem acessar ou alterar produção.
+O CI de PR continua executando dry-run estrito do Wrangler com segredo sintético. O deploy remoto usa o gate semântico porque metadados locais de bindings não são equivalentes ao payload persistido pela API Cloudflare.
 
 ## Fluxo de produção
 
 `Deploy Cloudflare API` é fail-closed. A ordem é obrigatória:
 
-1. preflight de `CLOUDFLARE_ACCOUNT_ID`, `CLOUDFLARE_API_TOKEN`, `TURNSTILE_SECRET_KEY` e `VITE_API_BASE_URL`;
+1. validar Account ID, token, Turnstile e `VITE_API_BASE_URL`;
 2. typecheck do Worker;
-3. derivação do D1 ID canônico e render da configuração de deploy;
-4. gate semântico contra a configuração remota do Worker;
-5. captura do Version ID que está efetivamente servindo 100% do tráfego;
-6. validação read-only do bucket R2;
-7. criação de arquivo efêmero `0600` em `$RUNNER_TEMP` com `TURNSTILE_SECRET_KEY`, removido por `trap`;
-8. `wrangler versions upload --secrets-file`, criando uma versão sem tráfego;
-9. captura do Version ID staged pelo output NDJSON oficial do Wrangler;
-10. gate `tools/check_migration_deploy_policy.py`;
-11. aplicação somente das migrations D1 ainda pendentes;
-12. deployment explícito `previous@100% + staged@0%`;
-13. smoke completo da versão staged via `Cloudflare-Workers-Version-Overrides`;
-14. retry bounded do smoke staged enquanto o deployment 0% propaga; nenhuma mutação é repetida;
-15. promoção explícita de `staged@100%`;
-16. confirmação bounded, via API Cloudflare, de que o deployment ativo é exatamente o Version ID staged em 100%;
-17. retry bounded do **contrato público completo** sem override: health/schema, categorias, recentes, galeria e shared collections precisam convergir juntos;
-18. se qualquer gate falhar depois do deployment 100/0 e antes de concluir o contrato público, `wrangler rollback <PREVIOUS_WORKER_VERSION_ID>`;
-19. somente depois do Worker público saudável: auditoria D1 e manutenções opcionais.
+3. derivar D1 ID e renderizar a configuração de deploy;
+4. validar drift remoto;
+5. capturar o Version ID que serve 100% do tráfego;
+6. validar o bucket R2 read-only;
+7. criar uma versão staged sem tráfego, com código + secret juntos;
+8. validar política migration-first;
+9. aplicar migrations D1 somente quando o diff realmente altera schema;
+10. registrar `previous@100% + staged@0%`;
+11. executar smoke completo da versão staged por Version Override;
+12. promover `staged@100%`;
+13. confirmar bounded que o plano de controle aponta exatamente para a versão staged e que o contrato público convergiu;
+14. **provar um objeto de mídia real em `/media/<storage-key>` pela mesma origem do Worker**;
+15. provar `Workers Cache` com HIT real dentro da janela bounded;
+16. se qualquer gate pós-stage falhar, executar rollback explícito para `PREVIOUS_WORKER_VERSION_ID`;
+17. executar auditoria D1 somente quando o escopo de schema exigir.
 
-A versão anterior continua atendendo usuários durante o staged smoke. A versão nova recebe 0% de tráfego normal até passar pelos gates.
+Upload, migrations, deployment, promoção e rollback não são repetidos automaticamente. Retry bounded existe apenas para verificações read-only.
 
-## Contrato único de release
+## Contrato de release
 
-`tools/worker_release_smoke.mjs` é a autoridade do smoke de release e valida em conjunto:
+`tools/worker_release_smoke.mjs` valida o pacote de API:
 
-- `/api/health` com schema contract;
+- `/api/health` + schema contract;
 - `/api/categories`;
 - `/api/recent`;
-- `/api/catalog` + endpoint de imagens/galeria;
-- shared collections com contrato 404 esperado para um ID inexistente.
+- `/api/catalog` + galeria;
+- shared collections.
 
-O mesmo contrato é usado em dois contextos:
-
-- **staged**: com Version Override apontando explicitamente para a versão nova em 0%;
-- **promovido**: sem override, depois que o plano de controle já reporta a versão nova em 100%.
-
-Isso evita divergência entre “o que testamos antes” e “o que aceitamos depois” e elimina uma sequência de probes independentes que poderia misturar respostas de edges em estados diferentes.
-
-## Retry bounded: somente leitura
-
-`tools/bounded_retry.mjs` centraliza a política de retry. Ela é usada apenas em verificações read-only:
-
-- smoke staged completo por Version Override;
-- confirmação do Version ID ativo após promoção;
-- smoke público completo após promoção.
-
-Upload, migrations, criação de deployment, promoção, rollback e qualquer outra mutação **não** são repetidos automaticamente.
-
-Os rollouts reais de 2026-10-10 mostraram por que o gate precisa cobrir o contrato inteiro:
-
-1. logo após uma promoção, `/api/health` ainda respondeu pelo contrato antigo em alguns edges;
-2. depois que health, categorias e recentes já tinham convergido, um request seguinte de `/api/catalog?limit=1` ainda respondeu sem `gallery_version`, embora a mesma versão staged já tivesse passado o contrato de galeria por Version Override.
-
-Nos dois casos o rollback explícito funcionou. Portanto a correção não adiciona `sleep` cego nem retry isolado por rota: ela repete, por janela limitada e somente leitura, o **pacote completo de release** até todos os contratos responderem coerentemente.
-
-## Segredo Turnstile
-
-`wrangler secret put` é proibido no pipeline. Esse comando cria uma versão e pode implantá-la imediatamente, antecipando uma mutação antes dos gates.
-
-Código + `TURNSTILE_SECRET_KEY` entram juntos na versão staged através de `--secrets-file`. O arquivo efêmero nunca é artifact, commit ou output do workflow.
-
-## Migration-first
-
-O schema D1 pode avançar antes da promoção do Worker somente enquanto as migrations pendentes forem **expand/backward-compatible**.
-
-- `config/catalog-schema-contract.json` define as migrations exigidas pelo Worker;
-- `config/migration-deploy-policy.json` define a estratégia permitida;
-- `tools/check_migration_deploy_policy.py` exige cobertura exata e rejeita padrões destrutivos no fluxo migration-first.
-
-Rollback restaura o Worker, não o D1. Por isso uma migration destrutiva futura exige estratégia própria; não pode ser incluída silenciosamente neste pipeline.
-
-## Staged smoke e rollback
-
-Version Override só pode selecionar versões que pertencem ao deployment atual. Por isso o workflow registra primeiro `previous@100% + staged@0%` e só então envia o header de override.
-
-O checker staged exige o mesmo contrato completo que será usado depois da promoção. Se o override for ignorado e a versão antiga responder, o gate falha em vez de aceitar um falso-verde.
-
-Após a promoção, `tools/check_promoted_worker_version.mjs` combina duas provas independentes:
-
-1. o plano de controle da Cloudflare precisa reportar o Version ID staged como deployment ativo em 100%;
-2. `tools/worker_release_smoke.mjs` precisa passar integralmente sem override dentro da janela bounded.
-
-O staged smoke já prova diretamente a versão específica via override. Não é necessário adicionar binding de version metadata apenas para observabilidade de deploy; o runtime permanece enxuto e o plano de controle continua sendo a autoridade da promoção.
-
-O rollback usa sempre o Version ID capturado antes de qualquer write. Não usa “versão anterior por ordem de upload”, pois upload recente não implica que aquela versão era a que atendia produção.
-
-## R2 e conteúdo
-
-O workflow de deploy do Worker só precisa de leitura do bucket para provar que o recurso canônico existe. Publicação de mídia é outro pipeline e não é motivo para conceder R2 Write ao token do deploy da API.
-
-## Frontend e proxy público
-
-- `/tonecosstudios/*` → origem GitHub Pages do Catálogo;
-- `/catalogo-api/*` → Worker do Catálogo na Tonecos;
-- no domínio Achegue-se a API é first-party;
-- no GitHub Pages o preview usa `VITE_API_BASE_URL`.
-
-O frontend recebe no build apenas valores públicos:
-
-- `VITE_API_BASE_URL`
-- `VITE_MEDIA_BASE_URL`
-- `VITE_TURNSTILE_SITE_KEY`
-
-O secret Turnstile nunca vai para o navegador.
-
-## Verificação pública
+`tools/verify_public_catalog.py` valida o contrato público API + mídia. Em produção a mídia usa a própria `api-base`; `--media-base` existe apenas como override diagnóstico/teste isolado.
 
 Smoke rápido:
 
 ```powershell
-python tools/verify_public_catalog.py --api-base https://<worker> --media-base https://<origem-publica-r2>
+python tools/verify_public_catalog.py --api-base https://<worker>
 ```
 
 Auditoria completa:
 
 ```powershell
-python tools/verify_public_catalog.py --api-base https://<worker> --media-base https://<origem-publica-r2> --exhaustive
+python tools/verify_public_catalog.py --api-base https://<worker> --exhaustive --all-galleries
 ```
 
-Após integração de galerias, validar todas as galerias multi-imagem:
+## Workers Cache
 
-```powershell
-python tools/verify_public_catalog.py --api-base https://<worker> --media-base https://<origem-publica-r2> --exhaustive --all-galleries
-```
+O gate de cache exige `CF-Cache-Status: HIT` real. Como uma nova Worker Version começa com cache frio, o verificador aceita somente `MISS` transitório em uma janela limitada; `BYPASS`, `DYNAMIC`, ausência do header ou erro HTTP falham imediatamente. Isso evita tanto falso rollback quanto falso verde.
+
+## R2 e conteúdo
+
+O R2 é storage canônico, não endpoint público. O deploy da API só precisa de leitura do bucket. Publicação/mutação de mídia pertence ao pipeline de dados e não é motivo para conceder R2 Write ao token do Worker deploy.
+
+O endpoint `/media/*` aceita apenas chaves sob o prefixo `media/`; traversal, segmentos vazios, backslashes, NUL e chaves excessivas são rejeitados. As respostas preservam `Content-Type`/metadata, ETag e Range e incluem cache explícito.
+
+Depois que o gateway está validado em produção, a Public Development URL `r2.dev` deve permanecer desabilitada. Reativá-la recria uma segunda origem pública e viola o contrato arquitetural.
+
+## Frontend e proxy público
+
+- `/tonecosstudios/*` → origem do frontend do Catálogo;
+- `/catalogo-api/*` → Worker do Catálogo na Tonecos;
+- no domínio Achegue-se a API é first-party;
+- no GitHub Pages o preview usa `VITE_API_BASE_URL` diretamente;
+- mídia segue a mesma origem lógica do backend, nunca um endpoint R2 paralelo.
+
+O frontend recebe somente valores públicos. O Turnstile secret nunca vai para o navegador.
 
 ## Segurança
 
 - Segredos ficam somente em GitHub Secrets/Cloudflare.
 - Nunca colocar token Cloudflare, Turnstile secret ou credencial em Git, chat, `.env.example` ou `wrangler.jsonc`.
 - Não criar fallback de autenticação.
-- Não enfraquecer gates para “fazer o deploy passar”.
-- Divergência entre dashboard e SSOT deve ser reconciliada conscientemente; não deve ser ocultada por upload forçado.
+- Não enfraquecer gates para fazer deploy passar.
+- Divergência entre dashboard e SSOT deve ser reconciliada conscientemente.
+- Não reintroduzir `VITE_MEDIA_BASE_URL`, `r2.dev` ou custom domain R2 como segunda origem de mídia sem uma decisão arquitetural explícita.
