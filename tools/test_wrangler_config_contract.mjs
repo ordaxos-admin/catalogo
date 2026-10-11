@@ -18,6 +18,11 @@ test('repository wrangler config declares the required production secret', async
   assert.deepEqual(config.secrets?.required, ['TURNSTILE_SECRET_KEY'])
 })
 
+test('repository wrangler config enables Workers Cache for cacheable public GETs', async () => {
+  const config = await loadWranglerConfig()
+  assert.deepEqual(config.cache, { enabled: true })
+})
+
 test('canonical D1 binding rejects missing, duplicate and placeholder ids', () => {
   assert.throws(() => canonicalD1DatabaseId({}), /must declare d1_databases/)
   assert.throws(

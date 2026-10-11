@@ -18,6 +18,7 @@ on:
       - 'tools/check_remote_worker_config.mjs'
       - 'tools/check_staged_worker_version.mjs'
       - 'tools/check_promoted_worker_version.mjs'
+      - 'tools/check_worker_cache_hit.mjs'
       - 'tools/check_migration_deploy_policy.py'
       - 'tools/check_worker_health.mjs'
       - 'tools/audit_d1_integrity.py'
@@ -195,6 +196,8 @@ jobs:
           --config .wrangler.deploy.jsonc
       - name: Verify promoted Worker deployment and full public release
         run: node tools/check_promoted_worker_version.mjs "$CATALOG_API_URL" "$STAGED_WORKER_VERSION_ID"
+      - name: Verify Workers Cache hit after promotion
+        run: node tools/check_worker_cache_hit.mjs "$CATALOG_API_URL"
       - name: Restore previous Worker after failed staged or production smoke
         if: ${{ failure() && steps.stage_deployment.outcome == 'success' }}
         run: >-

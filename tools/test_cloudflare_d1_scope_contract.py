@@ -46,6 +46,18 @@ class CloudflareD1ScopeContractTests(unittest.TestCase):
         self.assertNotIn("steps.d1_scope.outputs.run_d1_schema", block)
         self.assertIn("check_promoted_worker_version.mjs", block)
 
+    def test_cache_hit_proof_runs_inside_rollback_window(self):
+        release_gate = "Verify promoted Worker deployment and full public release"
+        cache_gate = "Verify Workers Cache hit after promotion"
+        restore = "Restore previous Worker after failed staged or production smoke"
+
+        self.assertIn(cache_gate, self.workflow)
+        cache_block = step_block(self.workflow, cache_gate)
+        self.assertIn("check_worker_cache_hit.mjs", cache_block)
+        self.assertGreaterEqual(self.workflow.count("tools/check_worker_cache_hit.mjs"), 2)
+        self.assertLess(self.workflow.index(release_gate), self.workflow.index(cache_gate))
+        self.assertLess(self.workflow.index(cache_gate), self.workflow.index(restore))
+
 
 if __name__ == "__main__":
     unittest.main()

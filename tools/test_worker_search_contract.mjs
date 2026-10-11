@@ -11,6 +11,21 @@ function section(startMarker, endMarker) {
   return worker.slice(start, end)
 }
 
+test('Worker responses are no-store by default and require explicit cache opt-in', () => {
+  const body = section('function json(', 'function options')
+
+  assert.match(body, /cacheControl = 'no-store'/)
+  assert.match(body, /headers\.set\('cache-control', cacheControl\)/)
+})
+
+test('public catalog reads opt into bounded edge caching', () => {
+  const catalog = section('async function listCatalog', 'async function listRecentCatalog')
+  const recent = section('async function listRecentCatalog', 'async function getModel')
+
+  assert.match(catalog, /'public, max-age=30, s-maxage=120'/)
+  assert.match(recent, /'public, max-age=30, s-maxage=120'/)
+})
+
 test('catalog search never returns unpublished model rows from FTS', () => {
   const body = section('async function listCatalog', 'async function listRecentCatalog')
 

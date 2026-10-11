@@ -24,8 +24,8 @@ jobs:
           node-version: 22
       - name: Install frontend and tooling
         run: npm ci
-      - name: Audit runtime dependencies
-        run: npm audit --omit=dev --audit-level=high
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
       - name: Test bounded browser metadata cache
         run: npm run test:known-cache
       - name: Test canonical Wrangler config
@@ -34,6 +34,8 @@ jobs:
         run: npm run test:cloudflare-deploy-state
       - name: Test canonical Worker release smoke
         run: npm run test:worker-release-smoke
+      - name: Test Workers Cache hit verifier
+        run: node --test tools/test_worker_cache_hit.mjs
       - name: Test promoted Worker propagation contract
         run: npm run test:promoted-worker
       - name: Test semantic Cloudflare drift gate
