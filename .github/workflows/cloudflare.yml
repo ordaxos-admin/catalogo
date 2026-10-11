@@ -8,7 +8,6 @@ on:
       - 'worker/**'
       - 'migrations/**'
       - 'wrangler.jsonc'
-      - 'package.json'
       - 'tools/render_wrangler_config.mjs'
       - 'tools/wrangler_config_contract.mjs'
       - 'tools/read_wrangler_d1_id.mjs'
