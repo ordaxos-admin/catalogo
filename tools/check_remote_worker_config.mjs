@@ -12,6 +12,10 @@ function bindingByName(bindings, name) {
   return matches[0]
 }
 
+function cloudflareApiError(payload) {
+  return payload?.errors?.map((error) => `${error.code ?? 'unknown'}:${error.message ?? 'unknown error'}`).join(', ')
+}
+
 export function expectedRemoteWorkerConfig(config) {
   const workerName = canonicalWorkerName(config)
   const d1Id = canonicalD1DatabaseId(config)
@@ -83,6 +87,15 @@ export function assertRemoteWorkerConfig(expected, remote) {
   }
 }
 
+export function assertManagedR2PrivateAccess(remote) {
+  if (!remote || typeof remote !== 'object' || typeof remote.enabled !== 'boolean') {
+    throw new Error('Cloudflare R2 managed-domain response is invalid')
+  }
+  if (remote.enabled !== false) {
+    throw new Error(`Remote R2 public development access drift: expected enabled=false, found enabled=${remote.enabled}`)
+  }
+}
+
 export async function fetchRemoteWorkerSettings({ accountId, apiToken, workerName, fetchImpl = fetch }) {
   if (!accountId) throw new Error('CLOUDFLARE_ACCOUNT_ID is required')
   if (!apiToken) throw new Error('CLOUDFLARE_API_TOKEN is required')
@@ -91,8 +104,24 @@ export async function fetchRemoteWorkerSettings({ accountId, apiToken, workerNam
   })
   const payload = await response.json().catch(() => null)
   if (!response.ok || !payload?.success || !payload?.result) {
-    const detail = payload?.errors?.map((error) => `${error.code ?? 'unknown'}:${error.message ?? 'unknown error'}`).join(', ')
+    const detail = cloudflareApiError(payload)
     throw new Error(`Unable to read remote Worker settings (${response.status})${detail ? `: ${detail}` : ''}`)
+  }
+  return payload.result
+}
+
+export async function fetchRemoteR2ManagedDomain({ accountId, apiToken, bucketName, fetchImpl = fetch }) {
+  if (!accountId) throw new Error('CLOUDFLARE_ACCOUNT_ID is required')
+  if (!apiToken) throw new Error('CLOUDFLARE_API_TOKEN is required')
+  if (!bucketName) throw new Error('R2 bucket name is required')
+  const response = await fetchImpl(
+    `https://api.cloudflare.com/client/v4/accounts/${accountId}/r2/buckets/${encodeURIComponent(bucketName)}/domains/managed`,
+    { headers: { Authorization: `Bearer ${apiToken}` } },
+  )
+  const payload = await response.json().catch(() => null)
+  if (!response.ok || !payload?.success || !payload?.result) {
+    const detail = cloudflareApiError(payload)
+    throw new Error(`Unable to read remote R2 managed-domain state (${response.status})${detail ? `: ${detail}` : ''}`)
   }
   return payload.result
 }
@@ -100,13 +129,17 @@ export async function fetchRemoteWorkerSettings({ accountId, apiToken, workerNam
 async function main() {
   const config = await loadWranglerConfig()
   const expected = expectedRemoteWorkerConfig(config)
-  const remote = await fetchRemoteWorkerSettings({
-    accountId: process.env.CLOUDFLARE_ACCOUNT_ID,
-    apiToken: process.env.CLOUDFLARE_API_TOKEN,
-    workerName: expected.workerName,
-  })
-  assertRemoteWorkerConfig(expected, remote)
-  console.log(`Remote Worker config matches canonical SSOT for ${expected.workerName}`)
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN
+
+  const [remoteWorker, remoteR2] = await Promise.all([
+    fetchRemoteWorkerSettings({ accountId, apiToken, workerName: expected.workerName }),
+    fetchRemoteR2ManagedDomain({ accountId, apiToken, bucketName: expected.r2Bucket }),
+  ])
+
+  assertRemoteWorkerConfig(expected, remoteWorker)
+  assertManagedR2PrivateAccess(remoteR2)
+  console.log(`Remote Worker config and private R2 access match canonical SSOT for ${expected.workerName}`)
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
