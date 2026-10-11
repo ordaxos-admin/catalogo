@@ -1,6 +1,8 @@
 import type { CatalogCategory, CatalogModel } from '../types/catalog'
 
-export const categories: CatalogCategory[] = [
+const demoEnabled = import.meta.env.VITE_CATALOG_MODE === 'demo'
+
+const demoCategories: CatalogCategory[] = [
   { id: 'all', label: 'Todos', count: 100234 },
   { id: 'games', label: 'Games', count: 18542 },
   { id: 'anime', label: 'Animes & Desenhos', count: 15871 },
@@ -22,7 +24,7 @@ const makeImages = (prefix: string, count: number, base: number) =>
     qualityScore: Math.max(50, 100 - index),
   }))
 
-export const models: CatalogModel[] = [
+const demoModels: CatalogModel[] = [
   {
     id: 'mdl-000001', slug: 'sentinela-rubra', code: 'TS-000001', name: 'Sentinela Rubra',
     variantName: '',
@@ -104,3 +106,6 @@ export const models: CatalogModel[] = [
     images: makeImages('sereia-do-abismo', 10, 3200000),
   },
 ]
+
+export const categories: CatalogCategory[] = demoEnabled ? demoCategories : []
+export const models: CatalogModel[] = demoEnabled ? demoModels : []
