@@ -3,7 +3,9 @@
 
 The default mode is intentionally fast and read-only: it verifies API health,
 requires a published catalog row, and proves that the model's cover object is
-served by the configured public media origin.
+served by the canonical Worker media gateway. An explicit media base remains
+available only for isolated diagnostics/tests; production derives media from
+the API origin.
 
 The optional exhaustive mode walks every public catalog page and validates
 identity uniqueness, required media metadata, image counts, pagination safety,
@@ -61,11 +63,11 @@ def public_media_url(media_base: str, storage_key: str) -> str:
 
 def verify_public_catalog(
     api_base: str,
-    media_base: str,
+    media_base: str | None = None,
     opener: Callable = urllib.request.urlopen,
 ) -> dict[str, Any]:
     api_base = normalize_base(api_base, "API base")
-    media_base = normalize_base(media_base, "media base")
+    media_base = normalize_base(media_base or api_base, "media base")
 
     health_request = urllib.request.Request(
         f"{api_base}/api/health",
@@ -116,6 +118,7 @@ def verify_public_catalog(
         "modelId": first.get("id"),
         "slug": first.get("slug"),
         "coverStorageKey": cover_key,
+        "mediaUrl": image_url,
         "mediaStatus": status,
         "mediaContentType": content_type,
     }
@@ -443,9 +446,9 @@ def configured_value(cli_value: str | None, *env_names: str) -> str:
 
 
 def main() -> int:
-    parser = argparse.ArgumentParser(description="Valida o catálogo público e sua mídia.")
-    parser.add_argument("--api-base", help="origem pública da API")
-    parser.add_argument("--media-base", help="origem pública/CDN da mídia")
+    parser = argparse.ArgumentParser(description="Valida o catálogo público e sua mídia pelo Worker.")
+    parser.add_argument("--api-base", help="origem pública canônica da API e mídia")
+    parser.add_argument("--media-base", help="override diagnóstico da origem da mídia; produção usa --api-base")
     parser.add_argument(
         "--exhaustive",
         action="store_true",
@@ -465,11 +468,11 @@ def main() -> int:
     args = parser.parse_args()
 
     api_base = configured_value(args.api_base, "CATALOG_API_URL", "VITE_API_BASE_URL")
-    media_base = configured_value(args.media_base, "CATALOG_MEDIA_URL", "VITE_MEDIA_BASE_URL")
-    if not api_base or not media_base:
-        print("ERRO: --api-base/--media-base ou variáveis equivalentes são obrigatórias", file=sys.stderr)
+    media_base = configured_value(args.media_base, "CATALOG_MEDIA_URL") or api_base
+    if not api_base:
+        print("ERRO: --api-base ou variável equivalente é obrigatória", file=sys.stderr)
         return 2
-    if (args.gallery_sample < 0):
+    if args.gallery_sample < 0:
         print("ERRO: --gallery-sample não pode ser negativo", file=sys.stderr)
         return 2
     if (args.gallery_sample and not args.exhaustive) or (args.all_galleries and not args.exhaustive):

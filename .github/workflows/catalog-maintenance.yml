@@ -29,7 +29,6 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CATALOG_API_URL: ${{ vars.VITE_API_BASE_URL }}
-      CATALOG_MEDIA_URL: ${{ vars.VITE_MEDIA_BASE_URL }}
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -43,23 +42,19 @@ jobs:
           python-version: '3.13'
       - name: Install
         run: npm ci
-      - name: Validate maintenance credentials
+      - name: Validate maintenance credentials and derive media origin
         shell: bash
-        env:
-          OPERATION: ${{ inputs.operation }}
         run: |
           set -euo pipefail
           missing=()
           [ -n "$CLOUDFLARE_ACCOUNT_ID" ] || missing+=(CLOUDFLARE_ACCOUNT_ID)
           [ -n "$CLOUDFLARE_API_TOKEN" ] || missing+=(CLOUDFLARE_API_TOKEN)
           [ -n "$CATALOG_API_URL" ] || missing+=(VITE_API_BASE_URL)
-          if [ "$OPERATION" = 'backfill-image-sha' ] && [ -z "$CATALOG_MEDIA_URL" ]; then
-            missing+=(VITE_MEDIA_BASE_URL)
-          fi
           if [ "${#missing[@]}" -gt 0 ]; then
             echo "::error::Manutenção do Catálogo bloqueada: faltam credenciais/configurações: ${missing[*]}"
             exit 1
           fi
+          echo "CATALOG_MEDIA_URL=${CATALOG_API_URL%/}" >> "$GITHUB_ENV"
       - name: Export canonical D1 binding
         shell: bash
         run: |

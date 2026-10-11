@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import brand from './config/brand.json'
 import publicRuntime from './config/public-runtime.json'
@@ -41,11 +41,16 @@ function applyBrandTokens(html: string) {
     .replaceAll('__CATALOG_PAGE_TITLE__', catalogPageTitle)
 }
 
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
   const publicSiteUrl = publicRuntime.publicSiteUrl.replace(/\/?$/, '/')
+  const environment = loadEnv(mode, '.', '')
+  const apiBase = environment.VITE_API_BASE_URL?.trim().replace(/\/$/, '') ?? ''
 
   return {
     base: './',
+    define: {
+      'import.meta.env.VITE_MEDIA_BASE_URL': JSON.stringify(apiBase),
+    },
     plugins: [
       react(),
       {

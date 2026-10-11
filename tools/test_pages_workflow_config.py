@@ -10,11 +10,11 @@ class PagesWorkflowConfigTests(unittest.TestCase):
     def test_runtime_secrets_and_endpoints_use_repository_variables(self):
         required = [
             "VITE_API_BASE_URL: ${{ vars.VITE_API_BASE_URL }}",
-            "VITE_MEDIA_BASE_URL: ${{ vars.VITE_MEDIA_BASE_URL }}",
             "VITE_TURNSTILE_SITE_KEY: ${{ vars.VITE_TURNSTILE_SITE_KEY }}",
         ]
         for entry in required:
             self.assertIn(entry, self.workflow)
+        self.assertNotIn("VITE_MEDIA_BASE_URL: ${{ vars.VITE_MEDIA_BASE_URL }}", self.workflow)
         self.assertNotIn("VITE_PUBLIC_SITE_URL: ${{ vars.VITE_PUBLIC_SITE_URL }}", self.workflow)
 
     def test_public_site_url_comes_from_versioned_ssot(self):
@@ -60,6 +60,11 @@ class PagesWorkflowConfigTests(unittest.TestCase):
         self.assertIn("Missing required Repository Variables", self.workflow)
         self.assertIn("exit 1", self.workflow)
 
+    def test_pages_rejects_any_legacy_r2_dev_endpoint_from_build(self):
+        self.assertIn("Reject legacy public R2 endpoint from generated frontend", self.workflow)
+        self.assertIn("\\.r2\\.dev", self.workflow)
+        self.assertIn("mídia deve sair exclusivamente pelo Worker", self.workflow)
+
     def test_catalog_uses_first_party_api_proxy_only_on_acheguese_domain(self):
         root = Path(__file__).resolve().parents[1]
         source = (root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
@@ -67,6 +72,13 @@ class PagesWorkflowConfigTests(unittest.TestCase):
         self.assertIn("hostname === 'www.acheguese.com.br'", source)
         self.assertIn("${window.location.origin}/catalogo-api", source)
         self.assertIn("return configuredApiBase", source)
+
+    def test_media_build_alias_is_derived_only_from_api_base(self):
+        root = Path(__file__).resolve().parents[1]
+        vite = (root / "vite.config.ts").read_text(encoding="utf-8")
+        self.assertIn("environment.VITE_API_BASE_URL", vite)
+        self.assertIn("'import.meta.env.VITE_MEDIA_BASE_URL': JSON.stringify(apiBase)", vite)
+        self.assertNotIn("environment.VITE_MEDIA_BASE_URL", vite)
 
     def test_published_brand_assets_are_validated_from_ssot(self):
         required = [

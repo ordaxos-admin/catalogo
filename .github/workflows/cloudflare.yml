@@ -19,6 +19,7 @@ on:
       - 'tools/check_staged_worker_version.mjs'
       - 'tools/check_promoted_worker_version.mjs'
       - 'tools/check_worker_cache_hit.mjs'
+      - 'tools/verify_public_catalog.py'
       - 'tools/check_migration_deploy_policy.py'
       - 'tools/check_worker_health.mjs'
       - 'tools/audit_d1_integrity.py'
@@ -74,7 +75,7 @@ jobs:
             echo
             echo '- Account ID: configurado'
             echo '- D1 database ID: versionado no wrangler.jsonc e validado no job de deploy'
-            echo '- API pública: configurada e obrigatória para smoke staged/pós-promoção'
+            echo '- API/mídia pública: uma única origem configurada e obrigatória para smoke staged/pós-promoção'
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
@@ -196,6 +197,8 @@ jobs:
           --config .wrangler.deploy.jsonc
       - name: Verify promoted Worker deployment and full public release
         run: node tools/check_promoted_worker_version.mjs "$CATALOG_API_URL" "$STAGED_WORKER_VERSION_ID"
+      - name: Verify public media gateway after promotion
+        run: python tools/verify_public_catalog.py --api-base "$CATALOG_API_URL"
       - name: Verify Workers Cache hit after promotion
         run: node tools/check_worker_cache_hit.mjs "$CATALOG_API_URL"
       - name: Restore previous Worker after failed staged or production smoke

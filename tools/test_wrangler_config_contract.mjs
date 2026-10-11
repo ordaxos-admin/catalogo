@@ -23,6 +23,12 @@ test('repository wrangler config enables Workers Cache for cacheable public GETs
   assert.deepEqual(config.cache, { enabled: true })
 })
 
+test('repository wrangler config uses one entrypoint and one private MEDIA binding', async () => {
+  const config = await loadWranglerConfig()
+  assert.equal(config.main, 'worker/entry.ts')
+  assert.deepEqual(config.r2_buckets, [{ binding: 'MEDIA', bucket_name: 'tonecos-catalogo-media' }])
+})
+
 test('canonical D1 binding rejects missing, duplicate and placeholder ids', () => {
   assert.throws(() => canonicalD1DatabaseId({}), /must declare d1_databases/)
   assert.throws(

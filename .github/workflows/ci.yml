@@ -40,8 +40,8 @@ jobs:
         run: npm run test:promoted-worker
       - name: Test semantic Cloudflare drift gate
         run: npm run test:remote-worker-config
-      - name: Test R2 production custom-domain contract
-        run: npm run test:r2-public-domain
+      - name: Test private R2 public-media gateway
+        run: npm run test:worker-media-contract
       - name: Test gallery runtime validation
         run: npm run test:gallery-runtime
       - name: Test Worker gallery smoke contract
@@ -90,7 +90,7 @@ jobs:
             --secrets-file "$secrets_file" \
             --config .wrangler.deploy.jsonc
       - name: Materialize verified Worker bundle
-        run: npx esbuild worker/index.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=worker-dist/worker.js
+        run: npx esbuild worker/entry.ts --bundle --format=esm --platform=browser --target=es2022 --outfile=worker-dist/worker.js
       - name: Upload verified Worker bundle
         uses: actions/upload-artifact@v7
         with:
