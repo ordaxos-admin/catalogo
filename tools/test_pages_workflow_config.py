@@ -63,12 +63,23 @@ class PagesWorkflowConfigTests(unittest.TestCase):
         self.assertIn("\\.r2\\.dev", self.workflow)
         self.assertIn("mídia deve sair exclusivamente pelo Worker", self.workflow)
 
-    def test_catalog_uses_first_party_api_proxy_only_on_acheguese_domain(self):
-        source = (self.root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
-        self.assertIn("hostname === 'acheguese.com.br'", source)
-        self.assertIn("hostname === 'www.acheguese.com.br'", source)
-        self.assertIn("${window.location.origin}/catalogo-api", source)
-        self.assertIn("return configuredApiBase", source)
+    def test_catalog_uses_first_party_api_proxy_only_through_runtime_ssot(self):
+        contract = (self.root / "src" / "config" / "catalogRuntimeContract.ts").read_text(encoding="utf-8")
+        runtime = (self.root / "src" / "config" / "catalogRuntime.ts").read_text(encoding="utf-8")
+        catalog_api = (self.root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
+        quotes = (self.root / "src" / "services" / "quotes.ts").read_text(encoding="utf-8")
+
+        self.assertIn("'acheguese.com.br'", contract)
+        self.assertIn("'www.acheguese.com.br'", contract)
+        self.assertIn("/catalogo-api", contract)
+        self.assertIn("resolveCatalogRuntime(import.meta.env", runtime)
+        self.assertIn("from '../config/catalogRuntime'", catalog_api)
+        self.assertIn("from '../config/catalogRuntime'", quotes)
+
+        for source in (catalog_api, quotes):
+            self.assertNotIn("acheguese.com.br", source)
+            self.assertNotIn("/catalogo-api", source)
+            self.assertNotIn("VITE_API_BASE_URL", source)
 
     def test_media_urls_share_the_resolved_api_origin_without_legacy_env_alias(self):
         source = (self.root / "src" / "services" / "catalogApi.ts").read_text(encoding="utf-8")
