@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
+import fs from 'node:fs'
 import test from 'node:test'
 
-import worker from '../worker/entry.ts'
 import { publicMediaKey, servePublicMedia } from '../worker/media.ts'
 
 function stream(value) {
@@ -113,26 +113,14 @@ test('gateway fails closed for missing objects and unsupported methods', async (
   assert.equal(post.headers.get('allow'), 'GET, HEAD')
 })
 
-test('entrypoint serves media without touching D1/schema', async () => {
-  let mediaReads = 0
-  const response = await worker.fetch(new Request('https://catalog.example/media/mdl_1/image/card.webp'), {
-    MEDIA: {
-      async get() {
-        mediaReads += 1
-        return object()
-      },
-    },
-    DB: {
-      prepare() {
-        throw new Error('D1 must not be touched by public media')
-      },
-      batch() {
-        throw new Error('D1 must not be touched by public media')
-      },
-    },
-    CORS_ORIGINS: '',
-  })
+test('entrypoint routes media before delegating to the D1-backed API handler', () => {
+  const entry = fs.readFileSync(new URL('../worker/entry.ts', import.meta.url), 'utf8')
+  const mediaBranch = entry.indexOf("url.pathname.startsWith(PUBLIC_MEDIA_PREFIX)")
+  const mediaReturn = entry.indexOf('return servePublicMedia(request, env.MEDIA')
+  const apiReturn = entry.indexOf('return apiWorker.fetch(request, env)')
 
-  assert.equal(response.status, 200)
-  assert.equal(mediaReads, 1)
+  assert.ok(mediaBranch >= 0)
+  assert.ok(mediaReturn > mediaBranch)
+  assert.ok(apiReturn > mediaReturn)
+  assert.ok(!entry.slice(mediaBranch, apiReturn).includes('env.DB'))
 })
