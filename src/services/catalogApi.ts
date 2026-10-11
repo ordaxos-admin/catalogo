@@ -1,8 +1,10 @@
 import type { CatalogCategory, CatalogFolder, CatalogFranchise, CatalogImage, CatalogModel } from '../types/catalog'
+import { catalogApiUrl, catalogRuntime } from '../config/catalogRuntime'
+import type { CatalogRuntimeMode } from '../config/catalogRuntimeContract'
 import { FRANCHISE_SEARCH_MIN_LENGTH, type CatalogListQuery, type CatalogModelCard, type CursorPage, type GalleryQuery } from './catalogRepository'
 import { legacyCompositeGalleryVersion, planLegacyGalleryGroups, registeredLegacyGalleryForRow, uniqueLegacyGalleryImages, type LegacyGalleryOverride } from '../lib/legacyGalleryGrouping'
 
-export type CatalogRuntimeMode = 'demo' | 'live'
+export type { CatalogRuntimeMode } from '../config/catalogRuntimeContract'
 
 export type ApiCatalogRow = {
   id: string
@@ -68,30 +70,17 @@ type GalleryCacheEntry = {
   promise: Promise<GalleryPage>
 }
 
-const configuredApiBase = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, '')
-
-function resolveApiBase() {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname.toLocaleLowerCase('en-US')
-    if (hostname === 'acheguese.com.br' || hostname === 'www.acheguese.com.br') {
-      return `${window.location.origin}/catalogo-api`
-    }
-  }
-  return configuredApiBase
-}
-
-const apiBase = resolveApiBase()
+const apiBase = catalogRuntime.apiBase
 const GALLERY_PAGE_CACHE_LIMIT = 40
 const GALLERY_PAGE_CACHE_TTL_MS = 5 * 60 * 1000
 const galleryPageCache = new Map<string, GalleryCacheEntry>()
 
 export function getCatalogRuntimeMode(): CatalogRuntimeMode {
-  return apiBase ? 'live' : 'demo'
+  return catalogRuntime.mode
 }
 
 function endpoint(path: string, params?: Record<string, string | number | undefined>) {
-  if (!apiBase) throw new Error('catalog_api_not_configured')
-  const url = new URL(`${apiBase}${path}`)
+  const url = new URL(catalogApiUrl(path))
   for (const [key, value] of Object.entries(params ?? {})) {
     if (value !== undefined && value !== '') url.searchParams.set(key, String(value))
   }
@@ -108,7 +97,8 @@ async function requestJson<T>(url: string, init?: RequestInit): Promise<T> {
 }
 
 export async function checkCatalogApi() {
-  if (!apiBase) return { mode: 'demo' as const, ok: true }
+  if (catalogRuntime.mode === 'demo') return { mode: 'demo' as const, ok: true }
+  if (!apiBase) return { mode: 'live' as const, ok: false }
   try {
     const result = await requestJson<{ ok: boolean }>(endpoint('/api/health'))
     return { mode: 'live' as const, ok: result.ok }
@@ -313,7 +303,6 @@ async function collapseLegacyViewRowsAcrossPages(rows: ApiCatalogRow[]): Promise
 
   return result
 }
-
 
 function toCatalogModelCard(row: ApiCatalogRow): CatalogModelCard {
   return {

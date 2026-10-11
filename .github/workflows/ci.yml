@@ -31,6 +31,8 @@ jobs:
         run: node tools/check_main_push_provenance.mjs
       - name: Test main push provenance contract
         run: npm run test:main-provenance
+      - name: Test catalog runtime SSOT
+        run: npm run test:catalog-runtime
       - name: Install frontend and tooling
         run: npm ci
       - name: Audit dependencies
