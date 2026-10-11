@@ -1,5 +1,10 @@
 #!/usr/bin/env node
 
+export const DEFAULT_CACHE_HIT_ATTEMPTS = 6
+export const DEFAULT_CACHE_HIT_DELAY_MS = 750
+
+const TERMINAL_UNCACHEABLE_STATUSES = new Set(['BYPASS', 'DYNAMIC'])
+
 function cacheStatus(response) {
   return String(response?.headers?.get?.('cf-cache-status') ?? '').trim().toUpperCase()
 }
@@ -21,29 +26,57 @@ async function probe(fetchImpl, url, label) {
   return status
 }
 
+function positiveInteger(value, label) {
+  if (!Number.isInteger(value) || value < 1) throw new Error(`${label} must be a positive integer`)
+  return value
+}
+
+function nonNegativeInteger(value, label) {
+  if (!Number.isInteger(value) || value < 0) throw new Error(`${label} must be a non-negative integer`)
+  return value
+}
+
+const sleep = (delayMs) => new Promise((resolve) => setTimeout(resolve, delayMs))
+
 export async function verifyWorkerCacheHit(apiBase, {
   fetchImpl = fetch,
   probeId = `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+  attempts = DEFAULT_CACHE_HIT_ATTEMPTS,
+  delayMs = DEFAULT_CACHE_HIT_DELAY_MS,
+  sleepImpl = sleep,
 } = {}) {
   const base = String(apiBase ?? '').trim().replace(/\/$/, '')
   if (!/^https?:\/\//.test(base)) throw new Error('API base must be http(s)')
+
+  positiveInteger(attempts, 'attempts')
+  nonNegativeInteger(delayMs, 'delayMs')
+  if (typeof sleepImpl !== 'function') throw new Error('sleepImpl must be a function')
 
   const url = new URL(`${base}/api/recent`)
   url.searchParams.set('limit', '1')
   url.searchParams.set('__cache_probe', String(probeId))
 
-  const first = await probe(fetchImpl, url, 'cache warmup')
-  const second = await probe(fetchImpl, url, 'cache verification')
+  const statuses = []
+  for (let attempt = 1; attempt <= attempts; attempt += 1) {
+    const status = await probe(fetchImpl, url, `cache probe ${attempt}/${attempts}`)
+    statuses.push(status)
 
-  if (second !== 'HIT') {
-    throw new Error(`Workers Cache did not produce HIT after warmup: first=${first}, second=${second}`)
+    if (status === 'HIT') {
+      return {
+        ok: true,
+        attemptsUsed: attempt,
+        statuses,
+      }
+    }
+
+    if (TERMINAL_UNCACHEABLE_STATUSES.has(status)) {
+      throw new Error(`Workers Cache is not cacheable: status=${status}; observed=${statuses.join(' -> ')}`)
+    }
+
+    if (attempt < attempts && delayMs > 0) await sleepImpl(delayMs)
   }
 
-  return {
-    ok: true,
-    firstStatus: first,
-    secondStatus: second,
-  }
+  throw new Error(`Workers Cache did not produce HIT within ${attempts} attempts: ${statuses.join(' -> ')}`)
 }
 
 async function main() {
