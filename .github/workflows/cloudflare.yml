@@ -16,6 +16,7 @@ on:
       - 'tools/bounded_retry.mjs'
       - 'tools/worker_release_smoke.mjs'
       - 'tools/check_remote_worker_config.mjs'
+      - 'tools/check_main_push_provenance.mjs'
       - 'tools/check_staged_worker_version.mjs'
       - 'tools/check_promoted_worker_version.mjs'
       - 'tools/check_worker_cache_hit.mjs'
@@ -28,6 +29,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 concurrency:
   group: cloudflare-api
@@ -39,6 +41,18 @@ jobs:
     outputs:
       ready: ${{ steps.readiness.outputs.ready }}
     steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+      - name: Verify main push provenance
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+        run: node tools/check_main_push_provenance.mjs
       - name: Check production bootstrap readiness
         id: readiness
         shell: bash
