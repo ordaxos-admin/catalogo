@@ -40,6 +40,8 @@ jobs:
         run: npm run test:promoted-worker
       - name: Test semantic Cloudflare drift gate
         run: npm run test:remote-worker-config
+      - name: Test R2 production custom-domain contract
+        run: npm run test:r2-public-domain
       - name: Test gallery runtime validation
         run: npm run test:gallery-runtime
       - name: Test Worker gallery smoke contract
