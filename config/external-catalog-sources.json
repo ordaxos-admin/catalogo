@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "sources": {
+    "stlforge": {
+      "displayName": "STL Forge",
+      "origin": "https://stlforge.cl",
+      "productPathPrefixes": [
+        "/producto/"
+      ],
+      "allowedImageHosts": [
+        "stlforge.cl",
+        "www.stlforge.cl"
+      ],
+      "taxonomySignals": {
+        "Anime": "Animes & Desenhos",
+        "Videogames": "Games",
+        "Movies": "Filmes & Séries",
+        "Series": "Filmes & Séries",
+        "Marvel": "Marvel & DC",
+        "DC": "Marvel & DC"
+      },
+      "nonFranchiseTerms": [
+        "Anime",
+        "Videogames",
+        "Comics",
+        "Fantasy",
+        "Movies",
+        "Series",
+        "Horror",
+        "Premium",
+        "Diamond Tier",
+        "NSFW",
+        "Packs",
+        "STL Forge",
+        "Template Test"
+      ],
+      "featureTerms": {
+        "nsfw": "NSFW",
+        "bust": "Bust",
+        "busto": "Bust",
+        "extras": "Extras",
+        "extra content": "Extras",
+        "pre-supported": "Pre-Supported",
+        "uncut/merged": "Uncut/Merged",
+        "split pieces": "Split Pieces",
+        "premium": "Premium",
+        "diamond tier": "Diamond Tier"
+      }
+    }
+  }
+}
