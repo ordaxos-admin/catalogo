@@ -177,6 +177,18 @@ class R2PublisherTests(unittest.TestCase):
             self.assertGreater(result["pendingBytes"], 0)
             self.assertFalse(state.exists())
 
+    def test_discovery_does_not_depend_on_pathlib_rglob(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            bundle = self.make_bundle(root)
+            state = root / 'state.json'
+
+            with patch.object(Path, 'rglob', side_effect=AssertionError('rglob must not be used')):
+                result = publish(bundle, state, 'bucket', client=None, dry_run=True)
+
+            self.assertEqual(result['objects'], 3)
+            self.assertEqual(result['pending'], 3)
+
     def test_cache_policy_distinguishes_content_addressed_manifests(self) -> None:
         self.assertIn("immutable", cache_control_for("gallery/mdl/hash.json"))
         self.assertNotIn("immutable", cache_control_for("media/mdl/img/card.webp"))

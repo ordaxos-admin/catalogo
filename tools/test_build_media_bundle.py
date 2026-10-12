@@ -10,6 +10,7 @@ from unittest.mock import patch
 from PIL import Image
 
 from build_media_bundle import (
+    apply_legacy_gallery_overrides,
     build_bundle,
     disambiguate_public_variants,
     franchise_index,
@@ -1313,6 +1314,59 @@ class MediaBundleTests(unittest.TestCase):
             self.assertEqual(resumed["builtModels"], 1)
             self.assertEqual(resumed["resumedModels"], 0)
             self.assertTrue(cover.is_file())
+
+
+    def test_legacy_gallery_override_merges_current_source_into_canonical_group(self) -> None:
+        hierarchy = "Games / League of Legends / Jinx"
+        canonical = f"{hierarchy} / jinx-02"
+        source = f"{hierarchy} / jinx-03"
+        by_model = {
+            canonical: [{"model_key": hierarchy, "public_model_key": canonical, "path": "Jinx/jinx-02.webp"}],
+            source: [{"model_key": hierarchy, "public_model_key": source, "path": "Jinx/jinx-03.webp"}],
+        }
+        config = {"groups": [{
+            "categorySlug": "games",
+            "franchiseSlug": "league-of-legends",
+            "folderPathKey": "jinx",
+            "family": "league-of-legends-jinx-nomnom-modelo",
+            "canonicalSlug": "league-of-legends-jinx-02",
+            "memberSlugs": ["league-of-legends-jinx-02", "league-of-legends-jinx-03"],
+        }]}
+        summary = apply_legacy_gallery_overrides(
+            by_model,
+            {canonical: canonical, source: source},
+            load_taxonomy_config(),
+            config,
+        )
+        self.assertEqual(summary, {"groupsApplied": 1, "sourcesMerged": 1})
+        self.assertEqual(list(by_model), [canonical])
+        self.assertEqual(len(by_model[canonical]), 2)
+        self.assertTrue(by_model[canonical][0]["legacy_gallery_canonical"])
+        self.assertFalse(by_model[canonical][1]["legacy_gallery_canonical"])
+        self.assertEqual(by_model[canonical][1]["model_key"], hierarchy)
+        self.assertEqual(by_model[canonical][1]["public_model_key"], canonical)
+
+    def test_legacy_gallery_override_fails_closed_when_source_exists_without_canonical(self) -> None:
+        hierarchy = "Games / League of Legends / Jinx"
+        source = f"{hierarchy} / jinx-03"
+        by_model = {
+            source: [{"model_key": hierarchy, "public_model_key": source, "path": "Jinx/jinx-03.webp"}],
+        }
+        config = {"groups": [{
+            "categorySlug": "games",
+            "franchiseSlug": "league-of-legends",
+            "folderPathKey": "jinx",
+            "family": "league-of-legends-jinx-nomnom-modelo",
+            "canonicalSlug": "league-of-legends-jinx-02",
+            "memberSlugs": ["league-of-legends-jinx-02", "league-of-legends-jinx-03"],
+        }]}
+        with self.assertRaisesRegex(RuntimeError, "sem canônico presente"):
+            apply_legacy_gallery_overrides(
+                by_model,
+                {source: source},
+                load_taxonomy_config(),
+                config,
+            )
 
 
 if __name__ == "__main__":

@@ -57,6 +57,7 @@ def slugify(value: str) -> str:
 
 
 DEFAULT_TAXONOMY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-taxonomy.json"
+DEFAULT_LEGACY_GALLERY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-legacy-gallery-overrides.json"
 MEDIA_BUILD_STATE_VERSION = 1
 MEDIA_RENDERER_VERSION = 1
 MEDIA_METADATA_VERSION = 7
@@ -437,6 +438,157 @@ def model_metadata(
     }
 
 
+def load_legacy_gallery_overrides(path: Path | None = None) -> dict:
+    config_path = path or DEFAULT_LEGACY_GALLERY_CONFIG
+    try:
+        data = json.loads(config_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise RuntimeError(f"registro de consolidação de galeria inválido: {config_path}: {exc}") from exc
+    groups = data.get("groups")
+    if not isinstance(groups, list):
+        raise RuntimeError(f"groups inválido em {config_path}")
+    claimed: set[tuple[str, str, str, str]] = set()
+    for index, group in enumerate(groups, 1):
+        if not isinstance(group, dict):
+            raise RuntimeError(f"grupo {index} inválido em {config_path}")
+        scope = []
+        for field in ("categorySlug", "franchiseSlug", "folderPathKey", "family", "canonicalSlug"):
+            value = str(group.get(field) or "").strip()
+            if not value:
+                raise RuntimeError(f"{field} vazio no grupo {index} de {config_path}")
+            if field in {"categorySlug", "franchiseSlug", "folderPathKey"}:
+                scope.append(value)
+        members = group.get("memberSlugs")
+        if not isinstance(members, list) or len(members) < 2 or not all(isinstance(item, str) and item.strip() for item in members):
+            raise RuntimeError(f"memberSlugs inválido no grupo {index} de {config_path}")
+        normalized_members = [item.strip() for item in members]
+        if len(set(normalized_members)) != len(normalized_members):
+            raise RuntimeError(f"memberSlugs duplicado no grupo {index} de {config_path}")
+        canonical_slug = str(group["canonicalSlug"]).strip()
+        if canonical_slug not in normalized_members:
+            raise RuntimeError(f"canonicalSlug fora de memberSlugs no grupo {index} de {config_path}")
+        for slug in normalized_members:
+            key = (*scope, slug)
+            if key in claimed:
+                raise RuntimeError(f"membro de galeria declarado em mais de um grupo: {'/'.join(key)}")
+            claimed.add(key)
+    return data
+
+
+def preview_model_metadata(
+    by_model: dict[str, list[dict]],
+    stable_keys: dict[str, str],
+    taxonomy: dict,
+) -> dict[str, dict]:
+    preliminary: dict[str, dict] = {}
+    no_collisions: Counter[str] = Counter()
+    for identity_key in sorted(by_model, key=str.casefold):
+        rows = by_model[identity_key]
+        row = rows[0]
+        preliminary[identity_key] = model_metadata(
+            identity_key,
+            str(row["model_key"]),
+            str(row["path"]),
+            no_collisions,
+            taxonomy,
+            bool(row.get("public_model_key")),
+            any(bool(member.get("audit_model_group")) for member in rows),
+            stable_keys[identity_key],
+        )
+    collisions = Counter(item["slug"] for item in preliminary.values())
+    if all(count == 1 for count in collisions.values()):
+        return preliminary
+    resolved: dict[str, dict] = {}
+    for identity_key in sorted(by_model, key=str.casefold):
+        rows = by_model[identity_key]
+        row = rows[0]
+        resolved[identity_key] = model_metadata(
+            identity_key,
+            str(row["model_key"]),
+            str(row["path"]),
+            collisions,
+            taxonomy,
+            bool(row.get("public_model_key")),
+            any(bool(member.get("audit_model_group")) for member in rows),
+            stable_keys[identity_key],
+        )
+    return resolved
+
+
+def apply_legacy_gallery_overrides(
+    by_model: dict[str, list[dict]],
+    stable_keys: dict[str, str],
+    taxonomy: dict,
+    config: dict,
+) -> dict[str, int]:
+    metadata = preview_model_metadata(by_model, stable_keys, taxonomy)
+    by_public_key: dict[tuple[str, str, str, str], str] = {}
+    for identity_key, entry in metadata.items():
+        key = (
+            str(entry["categorySlug"]),
+            str(entry["franchiseSlug"]),
+            str(entry["folderPathKey"]),
+            str(entry["slug"]),
+        )
+        previous = by_public_key.get(key)
+        if previous is not None and previous != identity_key:
+            raise RuntimeError(f"slug público ambíguo ao consolidar galeria: {'/'.join(key)}")
+        by_public_key[key] = identity_key
+
+    applied_groups = 0
+    merged_sources = 0
+    claimed_sources: set[str] = set()
+    for group in config.get("groups", []):
+        scope = (
+            str(group["categorySlug"]).strip(),
+            str(group["franchiseSlug"]).strip(),
+            str(group["folderPathKey"]).strip(),
+        )
+        canonical_slug = str(group["canonicalSlug"]).strip()
+        canonical_identity = by_public_key.get((*scope, canonical_slug))
+        present = [
+            (slug, by_public_key[(*scope, slug)])
+            for slug in group["memberSlugs"]
+            if (*scope, slug) in by_public_key
+        ]
+        if not present:
+            continue
+        noncanonical = [(slug, identity) for slug, identity in present if identity != canonical_identity]
+        if noncanonical and canonical_identity is None:
+            raise RuntimeError(
+                f"consolidação de galeria sem canônico presente: {group['family']} -> {canonical_slug}"
+            )
+        if not noncanonical:
+            continue
+        assert canonical_identity is not None
+        canonical_rows = by_model[canonical_identity]
+        canonical_model_key = str(canonical_rows[0]["model_key"])
+        canonical_public_model_key = str(canonical_rows[0].get("public_model_key") or "").strip()
+        by_model[canonical_identity] = [
+            {**row, "legacy_gallery_canonical": True, "legacy_gallery_family": str(group["family"])}
+            for row in canonical_rows
+        ]
+        for slug, source_identity in noncanonical:
+            if source_identity in claimed_sources:
+                raise RuntimeError(f"fonte de galeria consolidada mais de uma vez: {slug}")
+            claimed_sources.add(source_identity)
+            source_rows = by_model.pop(source_identity)
+            for row in source_rows:
+                merged = dict(row)
+                merged["legacy_gallery_source_model_key"] = str(row.get("model_key") or "")
+                merged["legacy_gallery_canonical"] = False
+                merged["legacy_gallery_family"] = str(group["family"])
+                merged["model_key"] = canonical_model_key
+                if canonical_public_model_key:
+                    merged["public_model_key"] = canonical_public_model_key
+                else:
+                    merged.pop("public_model_key", None)
+                by_model[canonical_identity].append(merged)
+            merged_sources += 1
+        applied_groups += 1
+    return {"groupsApplied": applied_groups, "sourcesMerged": merged_sources}
+
+
 def validate_model_group(identity_key: str, rows: list[dict]) -> None:
     if not rows:
         raise RuntimeError(f"grupo de modelo vazio: {identity_key}")
@@ -466,6 +618,7 @@ def build_model_bundle(
     rows = sorted(
         rows,
         key=lambda row: (
+            1 if row.get("legacy_gallery_canonical") else 0,
             float(row.get("quality_score") or 0),
             int(row.get("width") or 0),
             int(row.get("height") or 0),
@@ -632,6 +785,9 @@ def model_build_fingerprint(
             "model_key": str(row.get("model_key") or ""),
             "public_model_key": str(row.get("public_model_key") or ""),
             "audit_model_group": str(row.get("audit_model_group") or ""),
+            "legacy_gallery_source_model_key": str(row.get("legacy_gallery_source_model_key") or ""),
+            "legacy_gallery_canonical": bool(row.get("legacy_gallery_canonical")),
+            "legacy_gallery_family": str(row.get("legacy_gallery_family") or ""),
             "identification": str(row.get("identification") or ""),
         }
         for row in sorted(rows, key=lambda item: str(item.get("path") or "").casefold())
@@ -867,6 +1023,7 @@ def build_bundle(
     include_original: bool,
     taxonomy_config: Path | None = None,
     identity_alias_config: Path | None = None,
+    legacy_gallery_config: Path | None = None,
     workers: int = 4,
     resume: bool = True,
 ) -> dict:
@@ -877,6 +1034,26 @@ def build_bundle(
     for row in records:
         identity_key = str(row.get("public_model_key") or row["model_key"])
         by_model[identity_key].append(row)
+
+    initial_model_keys = sorted(by_model, key=str.casefold)
+    validate_identity_comparison_collisions(initial_model_keys)
+    initial_stable_keys = {
+        identity_key: canonical_identity_key(identity_key, identity_aliases)
+        for identity_key in initial_model_keys
+    }
+    initial_stable_owners: dict[str, str] = {}
+    for identity_key, stable_key in initial_stable_keys.items():
+        previous = initial_stable_owners.get(stable_key)
+        if previous is not None and previous != identity_key:
+            raise RuntimeError(
+                "duas identidades atuais apontam para o mesmo produto canônico: "
+                f"{stable_key}: {previous} | {identity_key}"
+            )
+        initial_stable_owners[stable_key] = identity_key
+    legacy_gallery = load_legacy_gallery_overrides(legacy_gallery_config)
+    legacy_gallery_summary = apply_legacy_gallery_overrides(
+        by_model, initial_stable_keys, taxonomy, legacy_gallery
+    )
 
     model_keys = sorted(by_model, key=str.casefold)
     validate_identity_comparison_collisions(model_keys)
@@ -1038,6 +1215,8 @@ def build_bundle(
         "identityAliasesApplied": sum(1 for key in model_keys if stable_keys[key] != key),
         "identityHistoryEntries": len(state["identityHistory"]),
         "variantLabelsAdjusted": variant_adjustments,
+        "legacyGalleryGroupsApplied": legacy_gallery_summary["groupsApplied"],
+        "legacyGallerySourcesMerged": legacy_gallery_summary["sourcesMerged"],
     }
     (output / "publish-summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
@@ -1059,6 +1238,12 @@ def main() -> int:
         default=DEFAULT_IDENTITY_ALIAS_CONFIG,
         help="registro explícito de renomes de identidade que preservam mdl/code históricos",
     )
+    parser.add_argument(
+        "--legacy-gallery-config",
+        type=Path,
+        default=DEFAULT_LEGACY_GALLERY_CONFIG,
+        help="SSOT de consolidações históricas de vistas em galerias canônicas",
+    )
     parser.add_argument("--workers", type=int, default=4, help="modelos processados em paralelo; padrão: 4")
     parser.add_argument("--no-resume", action="store_true", help="ignora o checkpoint de mídia e recompõe todos os modelos")
     args = parser.parse_args()
@@ -1075,6 +1260,7 @@ def main() -> int:
         include_original=args.include_original,
         taxonomy_config=args.taxonomy_config.resolve(),
         identity_alias_config=args.identity_alias_config.resolve(),
+        legacy_gallery_config=args.legacy_gallery_config.resolve(),
         workers=args.workers,
         resume=not args.no_resume,
     )
