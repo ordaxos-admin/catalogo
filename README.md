@@ -28,6 +28,8 @@ A origem é somente leitura durante a ingestão. SHA-256 identifica duplicatas e
 
 São geradas variantes WebP de `thumb`, `card` e `detail`; o original pode ser preservado no armazenamento mestre sem ser servido na grade do catálogo.
 
+Fontes externas entram por um boundary separado e auditável: aquisição autorizada, normalização, mídia materializada, manifesto externo, revisão de galeria e só então promoção. Veja [`docs/FONTES-EXTERNAS.md`](docs/FONTES-EXTERNAS.md). Um produto externo com várias vistas permanece uma única identidade de modelo com galeria multi-imagem.
+
 ## Runtime
 
 Sem configuração Cloudflare, o frontend funciona em modo `DEMO`. Com `VITE_API_BASE_URL`, a mesma interface passa para `LIVE`. A origem de mídia não é configurável separadamente: ela é derivada da origem canônica da API e usa `/media/<storage-key>` no mesmo Worker.
