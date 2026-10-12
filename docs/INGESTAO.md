@@ -7,11 +7,13 @@ O importador foi desenhado para um acervo com 100 mil+ modelos/imagens e **nunca
 Transformar a árvore de pastas auditada em um manifesto técnico reutilizável pelo backend e pelo futuro upload ao R2/D1.
 
 ```bash
-python tools/ingest_catalog.py "G:\Meu Drive\Catalogo" --output ".catalog-ingest" \
-  --audit-registry "G:\Meu Drive\Catalogo\00 - ESTATISTICAS - CATALOGO [2596] - NOVOS [0]\REGISTRO-AUDITORIA-IMAGENS.csv"
+python tools/ingest_catalog.py "<CATALOG_ROOT>" --output ".catalog-ingest" \
+  --audit-registry "<CATALOG_ROOT>\00 - ESTATISTICAS - CATALOGO\REGISTRO-AUDITORIA-IMAGENS.csv"
 ```
 
-Na primeira execução cada imagem elegível é aberta e analisada. Nas execuções seguintes, arquivos cujo caminho, tamanho e `mtime_ns` não mudaram são reaproveitados do checkpoint.\n\n### SSOT das raízes públicas
+Na primeira execução cada imagem elegível é aberta e analisada. Nas execuções seguintes, arquivos cujo caminho, tamanho e `mtime_ns` não mudaram são reaproveitados do checkpoint.
+
+### SSOT das raízes públicas
 
 A fronteira pública é definida em `config/public-catalog-roots.json`. Esse arquivo é o contrato único compartilhável entre o pipeline web e a automação local. Não manter outra lista independente das categorias públicas em scripts de ingestão/auditoria.
 
@@ -19,7 +21,11 @@ A fronteira pública é definida em `config/public-catalog-roots.json`. Esse arq
 
 Quando a automação PowerShell do desktop for atualizada, ela deve consumir o mesmo JSON e aplicar a mesma normalização de prefixo `OK - ` e sufixo `[N]`, preservando referências, lotes, estatísticas e `Novos` fora do snapshot público.
 
-### Fronteira de publicação\n\nA raiz real também contém pastas operacionais de auditoria. Por segurança, a ingestão pública é **fail-closed**: somente as seis categorias canônicas entram no manifesto — `Pessoas`, `Animes & Desenhos`, `Filmes & Séries`, `Marvel & DC`, `Games` e `Tokusatsu & Cultura Japonesa`. O prefixo opcional `OK - ` e o sufixo de contagem `[N]` não alteram a identidade da categoria; assim a árvore histórica do Drive e as categorias já auditadas continuam compatíveis. Pastas como `00 - ESTATISTICAS...`, `Novos`, `99 - LOTES CONSOLIDADOS` e qualquer categoria desconhecida ficam fora mesmo que contenham imagens. Se nenhuma categoria canônica existir, o processo falha em vez de publicar conteúdo auxiliar.\n\nEm produção, prefira `--audit-registry` apontando para `REGISTRO-AUDITORIA-IMAGENS.csv`. Esse modo usa os caminhos já revisados como fonte de verdade, evita uma varredura recursiva lenta do Google Drive e ainda recalcula o SHA-256 de cada imagem: qualquer divergência entre o arquivo atual e o hash auditado interrompe a ingestão.
+### Fronteira de publicação
+
+A raiz real também contém pastas operacionais de auditoria. Por segurança, a ingestão pública é **fail-closed**: somente as seis categorias canônicas entram no manifesto — `Pessoas`, `Animes & Desenhos`, `Filmes & Séries`, `Marvel & DC`, `Games` e `Tokusatsu & Cultura Japonesa`. O prefixo opcional `OK - ` e o sufixo de contagem `[N]` não alteram a identidade da categoria; assim a árvore histórica do Drive e as categorias já auditadas continuam compatíveis. Pastas como `00 - ESTATISTICAS...`, `Novos`, `99 - LOTES CONSOLIDADOS` e qualquer categoria desconhecida ficam fora mesmo que contenham imagens. Se nenhuma categoria canônica existir, o processo falha em vez de publicar conteúdo auxiliar.
+
+Em produção, prefira `--audit-registry` apontando para `REGISTRO-AUDITORIA-IMAGENS.csv`. A raiz pode ser a cópia operacional local ou um espelho montado; a ingestão não depende de Google Drive nem de letra de unidade fixa. O registro é fail-closed: somente `status=OK_VISUAL` ou estados versionados no formato `OK_VISUAL|...` são publicáveis; `PENDENTE` e outros estados são rejeitados. Esse modo usa os caminhos já revisados como fonte de verdade, evita uma varredura recursiva lenta da raiz do acervo e ainda recalcula o SHA-256 de cada imagem: qualquer divergência entre o arquivo atual e o hash auditado interrompe a ingestão.
 
 ## Saídas
 

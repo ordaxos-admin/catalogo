@@ -33,6 +33,7 @@ from catalog_scope import (
 from model_identity import VIEW_ANCHOR_PRIORITY, candidate_confidence, stem_view_descriptor
 
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff", ".avif", ".jfif"}
+PUBLISHABLE_AUDIT_STATUS_RE = re.compile(r"^OK_VISUAL(?:\|[A-Z0-9]+(?:[._-][A-Z0-9]+)*)?$")
 CHECKPOINT_INTERVAL = 25
 
 
@@ -108,7 +109,7 @@ def load_audit_registry(root: Path, registry: Path) -> tuple[list[Path], dict[st
 
     with registry.open("r", encoding="utf-8-sig", newline="") as handle:
         reader = csv.DictReader(handle)
-        required = {"caminho", "sha256"}
+        required = {"caminho", "sha256", "status"}
         if not required.issubset(reader.fieldnames or []):
             raise RuntimeError(
                 f"registro de auditoria sem colunas obrigatórias {sorted(required)}: {registry}"
@@ -116,8 +117,14 @@ def load_audit_registry(root: Path, registry: Path) -> tuple[list[Path], dict[st
         for line_no, row in enumerate(reader, 2):
             rel = (row.get("caminho") or "").strip()
             digest = (row.get("sha256") or "").strip().lower()
+            status = (row.get("status") or "").strip()
             if not rel:
                 raise RuntimeError(f"caminho vazio no registro de auditoria, linha {line_no}")
+            if not PUBLISHABLE_AUDIT_STATUS_RE.fullmatch(status):
+                raise RuntimeError(
+                    f"entrada de auditoria não aprovada para publicação na linha {line_no}: "
+                    f"{rel} ({status or 'sem status'})"
+                )
             normalized = rel.replace("\\", "/")
             first = normalized.split("/", 1)[0]
             if not is_public_top_level_category(first):
@@ -566,7 +573,7 @@ def main() -> int:
     parser.add_argument(
         "--audit-registry",
         type=Path,
-        help="CSV auditado com colunas caminho/sha256; evita varredura recursiva do Drive",
+        help="CSV auditado com colunas caminho/sha256/status; publica somente status OK_VISUAL; evita varredura recursiva da raiz",
     )
     args = parser.parse_args()
 
