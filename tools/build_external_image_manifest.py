@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
@@ -84,8 +85,50 @@ def product_index(products: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             raise ExternalManifestError(
                 f"produto pronto sem categoria/franquia/identidade: {key}"
             )
+        image_count = row.get("imageCount")
+        if not isinstance(image_count, int) or isinstance(image_count, bool) or image_count <= 0:
+            raise ExternalManifestError(
+                f"produto pronto sem imageCount positivo: {key} ({image_count!r})"
+            )
         indexed[key] = row
     return indexed
+
+
+def validate_plan_coverage(
+    indexed: dict[str, dict[str, Any]],
+    image_plan: list[dict[str, Any]],
+) -> None:
+    grouped_positions: dict[str, list[int]] = defaultdict(list)
+    grouped_rows: dict[str, int] = defaultdict(int)
+
+    for plan in image_plan:
+        key = str(plan.get("sourceProductKey") or "").strip()
+        if key not in indexed:
+            raise ExternalManifestError(
+                f"image plan referencia produto ausente/não pronto: {key or '<vazio>'}"
+            )
+        raw_position = plan.get("position")
+        if not isinstance(raw_position, int) or isinstance(raw_position, bool) or raw_position <= 0:
+            raise ExternalManifestError(
+                f"posição inválida no plano para {key}: {raw_position!r}"
+            )
+        grouped_rows[key] += 1
+        grouped_positions[key].append(raw_position)
+
+    for key, product in indexed.items():
+        expected = int(product["imageCount"])
+        actual = grouped_rows.get(key, 0)
+        if actual != expected:
+            raise ExternalManifestError(
+                f"galeria parcial no plano para {key}: esperado={expected}, encontrado={actual}"
+            )
+        positions = grouped_positions.get(key, [])
+        expected_positions = list(range(1, expected + 1))
+        if sorted(positions) != expected_positions:
+            raise ExternalManifestError(
+                f"posições incompletas/duplicadas no plano para {key}: "
+                f"esperado={expected_positions}, encontrado={sorted(positions)}"
+            )
 
 
 def analyze_file(
@@ -152,7 +195,7 @@ def analyze_file(
             "sourceProductUrl": str(product.get("sourceUrl") or ""),
             "sourceImageId": str(image_plan.get("sourceImageId") or ""),
             "sourceImageUrl": str(image_plan.get("sourceUrl") or ""),
-            "position": int(image_plan.get("position") or 0),
+            "position": int(image_plan["position"]),
         },
     }
 
@@ -164,16 +207,14 @@ def build_manifest(
     images_root: Path,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     indexed = product_index(products)
+    validate_plan_coverage(indexed, image_plan)
+
     seen_targets: set[str] = set()
     seen_source_pairs: set[tuple[str, str]] = set()
     rows: list[dict[str, Any]] = []
 
     for plan in image_plan:
         key = str(plan.get("sourceProductKey") or "").strip()
-        if key not in indexed:
-            raise ExternalManifestError(
-                f"image plan referencia produto ausente/não pronto: {key or '<vazio>'}"
-            )
         target = str(plan.get("targetPath") or "").strip()
         if target in seen_targets:
             raise ExternalManifestError(f"targetPath duplicado no plano: {target}")
@@ -208,6 +249,7 @@ def build_manifest(
         "statusOk": len(rows),
         "networkDownloads": 0,
         "provenance": "AUTHORIZED_EXTERNAL_MEDIA",
+        "completeGalleryCoverage": True,
     }
     return rows, summary
 
