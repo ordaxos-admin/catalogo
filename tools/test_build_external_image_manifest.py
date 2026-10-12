@@ -25,7 +25,7 @@ build_manifest = module.build_manifest
 class BuildExternalImageManifestTests(unittest.TestCase):
     SOURCE_ID = "vendor-a"
 
-    def product(self) -> dict:
+    def product(self, image_count: int = 2) -> dict:
         return {
             "sourceId": self.SOURCE_ID,
             "sourceProductKey": "vendor-a:juri-han",
@@ -35,6 +35,7 @@ class BuildExternalImageManifestTests(unittest.TestCase):
             "sourceTitle": "Juri Han STL – Street Fighter",
             "canonicalCategoryCandidate": "Games",
             "franchiseCandidate": "Street Fighter",
+            "imageCount": image_count,
             "readyForMaterialization": True,
         }
 
@@ -72,6 +73,7 @@ class BuildExternalImageManifestTests(unittest.TestCase):
             self.assertEqual(summary["products"], 1)
             self.assertEqual(summary["images"], 2)
             self.assertEqual(summary["networkDownloads"], 0)
+            self.assertTrue(summary["completeGalleryCoverage"])
 
     def test_unreviewed_product_is_rejected_fail_closed(self) -> None:
         product = self.product()
@@ -84,7 +86,7 @@ class BuildExternalImageManifestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ExternalManifestError, "imagem materializada ausente"):
                 build_manifest(
-                    [self.product()],
+                    [self.product(image_count=1)],
                     [self.plan(1, "001.webp")],
                     images_root=Path(tmp),
                 )
@@ -94,7 +96,41 @@ class BuildExternalImageManifestTests(unittest.TestCase):
         bad_plan["targetPath"] = "../escape.webp"
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ExternalManifestError, "targetPath inseguro"):
-                build_manifest([self.product()], [bad_plan], images_root=Path(tmp))
+                build_manifest(
+                    [self.product(image_count=1)],
+                    [bad_plan],
+                    images_root=Path(tmp),
+                )
+
+    def test_partial_gallery_plan_is_rejected_before_file_analysis(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ExternalManifestError, "galeria parcial"):
+                build_manifest(
+                    [self.product(image_count=7)],
+                    [self.plan(position, f"{position:03d}.webp") for position in range(1, 6)],
+                    images_root=Path(tmp),
+                )
+
+    def test_duplicate_or_gapped_positions_are_rejected(self) -> None:
+        plan = [
+            self.plan(1, "001.webp"),
+            self.plan(1, "002.webp"),
+            self.plan(3, "003.webp"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ExternalManifestError, "posições incompletas/duplicadas"):
+                build_manifest(
+                    [self.product(image_count=3)],
+                    plan,
+                    images_root=Path(tmp),
+                )
+
+    def test_ready_product_requires_positive_image_count(self) -> None:
+        product = self.product()
+        product["imageCount"] = 0
+        with tempfile.TemporaryDirectory() as tmp:
+            with self.assertRaisesRegex(ExternalManifestError, "imageCount positivo"):
+                build_manifest([product], [], images_root=Path(tmp))
 
 
 if __name__ == "__main__":
