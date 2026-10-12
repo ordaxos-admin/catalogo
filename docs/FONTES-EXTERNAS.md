@@ -128,13 +128,19 @@ python tools/build_external_image_manifest.py \
 Esse gate:
 
 - recusa produto que ainda esteja em `review_*`;
+- exige `imageCount` positivo no produto normalizado;
+- exige cobertura integral da galeria: a quantidade do plano deve ser exatamente igual ao `imageCount`;
+- exige posições contíguas `1..N`, sem lacunas nem posições duplicadas;
 - recusa path traversal e arquivo ausente;
 - abre/verifica cada imagem;
 - recalcula SHA-256 e dHash;
 - mede dimensões, nitidez e quality score;
 - preserva uma mesma `public_model_key` para todas as vistas do produto;
 - grava proveniência `AUTHORIZED_EXTERNAL_MEDIA`;
+- só emite `completeGalleryCoverage=true` quando a galeria inteira foi comprovada;
 - não acessa a rede.
+
+Isso impede que um produto anunciado com, por exemplo, 7 imagens seja publicado silenciosamente com apenas 5 materializadas.
 
 ## 4. Reconciliar com o catálogo atual
 
