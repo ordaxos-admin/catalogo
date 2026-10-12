@@ -1010,7 +1010,7 @@ class PublishD1Tests(unittest.TestCase):
         path = Path(__file__).resolve().parents[1] / "config" / "catalog-model-retirement-approvals.csv"
         approvals = read_model_retirement_approvals(path)
 
-        self.assertTrue(approvals)
+        self.assertIsInstance(approvals, dict)
         for model_id, approval in approvals.items():
             self.assertEqual(approval["model_id"], model_id)
             self.assertTrue(approval["slug"])

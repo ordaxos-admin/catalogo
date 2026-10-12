@@ -212,6 +212,8 @@ Os statements são enviados em batches transacionais. O publicador não executa 
 
 Modelos publicados que deixaram de existir no SSOT físico só podem ser despublicados por aprovação explícita. O registro canônico do repositório é `config/catalog-model-retirement-approvals.csv`, com `model_id`, `slug`, `code` e `reason` do estado real de produção.
 
+NSFW é uma variante de conteúdo do mesmo personagem/modelo, não uma categoria paralela. Versões Normal e NSFW podem coexistir na mesma categoria, franquia e coleção; ausência temporária da fonte NSFW não autoriza aposentadoria automática se a intenção de produto for preservá-la. Nesses casos, o release permanece bloqueado até recuperar a fonte ou registrar uma decisão explícita de retirada.
+
 O preflight deve validar o snapshot e as aprovações contra o D1 atual:
 
 ```bash

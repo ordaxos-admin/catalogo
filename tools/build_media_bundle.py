@@ -60,7 +60,7 @@ DEFAULT_TAXONOMY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "cata
 DEFAULT_LEGACY_GALLERY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-legacy-gallery-overrides.json"
 MEDIA_BUILD_STATE_VERSION = 1
 MEDIA_RENDERER_VERSION = 1
-MEDIA_METADATA_VERSION = 7
+MEDIA_METADATA_VERSION = 8
 MEDIA_CHECKPOINT_INTERVAL = 10
 MEDIA_STATE_REPLACE_ATTEMPTS = 10
 MEDIA_STATE_REPLACE_DELAY_SECONDS = 0.1
@@ -78,6 +78,8 @@ def model_variant_name(
     grouped_gallery: bool,
 ) -> str:
     raw = identity_label.strip()
+    if re.search(r"(?:^|[^a-z0-9])nsfw(?:$|[^a-z0-9])", raw.casefold()):
+        return "NSFW"
     if grouped_gallery:
         match = stem_view_descriptor(raw)
         if match:

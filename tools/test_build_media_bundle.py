@@ -41,6 +41,26 @@ class MediaBundleTests(unittest.TestCase):
             "",
         )
 
+    def test_variant_name_marks_nsfw_without_changing_taxonomy(self) -> None:
+        self.assertEqual(
+            model_variant_name(
+                "Street-Fighter-Cammy-STL-5-Street-Wear-Bust-NSFW",
+                "Cammy",
+                "Street Fighter",
+                False,
+            ),
+            "NSFW",
+        )
+        self.assertEqual(
+            model_variant_name(
+                "Resident-Evil-Ada-Wong-STL-4-NSFW",
+                "Ada Wong",
+                "Resident Evil",
+                False,
+            ),
+            "NSFW",
+        )
+
     def test_disambiguate_public_variants_labels_base_model_as_principal(self) -> None:
         entries = [
             {
