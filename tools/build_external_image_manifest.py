@@ -1,0 +1,259 @@
+#!/usr/bin/env python3
+"""Build an external-ingest image manifest from already authorized local media.
+
+The acquisition boundary is deliberate: this tool never fetches network URLs.
+It only verifies and analyzes bytes already materialized under an authorized
+source root, then emits rows compatible with plan_gallery_merge.py.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from pathlib import Path
+from typing import Any
+
+from PIL import Image, ImageOps, UnidentifiedImageError
+
+from ingest_catalog import (
+    IMAGE_EXTS,
+    dhash_image,
+    quality_score,
+    sha256_file,
+    sharpness_score,
+)
+
+
+class ExternalManifestError(RuntimeError):
+    pass
+
+
+def read_jsonl(path: Path) -> list[dict[str, Any]]:
+    if not path.is_file():
+        raise ExternalManifestError(f"arquivo JSONL não encontrado: {path}")
+    rows: list[dict[str, Any]] = []
+    with path.open("r", encoding="utf-8") as handle:
+        for line_no, line in enumerate(handle, 1):
+            if not line.strip():
+                continue
+            try:
+                row = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ExternalManifestError(
+                    f"JSON inválido em {path}, linha {line_no}: {exc}"
+                ) from exc
+            if not isinstance(row, dict):
+                raise ExternalManifestError(
+                    f"registro não-objeto em {path}, linha {line_no}"
+                )
+            rows.append(row)
+    return rows
+
+
+def safe_local_path(root: Path, relative: str) -> Path:
+    if not relative or "\\" in relative:
+        raise ExternalManifestError(f"targetPath inválido: {relative!r}")
+    rel = Path(relative)
+    if rel.is_absolute() or ".." in rel.parts:
+        raise ExternalManifestError(f"targetPath inseguro: {relative!r}")
+    root_resolved = root.resolve()
+    target = (root / rel).resolve()
+    try:
+        target.relative_to(root_resolved)
+    except ValueError as exc:
+        raise ExternalManifestError(f"targetPath escapa da raiz autorizada: {relative!r}") from exc
+    return target
+
+
+def product_index(products: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    indexed: dict[str, dict[str, Any]] = {}
+    for row in products:
+        key = str(row.get("sourceProductKey") or "").strip()
+        if not key:
+            raise ExternalManifestError("produto sem sourceProductKey")
+        if key in indexed:
+            raise ExternalManifestError(f"sourceProductKey duplicado: {key}")
+        if row.get("readyForMaterialization") is not True:
+            raise ExternalManifestError(
+                f"produto ainda exige revisão de taxonomia/identidade: {key}"
+            )
+        category = str(row.get("canonicalCategoryCandidate") or "").strip()
+        franchise = str(row.get("franchiseCandidate") or "").strip()
+        incoming_model = str(row.get("incomingModel") or "").strip()
+        if not category or not franchise or not incoming_model:
+            raise ExternalManifestError(
+                f"produto pronto sem categoria/franquia/identidade: {key}"
+            )
+        indexed[key] = row
+    return indexed
+
+
+def analyze_file(
+    root: Path,
+    image_plan: dict[str, Any],
+    product: dict[str, Any],
+) -> dict[str, Any]:
+    relative = str(image_plan.get("targetPath") or "").strip()
+    path = safe_local_path(root, relative)
+    if not path.is_file():
+        raise ExternalManifestError(f"imagem materializada ausente: {relative}")
+    if path.suffix.lower() not in IMAGE_EXTS:
+        raise ExternalManifestError(f"extensão não suportada: {relative}")
+
+    stat = path.stat()
+    if stat.st_size <= 0:
+        raise ExternalManifestError(f"imagem vazia: {relative}")
+
+    digest = sha256_file(path)
+    try:
+        with Image.open(path) as verify_image:
+            verify_image.verify()
+        with Image.open(path) as opened:
+            image = ImageOps.exif_transpose(opened).convert("RGB")
+            width, height = image.size
+            perceptual = dhash_image(image)
+            sharpness = sharpness_score(image)
+    except (UnidentifiedImageError, OSError, ValueError) as exc:
+        raise ExternalManifestError(
+            f"imagem inválida {relative}: {type(exc).__name__}: {exc}"
+        ) from exc
+
+    if width <= 0 or height <= 0:
+        raise ExternalManifestError(f"dimensões inválidas: {relative}")
+
+    source_product_key = str(product["sourceProductKey"])
+    incoming_model = str(product["incomingModel"])
+    return {
+        "path": relative,
+        "size": stat.st_size,
+        "mtime_ns": stat.st_mtime_ns,
+        "status": "OK",
+        "error": None,
+        "sha256": digest,
+        "dhash": perceptual,
+        "width": width,
+        "height": height,
+        "megapixels": round(width * height / 1_000_000, 3),
+        "sharpness": sharpness,
+        "quality_score": quality_score(width, height, sharpness, path.suffix),
+        "category": str(product["canonicalCategoryCandidate"]),
+        "franchise": str(product["franchiseCandidate"]),
+        "model_key": incoming_model,
+        "public_model_key": incoming_model,
+        "audit_code": None,
+        "identification": str(product.get("displayName") or product.get("sourceTitle") or ""),
+        "audit_model_group": incoming_model,
+        "duplicate_group": None,
+        "canonical": True,
+        "source_provenance": {
+            "kind": "AUTHORIZED_EXTERNAL_MEDIA",
+            "sourceId": str(product.get("sourceId") or ""),
+            "sourceProductKey": source_product_key,
+            "sourceProductUrl": str(product.get("sourceUrl") or ""),
+            "sourceImageId": str(image_plan.get("sourceImageId") or ""),
+            "sourceImageUrl": str(image_plan.get("sourceUrl") or ""),
+            "position": int(image_plan.get("position") or 0),
+        },
+    }
+
+
+def build_manifest(
+    products: list[dict[str, Any]],
+    image_plan: list[dict[str, Any]],
+    *,
+    images_root: Path,
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    indexed = product_index(products)
+    seen_targets: set[str] = set()
+    seen_source_pairs: set[tuple[str, str]] = set()
+    rows: list[dict[str, Any]] = []
+
+    for plan in image_plan:
+        key = str(plan.get("sourceProductKey") or "").strip()
+        if key not in indexed:
+            raise ExternalManifestError(
+                f"image plan referencia produto ausente/não pronto: {key or '<vazio>'}"
+            )
+        target = str(plan.get("targetPath") or "").strip()
+        if target in seen_targets:
+            raise ExternalManifestError(f"targetPath duplicado no plano: {target}")
+        seen_targets.add(target)
+        source_url = str(plan.get("sourceUrl") or "").strip()
+        source_pair = (key, source_url)
+        if not source_url or source_pair in seen_source_pairs:
+            raise ExternalManifestError(
+                f"sourceUrl ausente/duplicada no plano: {key} {source_url!r}"
+            )
+        seen_source_pairs.add(source_pair)
+        rows.append(analyze_file(images_root, plan, indexed[key]))
+
+    rows.sort(
+        key=lambda row: (
+            str(row["public_model_key"]).casefold(),
+            int(row["source_provenance"]["position"]),
+            str(row["path"]).casefold(),
+        )
+    )
+    product_keys = {row["source_provenance"]["sourceProductKey"] for row in rows}
+    missing_products = sorted(set(indexed).difference(product_keys), key=str.casefold)
+    if missing_products:
+        raise ExternalManifestError(
+            f"produtos prontos sem nenhuma imagem materializada: {missing_products[:5]}"
+        )
+
+    summary = {
+        "version": 1,
+        "products": len(product_keys),
+        "images": len(rows),
+        "statusOk": len(rows),
+        "networkDownloads": 0,
+        "provenance": "AUTHORIZED_EXTERNAL_MEDIA",
+    }
+    return rows, summary
+
+
+def write_jsonl(path: Path, rows: list[dict[str, Any]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(
+        "".join(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n" for row in rows),
+        encoding="utf-8",
+    )
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description=(
+            "Analisa mídia externa já materializada e gera manifest.jsonl compatível "
+            "com o planejador de galeria; nunca acessa a rede."
+        )
+    )
+    parser.add_argument("products", type=Path, help="products.jsonl normalizado")
+    parser.add_argument("image_plan", type=Path, help="image-download-plan.jsonl")
+    parser.add_argument("--images-root", type=Path, required=True)
+    parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--summary", type=Path)
+    args = parser.parse_args()
+
+    try:
+        rows, summary = build_manifest(
+            read_jsonl(args.products),
+            read_jsonl(args.image_plan),
+            images_root=args.images_root,
+        )
+        write_jsonl(args.output, rows)
+        if args.summary:
+            args.summary.parent.mkdir(parents=True, exist_ok=True)
+            args.summary.write_text(
+                json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+                encoding="utf-8",
+            )
+    except (ExternalManifestError, OSError, ValueError) as exc:
+        print(f"ERRO: {exc}", file=sys.stderr)
+        return 2
+
+    print(json.dumps(summary, ensure_ascii=False, sort_keys=True))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
