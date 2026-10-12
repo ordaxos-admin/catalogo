@@ -313,10 +313,12 @@ def model_metadata(
     display_name = hierarchy[-1] if grouped_gallery and hierarchy else model_display_name(hierarchy, collection_parts, source_stem, audited_public)
     collection = " / ".join(collection_parts)
 
-    identity_label = public_identity_label(canonical_key, hierarchy_key_normalized, source_stem) if audited_public else source_stem
-    source_label = humanize_stem(identity_label)
-    variant_name = model_variant_name(identity_label, display_name, franchise_name, grouped_gallery)
-    slug_name = source_label if audited_public else display_name
+    canonical_identity_label = public_identity_label(canonical_key, hierarchy_key_normalized, source_stem) if audited_public else source_stem
+    source_identity_label = public_identity_label(identity_key, hierarchy_key_normalized, source_stem) if audited_public else source_stem
+    canonical_label = humanize_stem(canonical_identity_label)
+    source_label = humanize_stem(source_identity_label)
+    variant_name = model_variant_name(source_identity_label, display_name, franchise_name, grouped_gallery)
+    slug_name = canonical_label if audited_public else display_name
     clean_parts = [franchise_name, slug_name] if audited_public else [franchise_name, *collection_parts, display_name]
     base_slug = slugify(" ".join(clean_parts) or slug_name)
     model_slug = base_slug
@@ -325,7 +327,7 @@ def model_metadata(
 
     code_hash = hashlib.sha256(canonical_key.encode("utf-8")).hexdigest()[:12].upper()
     code = f"TS-{code_hash}"
-    search_text = " ".join(dict.fromkeys([*hierarchy, *collection_parts, display_name, variant_name, source_label, code])).casefold()
+    search_text = " ".join(dict.fromkeys([*hierarchy, *collection_parts, display_name, variant_name, canonical_label, source_label, code])).casefold()
 
     return {
         "identityKey": canonical_key,
@@ -818,7 +820,8 @@ def build_bundle(
         source_stem = Path(str(row["path"])).stem
         grouped_gallery = any(bool(member.get("audit_model_group")) for member in by_model[identity_key])
         display_name = hierarchy[-1] if grouped_gallery and hierarchy else model_display_name(hierarchy, collection_parts, source_stem, audited_public)
-        identity_label = public_identity_label(identity_key, str(row["model_key"]), source_stem) if audited_public else source_stem
+        stable_identity = stable_keys[identity_key]
+        identity_label = public_identity_label(stable_identity, str(row["model_key"]), source_stem) if audited_public else source_stem
         slug_name = humanize_stem(identity_label) if audited_public else display_name
         slug_parts = [franchise_name, slug_name] if audited_public else [franchise_name, *collection_parts, display_name]
         base_slugs.append(slugify(" ".join(slug_parts)))

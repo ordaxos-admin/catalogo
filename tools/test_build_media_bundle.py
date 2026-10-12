@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -15,8 +16,8 @@ from build_media_bundle import (
     media_build_output_lock,
     model_display_name,
     model_variant_name,
-    model_variant_name,
     save_media_build_state,
+    stable_id,
     validate_built_model_identifiers,
     validate_built_taxonomy_identifiers,
     validate_variant_disambiguation,
@@ -656,6 +657,96 @@ class MediaBundleTests(unittest.TestCase):
             self.assertEqual(renamed["sourceIdentityKey"], new_identity)
             state = json.loads((output / "media-build-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["identityHistory"]["2" * 64], old_identity)
+
+
+    def test_aliases_preserve_case_distinct_historical_ids_codes_and_slugs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "catalog"
+            model_dir = source / "Games" / "00 - Fliperama" / "Street Fighter" / "Ryu"
+            model_dir.mkdir(parents=True)
+            first = model_dir / "Ryu.png"
+            second = model_dir / "ryu.webp"
+            Image.new("RGB", (640, 960), "#334455").save(first)
+            Image.new("RGB", (720, 1080), "#556677").save(second, "WEBP")
+
+            hierarchy = "Games / 00 - Fliperama / Street Fighter / Ryu"
+            historical = [
+                f"{hierarchy} / Ryu",
+                f"{hierarchy} / ryu",
+            ]
+            current = [
+                f"{hierarchy} / ryu-modelo-01",
+                f"{hierarchy} / ryu-modelo-02",
+            ]
+            rows = []
+            for index, (path, identity) in enumerate(zip((first, second), current), 1):
+                rows.append({
+                    "path": str(path.relative_to(source)),
+                    "size": path.stat().st_size,
+                    "status": "OK",
+                    "canonical": True,
+                    "sha256": str(index) * 64,
+                    "width": 640 if index == 1 else 720,
+                    "height": 960 if index == 1 else 1080,
+                    "quality_score": 80.0 + index,
+                    "model_key": hierarchy,
+                    "public_model_key": identity,
+                    "audit_model_group": identity.rsplit(" / ", 1)[-1],
+                })
+
+            manifest = root / "manifest.jsonl"
+            manifest.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            aliases = root / "identity-aliases.json"
+            aliases.write_text(json.dumps({
+                "version": 1,
+                "aliases": [
+                    {
+                        "canonicalIdentityKey": historical_key,
+                        "aliases": [current_key],
+                        "reason": "continuidade de produto historicamente publicado",
+                    }
+                    for historical_key, current_key in zip(historical, current)
+                ],
+            }), encoding="utf-8")
+
+            output = root / "bundle"
+            summary = build_bundle(
+                source,
+                manifest,
+                output,
+                include_original=False,
+                identity_alias_config=aliases,
+            )
+            models = [
+                json.loads(line)
+                for line in (output / "models.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            by_source = {model["sourceIdentityKey"]: model for model in models}
+
+            self.assertEqual(summary["identityAliasesApplied"], 2)
+            self.assertEqual(len(models), 2)
+            self.assertEqual(len({model["slug"] for model in models}), 2)
+
+            for historical_key, current_key in zip(historical, current):
+                model = by_source[current_key]
+                expected_id = stable_id("mdl", historical_key)
+                expected_code = "TS-" + hashlib.sha256(
+                    historical_key.encode("utf-8")
+                ).hexdigest()[:12].upper()
+                expected_slug = (
+                    "street-fighter-ryu-"
+                    + expected_id.split("_", 1)[1][:10]
+                )
+                expected_variant = f"Modelo {current_key.rsplit('-', 1)[-1]}"
+                self.assertEqual(model["identityKey"], historical_key)
+                self.assertEqual(model["id"], expected_id)
+                self.assertEqual(model["code"], expected_code)
+                self.assertEqual(model["slug"], expected_slug)
+                self.assertEqual(model["variantName"], expected_variant)
 
     def test_two_current_identities_cannot_share_one_canonical_identity(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
