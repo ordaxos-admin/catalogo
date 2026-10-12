@@ -1,4 +1,19 @@
 {
   "version": 1,
-  "aliases": []
+  "aliases": [
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Ryu / Ryu",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Ryu / ryu-modelo-01"
+      ],
+      "reason": "Identidade pública explícita para preservar o modelo histórico publicado de Ryu.png sem colisão textual com outro modelo distinto do mesmo personagem."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Ryu / ryu",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Ryu / ryu-modelo-02"
+      ],
+      "reason": "Identidade pública explícita para preservar o modelo histórico publicado de ryu.webp sem colisão textual com outro modelo distinto do mesmo personagem."
+    }
+  ]
 }
