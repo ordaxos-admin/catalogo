@@ -28,7 +28,7 @@ A origem é somente leitura durante a ingestão. SHA-256 identifica duplicatas e
 
 São geradas variantes WebP de `thumb`, `card` e `detail`; o original pode ser preservado no armazenamento mestre sem ser servido na grade do catálogo.
 
-Fontes externas entram por um boundary separado e auditável: aquisição autorizada, normalização, mídia materializada, manifesto externo, revisão de galeria e só então promoção. Veja [`docs/FONTES-EXTERNAS.md`](docs/FONTES-EXTERNAS.md). Um produto externo com várias vistas permanece uma única identidade de modelo com galeria multi-imagem.
+Fontes externas autorizadas entram por um boundary separado: uma ficha externa continua sendo **um modelo com N imagens**, e o manifesto só é aceito quando todas as imagens declaradas estão presentes e ocupam as posições `1..N` sem lacunas. Veja [`docs/FONTES-EXTERNAS.md`](docs/FONTES-EXTERNAS.md).
 
 ## Runtime
 
