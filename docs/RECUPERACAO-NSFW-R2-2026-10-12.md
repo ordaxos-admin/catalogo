@@ -25,7 +25,7 @@ Bucket: `tonecos-catalogo-media`
 | Cammy — NSFW | `mdl_dc75a8c0af5b0d852743` | `media/mdl_dc75a8c0af5b0d852743/img_79a5b334fa9235bdc79f/detail.webp` | 158950 bytes | `e1fec873b4d42bc72b84e77b893c3ffc2795467d75e155fbcf3834eff93981c2` |
 | Lady Vashj — NSFW | `mdl_ebb783318941d6abc94e` | `media/mdl_ebb783318941d6abc94e/img_4162595d15c5c5494eba/detail.webp` | 198702 bytes | `04d90d0ab4fc14ca11d50eaf2418ac6c7a07210d5b0eafafd78b5362281c58a9` |
 
-A mesma informação também existe em formato machine-readable em `config/catalog-r2-recovery-manifest.json`. Esse arquivo é o SSOT do verifier; o quadro acima é documentação humana.
+A mesma informação também existe em formato machine-readable em `config/catalog-r2-recovery-manifest.json`. Esse arquivo é o SSOT do verifier e da materialização; o quadro acima é documentação humana.
 
 ## Identidade publicada confirmada no D1
 
@@ -38,14 +38,16 @@ Esses registros permanecem nas franquias originais (`Resident Evil`, `Street Fig
 ## Procedimento canônico de recuperação
 
 1. baixar somente o `detail.webp` correspondente ao `model_id` auditado;
-2. verificar o SHA-256 contra `config/catalog-r2-recovery-manifest.json` antes de aceitar o arquivo;
-3. salvar no SSOT físico no destino definido pelo relatório físico e registrar proveniência explícita `RECOVERED_FROM_R2_DETAIL`;
-4. preservar o SHA histórico anterior apenas como lineage/ancestralidade, nunca como checksum do arquivo recuperado;
-5. executar `tools/verify_r2_recovery.py` contra os arquivos materializados e exigir cobertura integral dos 3 IDs;
-6. regenerar ingestão e bundle sob `MEDIA_METADATA_VERSION=8`;
-7. comprovar coexistência Normal + NSFW como variantes distintas;
-8. executar `publish_r2.py --dry-run` e o preflight D1 sem escrita de produção;
-9. somente depois dos gates verdes avaliar os dois reparos monotônicos de galeria e a saída da PR de draft.
+2. salvar os três downloads em uma pasta de entrada isolada, fora do SSOT, usando exatamente `<modelId>.webp` como nome de arquivo;
+3. usar `tools/materialize_r2_recovery.py` primeiro sem `--apply` para validar integralmente os três downloads e os destinos do mapping;
+4. somente após o dry-run verde executar o mesmo comando com `--apply`;
+5. o materializador recusa overwrite divergente e aceita idempotentemente destino já existente com SHA/tamanho corretos;
+6. executar `tools/verify_r2_recovery.py` contra o SSOT materializado e exigir cobertura integral dos 3 IDs;
+7. preservar o SHA histórico anterior apenas como lineage/ancestralidade, nunca como checksum do arquivo recuperado;
+8. regenerar ingestão e bundle sob `MEDIA_METADATA_VERSION=8`;
+9. comprovar coexistência Normal + NSFW como variantes distintas;
+10. executar `publish_r2.py --dry-run` e o preflight D1 sem escrita de produção;
+11. somente depois dos gates verdes avaliar os dois reparos monotônicos de galeria e a saída da PR de draft.
 
 ## Mapping local fail-closed
 
@@ -73,14 +75,61 @@ O caminho físico não é hardcoded no repositório porque o destino pertence ao
 
 Os `...` acima são apenas ilustrativos na documentação. O mapping real deve usar os caminhos exatos do relatório físico; não é permitido inferir ou inventar diretório.
 
-Execute:
+## Materialização segura
+
+A pasta de entrada deve conter exatamente os bytes baixados do R2, nomeados pelo ID publicado:
+
+```text
+incoming/
+  mdl_4178950210474bea1aa9.webp
+  mdl_dc75a8c0af5b0d852743.webp
+  mdl_ebb783318941d6abc94e.webp
+```
+
+Primeiro faça o preflight sem escrita:
+
+```bash
+python tools/materialize_r2_recovery.py \
+  --manifest config/catalog-r2-recovery-manifest.json \
+  --mapping "/caminho/local/recovery-mapping.json" \
+  --incoming-root "/caminho/local/incoming" \
+  --root "/raiz/do/Catalogo"
+```
+
+O dry-run exige que **todos** os downloads já existam e tenham tamanho/SHA corretos. Se um único arquivo estiver ausente ou divergente, nenhum destino é escrito.
+
+Com o preflight verde, aplique:
+
+```bash
+python tools/materialize_r2_recovery.py \
+  --manifest config/catalog-r2-recovery-manifest.json \
+  --mapping "/caminho/local/recovery-mapping.json" \
+  --incoming-root "/caminho/local/incoming" \
+  --root "/raiz/do/Catalogo" \
+  --provenance-output "/raiz/do/Catalogo/.catalog-ingest/recovery-provenance.jsonl" \
+  --apply
+```
+
+O materializador é deliberadamente sem rede. Ele:
+
+- verifica integralmente os arquivos de entrada **antes de qualquer cópia**;
+- usa o mesmo manifesto e mapping do verifier;
+- recusa target existente com bytes diferentes, sem overwrite;
+- aceita target já idêntico como estado idempotente;
+- grava arquivos faltantes de forma monotônica, sem apagar ou alterar masters existentes;
+- reexecuta a verificação integral do SSOT após as cópias;
+- só grava provenance depois de `completeCoverage=true`.
+
+## Verificação pós-materialização
+
+Execute novamente o verifier independente:
 
 ```bash
 python tools/verify_r2_recovery.py \
   --manifest config/catalog-r2-recovery-manifest.json \
   --mapping "/caminho/local/recovery-mapping.json" \
   --root "/raiz/do/Catalogo" \
-  --output ".catalog-ingest/recovery-provenance.jsonl"
+  --output "/raiz/do/Catalogo/.catalog-ingest/recovery-provenance.jsonl"
 ```
 
 O verifier é deliberadamente sem rede e sem cópia. Ele:
