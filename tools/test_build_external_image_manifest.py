@@ -23,12 +23,14 @@ build_manifest = module.build_manifest
 
 
 class BuildExternalImageManifestTests(unittest.TestCase):
+    SOURCE_ID = "vendor-a"
+
     def product(self) -> dict:
         return {
-            "sourceId": "stlforge",
-            "sourceProductKey": "stlforge:juri-han",
-            "incomingModel": "stlforge / juri-han",
-            "sourceUrl": "https://stlforge.cl/producto/juri-han/",
+            "sourceId": self.SOURCE_ID,
+            "sourceProductKey": "vendor-a:juri-han",
+            "incomingModel": "vendor-a / juri-han",
+            "sourceUrl": "https://vendor.example/product/juri-han/",
             "displayName": "Juri Han",
             "sourceTitle": "Juri Han STL – Street Fighter",
             "canonicalCategoryCandidate": "Games",
@@ -39,17 +41,17 @@ class BuildExternalImageManifestTests(unittest.TestCase):
     @staticmethod
     def plan(position: int, filename: str) -> dict:
         return {
-            "sourceProductKey": "stlforge:juri-han",
+            "sourceProductKey": "vendor-a:juri-han",
             "position": position,
             "sourceImageId": str(100 + position),
-            "sourceUrl": f"https://stlforge.cl/wp-content/uploads/{filename}",
-            "targetPath": f"stlforge/juri-han/{filename}",
+            "sourceUrl": f"https://cdn.vendor.example/uploads/{filename}",
+            "targetPath": f"vendor-a/juri-han/{filename}",
         }
 
     def test_multiple_images_share_one_incoming_model_and_keep_provenance(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
-            target_dir = root / "stlforge" / "juri-han"
+            target_dir = root / self.SOURCE_ID / "juri-han"
             target_dir.mkdir(parents=True)
             Image.new("RGB", (100, 80), (255, 0, 0)).save(target_dir / "001.webp", "WEBP")
             Image.new("RGB", (120, 90), (0, 0, 255)).save(target_dir / "002.webp", "WEBP")
@@ -61,7 +63,7 @@ class BuildExternalImageManifestTests(unittest.TestCase):
             )
 
             self.assertEqual(len(rows), 2)
-            self.assertEqual({row["public_model_key"] for row in rows}, {"stlforge / juri-han"})
+            self.assertEqual({row["public_model_key"] for row in rows}, {"vendor-a / juri-han"})
             self.assertEqual({row["category"] for row in rows}, {"Games"})
             self.assertEqual({row["franchise"] for row in rows}, {"Street Fighter"})
             self.assertTrue(all(row["status"] == "OK" for row in rows))
