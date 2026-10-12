@@ -24,11 +24,13 @@ normalize_product = module.normalize_product
 
 
 class ImportWooCommerceCatalogTests(unittest.TestCase):
+    SOURCE_ID = "vendor-a"
+
     def setUp(self) -> None:
         self.source = {
-            "origin": "https://stlforge.cl",
-            "productPathPrefixes": ["/producto/"],
-            "allowedImageHosts": ["stlforge.cl", "www.stlforge.cl"],
+            "origin": "https://vendor.example",
+            "productPathPrefixes": ["/product/"],
+            "allowedImageHosts": ["vendor.example", "cdn.vendor.example"],
             "taxonomySignals": {
                 "Anime": "Animes & Desenhos",
                 "Videogames": "Games",
@@ -40,7 +42,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "nonFranchiseTerms": [
                 "Anime", "Videogames", "Comics", "Fantasy", "Movies", "Series",
                 "Horror", "Premium", "Diamond Tier", "NSFW", "Packs",
-                "STL Forge", "Template Test",
+                "Catalog Vendor", "Template Test",
             ],
             "featureTerms": {
                 "nsfw": "NSFW",
@@ -61,18 +63,22 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
         return [
             {
                 "id": 1000 + index,
-                "src": f"https://stlforge.cl/wp-content/uploads/{stem}-{index}.webp",
+                "src": f"https://cdn.vendor.example/uploads/{stem}-{index}.webp",
                 "alt": f"{stem} view {index}",
             }
             for index in range(1, count + 1)
         ]
+
+    @staticmethod
+    def product_url(slug: str) -> str:
+        return f"https://vendor.example/product/{slug}/"
 
     def test_one_product_with_seven_images_stays_one_incoming_model(self) -> None:
         product = {
             "id": 42,
             "name": "Juri Han STL – Street Fighter",
             "slug": "juri-han-stl-street-fighter",
-            "permalink": "https://stlforge.cl/producto/juri-han-stl-street-fighter/",
+            "permalink": self.product_url("juri-han-stl-street-fighter"),
             "categories": [
                 {"name": "Street Fighter"},
                 {"name": "NSFW"},
@@ -82,7 +88,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "images": self.images(7),
         }
 
-        row, images = normalize_product(product, source_id="stlforge", source=self.source)
+        row, images = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
         self.assertEqual(row["displayName"], "Juri Han")
         self.assertEqual(row["canonicalCategoryCandidate"], "Games")
@@ -91,15 +97,21 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
         self.assertEqual(row["imageCount"], 7)
         self.assertTrue(row["readyForMaterialization"])
         self.assertEqual(len(images), 7)
-        self.assertEqual({image["incomingModel"] for image in images}, {"stlforge / juri-han-stl-street-fighter"})
-        self.assertEqual(images[0]["targetPath"], "stlforge/juri-han-stl-street-fighter/001-1001.webp")
+        self.assertEqual(
+            {image["incomingModel"] for image in images},
+            {"vendor-a / juri-han-stl-street-fighter"},
+        )
+        self.assertEqual(
+            images[0]["targetPath"],
+            "vendor-a/juri-han-stl-street-fighter/001-1001.webp",
+        )
 
     def test_title_features_are_removed_from_display_name_but_preserved_as_features(self) -> None:
         product = {
             "id": 50,
             "name": "Cynthia STL + Bust + NSFW – Pokemon",
             "slug": "cynthia-stl-bust-nsfw-pokemon",
-            "permalink": "https://stlforge.cl/producto/cynthia-stl-bust-nsfw-pokemon/",
+            "permalink": self.product_url("cynthia-stl-bust-nsfw-pokemon"),
             "categories": [
                 {"name": "Pokemon"},
                 {"name": "Anime"},
@@ -110,7 +122,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "images": self.images(3, "cynthia"),
         }
 
-        row, images = normalize_product(product, source_id="stlforge", source=self.source)
+        row, images = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
         self.assertEqual(row["displayName"], "Cynthia")
         self.assertEqual(row["canonicalCategoryCandidate"], "Animes & Desenhos")
@@ -123,7 +135,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "id": 60,
             "name": "Lucy and David Diorama – Cyberpunk",
             "slug": "lucy-and-david-diorama-cyberpunk",
-            "permalink": "https://stlforge.cl/producto/lucy-and-david-diorama-cyberpunk/",
+            "permalink": self.product_url("lucy-and-david-diorama-cyberpunk"),
             "categories": [
                 {"name": "Cyberpunk"},
                 {"name": "Series"},
@@ -133,7 +145,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "images": self.images(2, "cyberpunk"),
         }
 
-        row, _ = normalize_product(product, source_id="stlforge", source=self.source)
+        row, _ = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
         self.assertIsNone(row["canonicalCategoryCandidate"])
         self.assertEqual(row["categoryResolution"], "review_conflict")
@@ -145,7 +157,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "id": 70,
             "name": "Hela STL Queen in Black + Bust + NSFW – Marvel",
             "slug": "hela-stl-queen-in-black-marvel",
-            "permalink": "https://stlforge.cl/producto/hela-stl-queen-in-black-marvel/",
+            "permalink": self.product_url("hela-stl-queen-in-black-marvel"),
             "categories": [
                 {"name": "Marvel"},
                 {"name": "Comics"},
@@ -155,7 +167,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "images": self.images(4, "hela"),
         }
 
-        row, _ = normalize_product(product, source_id="stlforge", source=self.source)
+        row, _ = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
         self.assertEqual(row["canonicalCategoryCandidate"], "Marvel & DC")
         self.assertEqual(row["franchiseCandidate"], "Marvel")
@@ -166,7 +178,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "id": 80,
             "name": "Ryu STL – Street Fighter",
             "slug": "ryu-stl-street-fighter",
-            "permalink": "https://stlforge.cl/producto/ryu-stl-street-fighter/",
+            "permalink": self.product_url("ryu-stl-street-fighter"),
             "categories": [{"name": "Street Fighter"}, {"name": "Videogames"}],
             "tags": [],
             "images": [
@@ -179,14 +191,14 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
         }
 
         with self.assertRaisesRegex(ImportContractError, "host de imagem não autorizado"):
-            normalize_product(product, source_id="stlforge", source=self.source)
+            normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
     def test_duplicate_product_slug_is_rejected(self) -> None:
         base = {
             "id": 90,
             "name": "Ryu STL – Street Fighter",
             "slug": "ryu-stl-street-fighter",
-            "permalink": "https://stlforge.cl/producto/ryu-stl-street-fighter/",
+            "permalink": self.product_url("ryu-stl-street-fighter"),
             "categories": [{"name": "Street Fighter"}, {"name": "Videogames"}],
             "tags": [],
             "images": self.images(1, "ryu"),
@@ -195,14 +207,14 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
         duplicate["id"] = 91
 
         with self.assertRaisesRegex(ImportContractError, "produto duplicado"):
-            build_inventory([base, duplicate], source_id="stlforge", source=self.source)
+            build_inventory([base, duplicate], source_id=self.SOURCE_ID, source=self.source)
 
     def test_summary_counts_nsfw_products_and_images(self) -> None:
         juri = {
             "id": 100,
             "name": "Juri Han STL – Street Fighter",
             "slug": "juri-han-stl-street-fighter",
-            "permalink": "https://stlforge.cl/producto/juri-han-stl-street-fighter/",
+            "permalink": self.product_url("juri-han-stl-street-fighter"),
             "categories": [{"name": "Street Fighter"}, {"name": "NSFW"}, {"name": "Videogames"}],
             "tags": [{"name": "NSFW"}],
             "images": self.images(7, "juri"),
@@ -211,14 +223,14 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "id": 101,
             "name": "Ryu STL – Street Fighter",
             "slug": "ryu-stl-street-fighter",
-            "permalink": "https://stlforge.cl/producto/ryu-stl-street-fighter/",
+            "permalink": self.product_url("ryu-stl-street-fighter"),
             "categories": [{"name": "Street Fighter"}, {"name": "Videogames"}],
             "tags": [],
             "images": self.images(2, "ryu"),
         }
 
         products, images, summary = build_inventory(
-            [juri, ryu], source_id="stlforge", source=self.source
+            [juri, ryu], source_id=self.SOURCE_ID, source=self.source
         )
 
         self.assertEqual(len(products), 2)
