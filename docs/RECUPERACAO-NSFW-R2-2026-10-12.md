@@ -25,6 +25,8 @@ Bucket: `tonecos-catalogo-media`
 | Cammy — NSFW | `mdl_dc75a8c0af5b0d852743` | `media/mdl_dc75a8c0af5b0d852743/img_79a5b334fa9235bdc79f/detail.webp` | 158950 bytes | `e1fec873b4d42bc72b84e77b893c3ffc2795467d75e155fbcf3834eff93981c2` |
 | Lady Vashj — NSFW | `mdl_ebb783318941d6abc94e` | `media/mdl_ebb783318941d6abc94e/img_4162595d15c5c5494eba/detail.webp` | 198702 bytes | `04d90d0ab4fc14ca11d50eaf2418ac6c7a07210d5b0eafafd78b5362281c58a9` |
 
+A mesma informação também existe em formato machine-readable em `config/catalog-r2-recovery-manifest.json`. Esse arquivo é o SSOT do verifier; o quadro acima é documentação humana.
+
 ## Identidade publicada confirmada no D1
 
 - Ada Wong NSFW: slug histórico `resident-evil-ada-wong-resident-evil-ada-wong-stl-4-nsfw-resident-evil-principal`.
@@ -36,14 +38,63 @@ Esses registros permanecem nas franquias originais (`Resident Evil`, `Street Fig
 ## Procedimento canônico de recuperação
 
 1. baixar somente o `detail.webp` correspondente ao `model_id` auditado;
-2. verificar o SHA-256 contra a tabela acima antes de aceitar o arquivo;
-3. salvar no SSOT físico com proveniência explícita `RECOVERED_FROM_R2_DETAIL`;
+2. verificar o SHA-256 contra `config/catalog-r2-recovery-manifest.json` antes de aceitar o arquivo;
+3. salvar no SSOT físico no destino definido pelo relatório físico e registrar proveniência explícita `RECOVERED_FROM_R2_DETAIL`;
 4. preservar o SHA histórico anterior apenas como lineage/ancestralidade, nunca como checksum do arquivo recuperado;
-5. regenerar ingestão e bundle sob `MEDIA_METADATA_VERSION=8`;
-6. comprovar coexistência Normal + NSFW como variantes distintas;
-7. executar `publish_r2.py --dry-run` e o preflight D1 sem escrita de produção;
-8. somente depois dos gates verdes avaliar os dois reparos monotônicos de galeria e a saída da PR de draft.
+5. executar `tools/verify_r2_recovery.py` contra os arquivos materializados e exigir cobertura integral dos 3 IDs;
+6. regenerar ingestão e bundle sob `MEDIA_METADATA_VERSION=8`;
+7. comprovar coexistência Normal + NSFW como variantes distintas;
+8. executar `publish_r2.py --dry-run` e o preflight D1 sem escrita de produção;
+9. somente depois dos gates verdes avaliar os dois reparos monotônicos de galeria e a saída da PR de draft.
+
+## Mapping local fail-closed
+
+O caminho físico não é hardcoded no repositório porque o destino pertence ao SSOT operacional local e deve vir do relatório físico auditado. Crie um JSON local, fora do Git, contendo exatamente os três destinos relativos à raiz do catálogo:
+
+```json
+{
+  "version": 1,
+  "entries": [
+    {
+      "modelId": "mdl_4178950210474bea1aa9",
+      "relativePath": "Games/Resident Evil/.../arquivo-recuperado.webp"
+    },
+    {
+      "modelId": "mdl_dc75a8c0af5b0d852743",
+      "relativePath": "Games/Street Fighter/.../arquivo-recuperado.webp"
+    },
+    {
+      "modelId": "mdl_ebb783318941d6abc94e",
+      "relativePath": "Games/Warcraft/.../arquivo-recuperado.webp"
+    }
+  ]
+}
+```
+
+Os `...` acima são apenas ilustrativos na documentação. O mapping real deve usar os caminhos exatos do relatório físico; não é permitido inferir ou inventar diretório.
+
+Execute:
+
+```bash
+python tools/verify_r2_recovery.py \
+  --manifest config/catalog-r2-recovery-manifest.json \
+  --mapping "/caminho/local/recovery-mapping.json" \
+  --root "/raiz/do/Catalogo" \
+  --output ".catalog-ingest/recovery-provenance.jsonl"
+```
+
+O verifier é deliberadamente sem rede e sem cópia. Ele:
+
+- exige que mapping e manifesto contenham exatamente os mesmos `modelId`;
+- recusa caminho absoluto, traversal ou escape da raiz autorizada;
+- exige o tamanho exato do objeto auditado;
+- recalcula e exige o SHA-256 exato do `detail.webp` recuperado;
+- exige `RECOVERED_FROM_R2_DETAIL` como provenance;
+- grava provenance somente depois da validação integral;
+- informa `networkReads=0` e `writesToSourceRoot=0` no resumo.
+
+A existência do arquivo de provenance não substitui a ingestão. Ela prova apenas que os bytes materializados correspondem exatamente aos objetos R2 auditados e que os três destinos físicos foram cobertos.
 
 ## Estado
 
-Objetos R2 confirmados em leitura em 2026-10-12. Nenhum upload R2 e nenhuma escrita D1 foram realizados durante esta validação.
+Objetos R2 reconfirmados em leitura em 2026-10-12 na conta Tonecos Studio; tamanhos permanecem 345868, 158950 e 198702 bytes. O D1 ativo permanece com 2596 modelos / 2564 publicados, os três registros históricos NSFW ainda publicados e `variant_name` ainda vazio no dataset antigo. Nenhum upload R2 e nenhuma escrita D1 foram realizados durante esta validação.
