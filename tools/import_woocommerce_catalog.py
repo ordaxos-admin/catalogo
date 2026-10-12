@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-"""Normalize an authorized WooCommerce product export for external catalog ingestion.
+"""Normalize an authorized WooCommerce product export for external ingestion.
 
-This tool is intentionally network-free. Acquisition of third-party media is a
-separate, explicitly authorized step. The normalized inventory preserves one
-source product as one incoming model with N gallery images and records enough
-provenance to materialize those images later without conflating views with
-distinct products.
+This tool is deliberately network-free. Vendor-specific origin/host/taxonomy
+configuration is supplied from an untracked file under `.external-ingest/` (or
+another operator-controlled path). The repository therefore owns the ingestion
+contract, not a third-party brand or endpoint.
 """
 from __future__ import annotations
 
@@ -27,9 +26,7 @@ IMAGE_EXTS = {
 TAG_RE = re.compile(r"<[^>]+>")
 SPACE_RE = re.compile(r"\s+")
 DASH_SPLIT_RE = re.compile(r"\s+[–—-]\s+")
-GENERIC_TITLE_TOKENS_RE = re.compile(
-    r"(?i)(?:\s*[-–—]\s*)?(?:STL\s*Files?|STL\s*Forge)\s*$"
-)
+GENERIC_TITLE_TOKENS_RE = re.compile(r"(?i)(?:\s*[-–—]\s*)?STL(?:\s*Files?)?\s*$")
 FEATURE_SEGMENT_RE = re.compile(
     r"(?i)\s*\+\s*(?:bust|busto|nsfw|extras?|extra\s+content|pre[- ]?supported|uncut(?:/merged)?|split\s+pieces?)\b"
 )
@@ -82,16 +79,22 @@ def load_source_config(path: Path, source_id: str) -> dict[str, Any]:
     source = sources[source_id]
     if not isinstance(source, dict):
         raise ImportContractError(f"configuração inválida para fonte: {source_id}")
+
     origin = str(source.get("origin") or "").rstrip("/")
     parsed = urlparse(origin)
     if parsed.scheme != "https" or not parsed.netloc:
         raise ImportContractError(f"origin HTTPS inválida para {source_id}: {origin!r}")
+
     hosts = source.get("allowedImageHosts")
-    if not isinstance(hosts, list) or not hosts or not all(isinstance(item, str) and item.strip() for item in hosts):
+    if not isinstance(hosts, list) or not hosts or not all(
+        isinstance(item, str) and item.strip() for item in hosts
+    ):
         raise ImportContractError(f"allowedImageHosts inválido para {source_id}")
+
     signals = source.get("taxonomySignals")
     if not isinstance(signals, dict) or not signals:
         raise ImportContractError(f"taxonomySignals inválido para {source_id}")
+
     allowed_categories = set(PUBLIC_TOP_LEVEL_CATEGORIES)
     invalid_targets = sorted(
         {str(target) for target in signals.values() if str(target) not in allowed_categories},
@@ -413,7 +416,8 @@ def main() -> int:
     parser.add_argument(
         "--config",
         type=Path,
-        default=Path(__file__).resolve().parents[1] / "config" / "external-catalog-sources.json",
+        required=True,
+        help="configuração da fonte mantida fora do repositório (ex.: .external-ingest/source.json)",
     )
     parser.add_argument("--output", type=Path, default=Path(".external-ingest"))
     args = parser.parse_args()
