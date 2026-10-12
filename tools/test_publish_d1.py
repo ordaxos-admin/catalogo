@@ -1006,5 +1006,17 @@ class PublishD1Tests(unittest.TestCase):
                 load_models(path)
 
 
+    def test_repository_retirement_approvals_are_valid(self) -> None:
+        path = Path(__file__).resolve().parents[1] / "config" / "catalog-model-retirement-approvals.csv"
+        approvals = read_model_retirement_approvals(path)
+
+        self.assertTrue(approvals)
+        for model_id, approval in approvals.items():
+            self.assertEqual(approval["model_id"], model_id)
+            self.assertTrue(approval["slug"])
+            self.assertTrue(approval["code"])
+            self.assertTrue(approval["reason"])
+
+
 if __name__ == "__main__":
     unittest.main()

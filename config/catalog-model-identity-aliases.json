@@ -2,6 +2,489 @@
   "version": 1,
   "aliases": [
     {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Demon Slayer / Gyomei Himejima / Gyomei Himejima — Demon Slayer — gyomei-himejima-stl-2-demon-slayer — principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Demon Slayer / Gyomei Himejima / Gyomei Himejima — Demon Slayer — gyomei-himejima 2-demon-slayer — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 287abce63bf63969420eb8b7e4aba84abbc6aaa68b30fd5f153b40968a95542e e caminho RV1 de 2026-09-30; preserva mdl_90c56442e6d25ea8277a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Demon Slayer / Muichiro Tokito / Muichiro Tokito — Demon Slayer — muichiro-tokito-stl-3-demon-slayer — principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Demon Slayer / Muichiro Tokito / Muichiro Tokito — Demon Slayer — muichiro-tokito 3-demon-slayer — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 1419917a78a0c75d399d3ed0e97df1671bab4cb7b71ee55edc6338c7f8e24f22 e caminho RV1 de 2026-09-30; preserva mdl_807463a69a428ea24c6a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Demon Slayer / Shinobu Kocho / Shinobu Kocho — Demon Slayer — shinobu-kocho-stl-3-demon-slayer — principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Demon Slayer / Shinobu Kocho / Shinobu Kocho — Demon Slayer — shinobu-kocho 3-demon-slayer — principal"
+      ],
+      "reason": "Continuidade auditada por SHA ba7f37d9cfd7debc48c5e45f342ab5b977284b476c30b0b1252afec654ee6014 e caminho RV1 de 2026-09-30; preserva mdl_dead5b07ccfa2e3f8bdd após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Hinata / hinata-stl-3-naruto-principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Hinata / hinata 3-naruto-principal"
+      ],
+      "reason": "Continuidade auditada por SHA c96ba7fc91978f5a4e96e490d49800ab69647a22234a13b59f601130b6fa77af e caminho RV1 de 2026-09-30; preserva mdl_992661c8bdf934c80ffa após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Kakashi / kakashi-hatake-stl-naruto",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Kakashi / kakashi-hatake naruto"
+      ],
+      "reason": "Continuidade auditada por SHA e30a40125dd5e9387f99c0651eeb0f6c12e572a33b55ec995a7351bb810cf938 e caminho RV1 de 2026-09-30; preserva mdl_9d093466f3c5e0d40faa após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Madara / Madara Uchiha — Naruto — madara-uchiha-stl-2-naruto — principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Madara / Madara Uchiha — Naruto — madara-uchiha 2-naruto — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 5cb3469a285610680910b227a3d53dc0d0328e3e0d14bd3433d403a1980f45dd e caminho RV1 de 2026-09-30; preserva mdl_34c99cf1a6231db789bc após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Minato / Minato Namikaze — Naruto — minato-namikaze-stl-bust-naruto — principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Minato / Minato Namikaze — Naruto — minato-namikaze bust-naruto — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 59fb7c8bf14aafc1c1310e96227f610a479fd41c3850bc990e9eef03345144e0 e caminho RV1 de 2026-09-30; preserva mdl_376e9f09132984839333 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — acervo anterior — imagem 02",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — acervo anterior — 02"
+      ],
+      "reason": "Continuidade auditada por SHA ea007638f9c98db88504506e197794c754a911874d53853c1a4bf8b30edca4bd e caminho RV1 de 2026-09-30; preserva mdl_649eb25d3445e5725bd2 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — acervo anterior — imagem 03",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — acervo anterior — 03"
+      ],
+      "reason": "Continuidade auditada por SHA 4838d677a6541f36f3f3918118a25eb7366d6eda8eeb37cd4a93d4be173bd65f e caminho RV1 de 2026-09-30; preserva mdl_b7fac17f87ba17fd4630 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — acervo anterior — imagem 04",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — acervo anterior — 04"
+      ],
+      "reason": "Continuidade auditada por SHA f9619597bc2b82a08c5241f16a53b1a8a82534754e3fd08060434c7cadf76d7e e caminho RV1 de 2026-09-30; preserva mdl_608ea24401ab9fc8346f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — naruto-uzumaki-stl-4-naruto — principal",
+      "aliases": [
+        "Animes & Desenhos / Animes / Naruto / Naruto Uzumaki / Naruto Uzumaki — Naruto — naruto-uzumaki 4-naruto — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7ccd73fd3eeed8cb1d4f4496dae81e6087359b00c00175bf344f8bd2506491b6 e caminho RV1 de 2026-09-30; preserva mdl_bebfd6e3b2c6067902a6 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / As Tartarugas Ninja / Michelangelo / michelangelo-stl-teenage-mutant-ninja-turtles-principal",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / As Tartarugas Ninja / Michelangelo / michelangelo teenage-mutant-ninja-turtles-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 9582f67c4715e27ad6f14ee1690d75dfd32fa206a5a735338c122c5e745297d5 e caminho RV1 de 2026-09-30; preserva mdl_223928650ef012048c4b após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / As Tartarugas Ninja / Raphael / raphael-stl-teenage-mutant-ninja-turtles-principal",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / As Tartarugas Ninja / Raphael / raphael teenage-mutant-ninja-turtles-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 973c4d2fa470ceb781b3b5dfeb2508cf64bccff0e8a2b01ddf586d30a8696abd e caminho RV1 de 2026-09-30; preserva mdl_86ebb49907faa963be1e após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Doraemon / Doraemon — Doraemon — doraemon-stl-doraemon — principal",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Doraemon / Doraemon — Doraemon — doraemon doraemon — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 9fb3fde2495904a2a8b85a71fabb221f788047a6bb9de478cee60c508ec770f6 e caminho RV1 de 2026-09-30; preserva mdl_449b9fc707f20180450e após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Pokémon / Bulbasaur / bulbasaur-stl-pokemon",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Pokémon / Bulbasaur / Bulbasaur"
+      ],
+      "reason": "Continuidade auditada por SHA a126eb135b5075b4a7ac5a87c0e0eaa6beded75c18e1c3f1ebdcd422871ee441 e caminho RV1 de 2026-09-30; preserva mdl_3a6a7fef0281843914f1 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Pokémon / Charmander / charmander-stl-pokemon",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Pokémon / Charmander / Charmander"
+      ],
+      "reason": "Continuidade auditada por SHA b536563b698bec56edf8ec5107825c9175e6d92114e000ac4556590a180b0f5e e caminho RV1 de 2026-09-30; preserva mdl_e6ba25168cf92f15228f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Pokémon / Dugtrio / dugtrio-stl-diorama-pokemon",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Pokémon / Dugtrio / Dugtrio"
+      ],
+      "reason": "Continuidade auditada por SHA 5a5845dbb6af42c09c5f7cce11ddcd8877a800ba444e377b2ee2587a4fceab04 e caminho RV1 de 2026-09-30; preserva mdl_479229cb53e5f3c41ef2 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Pokémon / Squirtle / squirtle-stl-pokemon",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Pokémon / Squirtle / Squirtle"
+      ],
+      "reason": "Continuidade auditada por SHA 7b127e70362b07eff332688d2cffff0a64d3212869ccf12a29c23138e293dbcc e caminho RV1 de 2026-09-30; preserva mdl_81986fe540aa0d0baac8 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Pokémon / Wigglytuff / wigglytuff-stl-diorama-pokemon",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Pokémon / Wigglytuff / Wigglytuff"
+      ],
+      "reason": "Continuidade auditada por SHA 0c2378960643148e96ee824adca2a58e2fd09a00ae7d8b51704a859f11843944 e caminho RV1 de 2026-09-30; preserva mdl_89ce9df672c01e392c7a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Clássicos / Princesa Mononoke / San / San — Princesa Mononoke — san-bust-princess-mononoke-stl — principal",
+      "aliases": [
+        "Animes & Desenhos / Clássicos / Princesa Mononoke / San / San — Princesa Mononoke — san-bust-princess-mononoke — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 3c8487ad130965380eb1e4d9c2d1ebfb275e0f520a68a823a25a7d8280721c54 e caminho RV1 de 2026-09-30; preserva mdl_76242a6e5bb36ad13715 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Camilla / camilla-the-duelist-stl-fantasy-principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Camilla / camilla-the-duelist fantasy-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 0c243b9a6325b884af60864cf1632ca3b9b62ad4c83e5396b228ca7cd59cc1d9 e caminho RV1 de 2026-09-30; preserva mdl_da2d58c7edd0f3d00269 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Cavaleiro da Morte / death-knight-stl-fantasy-principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Cavaleiro da Morte / death-knight fantasy-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 01b14e9a6246f17452bdb06e9f9bf8bdaa751e3a1079c22a24b22a7b17e9cfd3 e caminho RV1 de 2026-09-30; preserva mdl_b9cdac8cfd96b9d97ca3 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Cyberpunk Samurai / Cyberpunk Samurai — Fantasy — cyberpunk-samurai-stl-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Cyberpunk Samurai / Cyberpunk Samurai — Fantasy — cyberpunk-samurai fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 48297dacc8fac21529ada8ed59973e2228ef79e72c00f514062d0f016aeaea6c e caminho RV1 de 2026-09-30; preserva mdl_089618e32a604333fbf7 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Esfinge / Esfinge — Fantasy — the-sphinx-stl-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Esfinge / Esfinge — Fantasy — the-sphinx fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 77eee19b9b1f62a95221841229a9d45d67af93d30273362223739098ba81291d e caminho RV1 de 2026-09-30; preserva mdl_2cdae45a49ddb2e65fd8 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Eva / Eva — Fantasy — eva-stl-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Eva / Eva — Fantasy — eva fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 60464eba6269be6d17e97e2065c362b0a2a610d9221e34b4985b995515c2d4fb e caminho RV1 de 2026-09-30; preserva mdl_5bfef53e969beeb98c8d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Fada Divina / divine-fairy-stl-fantasy-principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Fada Divina / divine-fairy fantasy-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 9b8169c1f32125a1abba37cc09021cf3caf758dc3d44c12e663e955617b02aef e caminho RV1 de 2026-09-30; preserva mdl_3be1d9394b068e9103e2 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Garota Mecânica / Garota Mecânica — Fantasia — mecha-girl-stl-bust-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Garota Mecânica / Garota Mecânica — Fantasia — mecha-girl bust-fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA c6479a244593d2f839549d9ffeb65bd5b29022fbf37b9ad73eff3b81f3858a44 e caminho RV1 de 2026-09-30; preserva mdl_30cf9b459c7f69f0e141 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Gladiador / Gladiador — Fantasia — gladiator-stl-bust-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Gladiador / Gladiador — Fantasia — gladiator bust-fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 268e2e299702e1e23c62e0530f56869c0d5fbb813d1c22b4e2328fe82418d3ae e caminho RV1 de 2026-09-30; preserva mdl_9792d9e6f2e172d13c6f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Guerreiro do Norte / Guerreiro do Norte — Fantasy — warrior-of-the-north-stl-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Guerreiro do Norte / Guerreiro do Norte — Fantasy — warrior-of-the-north fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA b6f647088c9394c8125c8b6fd4064e5ce6628dfb4b4f5df8b9bc1e0a41893c27 e caminho RV1 de 2026-09-30; preserva mdl_25c763908c22fd17fbc6 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Justiça / justice-stl-fantasy-principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Justiça / justice fantasy-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 375819346887a14ad124c509bc707876e1cef3486722c9ca8a3438d95aa235f7 e caminho RV1 de 2026-09-30; preserva mdl_e1b4605a96f93b550005 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Rainha Vermelha / red-queen-stl-fantasy-principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Rainha Vermelha / red-queen fantasy-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 6ed97a14b451e3d8e3027df959d077a308345a6c18683794f20c4c415959c8e7 e caminho RV1 de 2026-09-30; preserva mdl_cccde9e31a2027711965 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Animes & Desenhos / Outros / Fantasy / Temperance / Temperance — Fantasy — tarot-arcana-temperance-stl-fantasy — principal",
+      "aliases": [
+        "Animes & Desenhos / Outros / Fantasy / Temperance / Temperance — Fantasy — tarot-arcana-temperance fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA b54c695674a4b2f4d5b58b64f1db32a7d09b15d8cae9d8726ae0eb98f06ed1f1 e caminho RV1 de 2026-09-30; preserva mdl_e637598b79f3d21b96b2 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Dog Alien / dog-alien-01",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / dog-alien-01"
+      ],
+      "reason": "Continuidade auditada por SHA 95dc0b9faf47c56365c160af128247be220e5765d6e79052d90f1aefe1233c8b e caminho RV1 de 2026-09-30; preserva mdl_c89d53279948c5412021 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Dog Alien / dog-alien-02",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / dog-alien-02"
+      ],
+      "reason": "Continuidade auditada por SHA 103f4c6e4e4270f0f947090fa2cb5f94095365072a0c3f4312b83ec52e0d36a1 e caminho RV1 de 2026-09-30; preserva mdl_ce6f787b2879181363ba após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Ellen Ripley / ellen-ripley-01",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / ellen-ripley-01"
+      ],
+      "reason": "Continuidade auditada por SHA 1f1e23cb07c6e675e0138181f9c89ef3192dca67f9a4960ec2f95b91a3e0cead e caminho RV1 de 2026-09-30; preserva mdl_49473262897688213f8e após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Ellen Ripley / ellen-ripley-02",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / ellen-ripley-02"
+      ],
+      "reason": "Continuidade auditada por SHA 0500e044227d9179dff5e0315ceae008b86483a7d90edc88609b44e0d2e83666 e caminho RV1 de 2026-09-30; preserva mdl_f25c14c82409e250026d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Ellen Ripley / ellen-ripley-03",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / ellen-ripley-03"
+      ],
+      "reason": "Continuidade auditada por SHA 268d10c1274dfbfb7554371975d2929fa9c477d50844fd296c0fb221db0c9aa4 e caminho RV1 de 2026-09-30; preserva mdl_1da46123b31d520532a0 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Facehugger / facehugger-01",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / facehugger-01"
+      ],
+      "reason": "Continuidade auditada por SHA 04eb380a7ba08e49bf13534e466730056d065720ffd35ea64f9fe42e4044b443 e caminho RV1 de 2026-09-30; preserva mdl_ecbcf67c9a4ba92bc0c0 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Facehugger / facehugger-02",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / facehugger-02"
+      ],
+      "reason": "Continuidade auditada por SHA 3838ef618d28a3cdccc91da68690a91da263fb2342cf11f75661438b3f6199a9 e caminho RV1 de 2026-09-30; preserva mdl_a57660d067d872b9f6f4 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Rainha Alien / rainha-alien",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / rainha-alien"
+      ],
+      "reason": "Continuidade auditada por SHA 53dbe6a163da9c5b1a75ff668d8c4cb4ce944b1208ac5a03feb8021a6bd6d08e e caminho RV1 de 2026-09-30; preserva mdl_c5d659f55441eaa70812 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Xenomorfo / xenomorfo-01",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / xenomorfo-01"
+      ],
+      "reason": "Continuidade auditada por SHA d908bb40f3320abac78e8705f61d58252ef2b5d027c9825c6cbb4c511356a89b e caminho RV1 de 2026-09-30; preserva mdl_e216f1b5700a49f7aa6b após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Xenomorfo / xenomorfo-02",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / xenomorfo-02"
+      ],
+      "reason": "Continuidade auditada por SHA b2d047f5c4c4efd91c25055e0bb731ced81806151c58a143405e75ac14488d1b e caminho RV1 de 2026-09-30; preserva mdl_de3e857bd048ee65bdc9 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Xenomorfo / xenomorfo-03",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / xenomorfo-03"
+      ],
+      "reason": "Continuidade auditada por SHA 9b055ecf35c446521b31fbcad6d2ebfd00b047ba55519df62b01764b8db7e3ec e caminho RV1 de 2026-09-30; preserva mdl_e15c485356a0b2982492 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Xenomorfo / xenomorfo-04",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / xenomorfo-04"
+      ],
+      "reason": "Continuidade auditada por SHA 6ee1b9599a7485dd9d12c26f1fa0f668f796fe9ff989320c191b79d5799520c3 e caminho RV1 de 2026-09-30; preserva mdl_d7df7e449a683a81641e após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Xenomorfo / xenomorfo-05",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / xenomorfo-05"
+      ],
+      "reason": "Continuidade auditada por SHA bd5144710f7789344def738a391288dd9709b11e93dc9389fde50b7ea649ad5b e caminho RV1 de 2026-09-30; preserva mdl_fd0c163b03136b677c84 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Alien / Xenomorfo / xenomorfo-busto-01",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Alien / xenomorfo-busto-01"
+      ],
+      "reason": "Continuidade auditada por SHA fb990cea59bbc59c08242f8468f739f633ed521b06de4421e2a3e53a1482f05c e caminho RV1 de 2026-09-30; preserva mdl_4689a512a308ad22dfd3 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 01 - Terror / Freddy Krueger / Freddy Krueger — A Nightmare on Elm Street — freddy-krueger-stl-2-a-nightmare-on-elm-street — principal",
+      "aliases": [
+        "Filmes & Séries / 01 - Terror / Freddy Krueger / Freddy Krueger — A Nightmare on Elm Street — freddy-krueger 2-a-nightmare-on-elm-street — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 33a4ac2565dea6b24f92b7a140b264948312b679165a2b19b9f5f27ea545f98c e caminho RV1 de 2026-09-30; preserva mdl_61bc1af9e3362990ee21 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 02 - Séries / Rick and Morty / Rick e Morty / rick-and-morty-stl-diorama",
+      "aliases": [
+        "Filmes & Séries / 02 - Séries / Rick and Morty / Rick e Morty / rick-and-morty diorama"
+      ],
+      "reason": "Continuidade auditada por SHA a42082184da00886d505b17e6a59c1c2a4a95fd447c4cb12c7d1c73268a6e817 e caminho RV1 de 2026-09-30; preserva mdl_3357ff210972827aaa62 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 04 - Clássicos e Antigos / Exterminador do Futuro / T-800 / terminator-stl-2",
+      "aliases": [
+        "Filmes & Séries / 04 - Clássicos e Antigos / Exterminador do Futuro / T-800 / terminator 2"
+      ],
+      "reason": "Continuidade auditada por SHA 9b50537e925740d0734113aaaf9ff40a4d7fe9b17d550521999f37b63bc27aa6 e caminho RV1 de 2026-09-30; preserva mdl_d236416a710327743eeb após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / 04 - Clássicos e Antigos / O Quinto Elemento / Leeloo / leeloo-stl-the-fifth-element",
+      "aliases": [
+        "Filmes & Séries / 04 - Clássicos e Antigos / O Quinto Elemento / Leeloo / leeloo the-fifth-element"
+      ],
+      "reason": "Continuidade auditada por SHA 5b2cfbf69bde5571e12f1881ee495a37cbba05938e85627813def24fe18f71c6 e caminho RV1 de 2026-09-30; preserva mdl_856e3f6f997cfa789cb7 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Avatar / Varang / Varang — Avatar — varang-stl-avatar — principal",
+      "aliases": [
+        "Filmes & Séries / Avatar / Varang / Varang — Avatar — varang avatar — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 41d05ad885ee10c35eddf00d4885b357beb30a2699ad595e907a447d7e7745d7 e caminho RV1 de 2026-09-30; preserva mdl_77a91ea33cdcf017b544 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Conan / Conan / Conan — Conan — conan-stl-the-barbarian-2 — principal",
+      "aliases": [
+        "Filmes & Séries / Conan / Conan / Conan — Conan — conan the-barbarian-2 — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 753a1dbccac3dcffdda78811e2eaaa450fb89e340521456d933eeb5681637891 e caminho RV1 de 2026-09-30; preserva mdl_94e393d1d4edf034d43f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / O Senhor dos Anéis / Legolas / Legolas — O Senhor dos Anéis — legolas-stl-2-the-lord-of-the-rings — principal",
+      "aliases": [
+        "Filmes & Séries / O Senhor dos Anéis / Legolas / Legolas — O Senhor dos Anéis — legolas 2-the-lord-of-the-rings — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 433f1043734244ed674ee11e3423c8bac5689181703b5ed1d16affa46da97b05 e caminho RV1 de 2026-09-30; preserva mdl_b30168f2372d0d4ce989 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / O Senhor dos Anéis / Sauron / Sauron — O Senhor dos Anéis — sauron-stl-the-lord-of-the-rings — principal",
+      "aliases": [
+        "Filmes & Séries / O Senhor dos Anéis / Sauron / Sauron — O Senhor dos Anéis — sauron the-lord-of-the-rings — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 664f609ecdcb436969770e19d290144816fabb5b95c797ecc07f7bfef4aa22f7 e caminho RV1 de 2026-09-30; preserva mdl_59856a3cf8098dc71a29 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / O Senhor dos Anéis / Smaug / Smaug — O Senhor dos Anéis — smaug-stl-2-the-lord-of-the-rings — principal",
+      "aliases": [
+        "Filmes & Séries / O Senhor dos Anéis / Smaug / Smaug — O Senhor dos Anéis — smaug 2-the-lord-of-the-rings — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 3d176597e76312f2bac989a41bc29a93501e1f25f0506bc4375774a6e80fb429 e caminho RV1 de 2026-09-30; preserva mdl_f9b6972b58bddb766511 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Piratas do Caribe / Jack Sparrow / jack-sparrow-piratas-do-caribe-imagem-02",
+      "aliases": [
+        "Filmes & Séries / Piratas do Caribe / Jack Sparrow / jack-sparrow-piratas-do-caribe 02"
+      ],
+      "reason": "Continuidade auditada por SHA d89d6a3effc2afdb3897af996842ed42973faa8aa1f054f79bfd657aa92e322a e caminho RV1 de 2026-09-30; preserva mdl_dec70d28caca43cf55ed após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Star Wars / Mandaloriano / Mandaloriano — Star Wars — the-mandalorian-stl-2-bust — principal",
+      "aliases": [
+        "Filmes & Séries / Star Wars / Mandaloriano / Mandaloriano — Star Wars — the-mandalorian 2-bust — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 3c2838e26bcedd70986a37a8b0a0d6229c8f0523d2e8c9fc4e50f498a3b49234 e caminho RV1 de 2026-09-30; preserva mdl_ea57ca12cabfd82ca126 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Star Wars / Yoda / yoda-stl-star-wars-principal",
+      "aliases": [
+        "Filmes & Séries / Star Wars / Yoda / yoda star-wars-principal"
+      ],
+      "reason": "Continuidade auditada por SHA d96f05fb55256c28f5141044da39ce0db3208855ba84f31f5a01fb346282dd07 e caminho RV1 de 2026-09-30; preserva mdl_fff05cdf37b602e3a9dd após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Stranger Things / Vecna / vecna-stl-stranger-things-principal",
+      "aliases": [
+        "Filmes & Séries / Stranger Things / Vecna / vecna stranger-things-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7397b39335782f8ea408dc79fcfdb192c37b5dbe1f8ca41d81e65be5492df105 e caminho RV1 de 2026-09-30; preserva mdl_f256966e02cb21e3b76f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / The Boys / Homelander / Homelander — The Boys — the-homelander-stl-bust-the-boys — principal",
+      "aliases": [
+        "Filmes & Séries / The Boys / Homelander / Homelander — The Boys — the-homelander bust-the-boys — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 9ca23ed8f361368455679ba40f2e2a2e320122ed4dfd20ae52cbee1fdf3c9bff e caminho RV1 de 2026-09-30; preserva mdl_ce072aa33dee0e884421 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / The Boys / Soldier Boy / Soldier Boy — The Boys — soldier-boy-stl-bust-the-boys — principal",
+      "aliases": [
+        "Filmes & Séries / The Boys / Soldier Boy / Soldier Boy — The Boys — soldier-boy bust-the-boys — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 90733c5e872dae89817855b8e4171a3946bf047981529380aa4f6f3942527627 e caminho RV1 de 2026-09-30; preserva mdl_e0d6cd6d3d385ef4e595 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Filmes & Séries / Underworld / Selene / selene-stl-underworld-principal",
+      "aliases": [
+        "Filmes & Séries / Underworld / Selene / selene underworld-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 616edaca93eaa5266d121e0429b4c389c6570b29e8c8fc2126d6ca383645173f e caminho RV1 de 2026-09-30; preserva mdl_53fb92b888e12ae58446 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Akuma / akuma-stl-2-street-fighter-principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Akuma / akuma 2-street-fighter-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 4408bd83591f623b8d3897cc0daee9a86dc827dc2d0895883e85e7b6348ee269 e caminho RV1 de 2026-09-30; preserva mdl_61673aa1ee898d609bc4 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Cammy / Cammy — Street Fighter — cammy-stl-4-street-fighter — principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Cammy / Cammy — Street Fighter — cammy 4-street-fighter — principal"
+      ],
+      "reason": "Continuidade auditada por SHA f9d09bb98715ef306afe1c732f78e3a55f2edcace04aa5453a64b574260f05ba e caminho RV1 de 2026-09-30; preserva mdl_52fbd5e0d6d154127b8e após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Cammy / cammy-white-stl-3-street-fighter-principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Cammy / cammy-white 3-street-fighter-principal"
+      ],
+      "reason": "Continuidade auditada por SHA a1109480df0de07482495f553ccef10c0dd24823f549953fe675ac7256d546ca e caminho RV1 de 2026-09-30; preserva mdl_45d3d7d0a898176d3bb3 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Chun-Li / Chun-Li — Street Fighter — chun-li-stl-6-street-fighter — principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Chun-Li / Chun-Li — Street Fighter — chun-li 6-street-fighter — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 87a8c110b1e8051c901a522e637f42154424e777e6ad996c70aaf33b0af562a4 e caminho RV1 de 2026-09-30; preserva mdl_5c76c5b4915f6995f4bb após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Chun-Li / chun-li-stl-5-street-fighter",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Chun-Li / chun-li 5-street-fighter"
+      ],
+      "reason": "Continuidade auditada por SHA afe7d0957b868215f4ebe011a4a357dcfbad17ad63da1b1d14988ea79c70e996 e caminho RV1 de 2026-09-30; preserva mdl_e6a2d2cc142098e4d02e após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Juri / Juri Han — Street Fighter — juri-han-stl-2-street-fighter — principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Juri / Juri Han — Street Fighter — juri-han 2-street-fighter — principal"
+      ],
+      "reason": "Continuidade auditada por SHA e1db9943792d12a226f357d31b3dfbb0db1178ce997e14c83435499419a2eb0b e caminho RV1 de 2026-09-30; preserva mdl_179d7c787357b4980b85 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Juri / juri-han-stl-street-fighter-principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Juri / juri-han street-fighter-principal"
+      ],
+      "reason": "Continuidade auditada por SHA c452161fa5eaa3890afedfe2fe41f234e9b958817fceff4d512c4ca763eda010 e caminho RV1 de 2026-09-30; preserva mdl_27d95e853612b8c5d434 após renome organizacional do mesmo arquivo."
+    },
+    {
       "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Ryu / Ryu",
       "aliases": [
         "Games / 00 - Fliperama / Street Fighter / Ryu / ryu-modelo-01"
@@ -14,6 +497,545 @@
         "Games / 00 - Fliperama / Street Fighter / Ryu / ryu-modelo-02"
       ],
       "reason": "Identidade pública explícita para preservar o modelo histórico publicado de ryu.webp sem colisão textual com outro modelo distinto do mesmo personagem."
+    },
+    {
+      "canonicalIdentityKey": "Games / 00 - Fliperama / Street Fighter / Sagat / Sagat — Street Fighter — sagat-stl-bust-street-fighter — principal",
+      "aliases": [
+        "Games / 00 - Fliperama / Street Fighter / Sagat / Sagat — Street Fighter — sagat bust-street-fighter — principal"
+      ],
+      "reason": "Continuidade auditada por SHA d2349b418fc9f53f379e437658ac19f08b3cb6a548955bd4122fed0c04f566ee e caminho RV1 de 2026-09-30; preserva mdl_25de7d72d1a0af7ab786 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Assassin's Creed / Edward Kenway / Edward Kenway — Assassin's Creed — edward-kenway-stl-2-bust-assassins-creed — principal",
+      "aliases": [
+        "Games / Assassin's Creed / Edward Kenway / Edward Kenway — Assassin's Creed — edward-kenway 2-bust-assassins-creed — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7d7b3bb460f2c21592c83da9cebd8cc4fe4c91904102d7e1423497234dd23fde e caminho RV1 de 2026-09-30; preserva mdl_e898c35a10cabdabb98f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Baldur's Gate / Minthara / Minthara — Baldur's Gate — minthara-stl-2-baldurs-gate — principal",
+      "aliases": [
+        "Games / Baldur's Gate / Minthara / Minthara — Baldur's Gate — minthara 2-baldurs-gate — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 140c1e1952ca989285c8f97a338433f7c062c19e24f3df6c98524a2066f90283 e caminho RV1 de 2026-09-30; preserva mdl_add2aa7647119cdc55ec após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Bayonetta / Bayonetta / bayonetta-stl-6-principal",
+      "aliases": [
+        "Games / Bayonetta / Bayonetta / bayonetta 6-principal"
+      ],
+      "reason": "Continuidade auditada por SHA fa88e0b18f36012ccff93ee9db752d94fef742f1e0e1f189e435a8c3f74ae85d e caminho RV1 de 2026-09-30; preserva mdl_b80f39cfbbac47c5206f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Bloodborne / Caçador / Caçador — Bloodborne — the-hunter-stl-2-bloodborne — principal",
+      "aliases": [
+        "Games / Bloodborne / Caçador / Caçador — Bloodborne — the-hunter 2-bloodborne — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 15152931e7dcc6fc0accfec2ea531f6e6f708436e248ef9fb7d8e7789054f9a2 e caminho RV1 de 2026-09-30; preserva mdl_2dc39286a8ebc1ffd523 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Crash / Crash Bandicoot / Crash Bandicoot — Crash Bandicoot — crash-stl-3-crash-bandicoot — principal",
+      "aliases": [
+        "Games / Crash / Crash Bandicoot / Crash Bandicoot — Crash Bandicoot — crash 3-crash-bandicoot — principal"
+      ],
+      "reason": "Continuidade auditada por SHA f24d1d5b43f00ee008382b46dc155c8e3556bbc16d610d9b5dc75fcf7be28ab9 e caminho RV1 de 2026-09-30; preserva mdl_2710ff90e5f77ce1df18 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Dark Souls / Aldrich / Aldrich — Dark Souls — aldrich-stl-dark-souls — principal",
+      "aliases": [
+        "Games / Dark Souls / Aldrich / Aldrich — Dark Souls — aldrich dark-souls — principal"
+      ],
+      "reason": "Continuidade auditada por SHA ec25c453f22a61ba0f4dc24f3dcf639035095ad49a4f76ca44fe4a86eabe43bd e caminho RV1 de 2026-09-30; preserva mdl_dd210e4038a22fa384d5 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Dark Souls / Fogueira / Fogueira — Dark Souls — bonfire-dark-souls-stl-diorama-bust-extras — principal",
+      "aliases": [
+        "Games / Dark Souls / Fogueira / Fogueira — Dark Souls — bonfire-dark-souls diorama-bust-extras — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 9c378c1de63f9ef0ddc0f660443f94db3bfb83acf5684c57b1571c49f405cc23 e caminho RV1 de 2026-09-30; preserva mdl_78fd511a494ba752c15a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Dark Souls / Yuria de Londor / Yuria de Londor — Dark Souls — yuria-of-londor-stl-dark-souls — principal",
+      "aliases": [
+        "Games / Dark Souls / Yuria de Londor / Yuria de Londor — Dark Souls — yuria-of-londor dark-souls — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 4959b54bd357b158f3c7733a29647231d9ebc6a1c3bf278eb1ce29e3eca24317 e caminho RV1 de 2026-09-30; preserva mdl_ec1da975987cd3556afc após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Darksiders / Death / Death — Darksiders — death-stl-darksiders — principal",
+      "aliases": [
+        "Games / Darksiders / Death / Death — Darksiders — death darksiders — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 31b7243f36655f3410ea5616ad44e013c68767c759aee463148a78137f647730 e caminho RV1 de 2026-09-30; preserva mdl_df1f54dac25d23ee5dc7 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Darksiders / Guerra / guerra-darksiders-imagem-01",
+      "aliases": [
+        "Games / Darksiders / Guerra / guerra-darksiders 01"
+      ],
+      "reason": "Continuidade auditada por SHA 9b43d7476ba01231c93d1ddc1a9c47613c0109d01ccdc8015944800bfe3317cc e caminho RV1 de 2026-09-30; preserva mdl_2adb2bfb59acfb0b351d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Days Gone / Deacon / Deacon — Days Gone — deacon-stl-2-days-gone — principal",
+      "aliases": [
+        "Games / Days Gone / Deacon / Deacon — Days Gone — deacon 2-days-gone — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 5f95535a7e8787928a81ab0e47315beabb48638bcbafde4a99bd7273b87c329c e caminho RV1 de 2026-09-30; preserva mdl_7c08565a3e3961f339a8 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Deadlock / Graves / Graves — Deadlock — graves-stl-deadlock — principal",
+      "aliases": [
+        "Games / Deadlock / Graves / Graves — Deadlock — graves deadlock — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 96065295a3ba111529315e49440edd12aad536b6426ffd38c8cc787353ac2071 e caminho RV1 de 2026-09-30; preserva mdl_8c601cfdbd8d6edbcf2a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Diablo / Inarius / Inarius — Diablo — inarius-stl-2-bust-diablo — principal",
+      "aliases": [
+        "Games / Diablo / Inarius / Inarius — Diablo — inarius 2-bust-diablo — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 91902b645a6d6ee3865addc3700ac6c2f66dadcdb6f1416a721c625a50c38448 e caminho RV1 de 2026-09-30; preserva mdl_44b87089fc132948cad4 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Dino Crisis / Regina / Regina — Dino Crisis — regina-stl-dino-crisis — principal",
+      "aliases": [
+        "Games / Dino Crisis / Regina / Regina — Dino Crisis — regina dino-crisis — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 367cc473913119a9edd4783cd5c6834c0354d0c7027ac04c1b2c482c62b82047 e caminho RV1 de 2026-09-30; preserva mdl_47db7097140754194133 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Elden Ring / Malenia / Malenia — Elden Ring — malenia-stl-5-elden-ring — principal",
+      "aliases": [
+        "Games / Elden Ring / Malenia / Malenia — Elden Ring — malenia 5-elden-ring — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 79fa86defecb40e7860ce7d7e947d0f68c5046835f14af9c7571c26199fa7c86 e caminho RV1 de 2026-09-30; preserva mdl_319e51c4a30f0a8df53d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Fallout / Deathclaw / deathclaw-stl-2-fallout",
+      "aliases": [
+        "Games / Fallout / Deathclaw / deathclaw 2-fallout"
+      ],
+      "reason": "Continuidade auditada por SHA eacbd4b223018d2ad9685066f07621ad577bca18e12edc4776d71feed885f76b e caminho RV1 de 2026-09-30; preserva mdl_8925eb344205ee9d87d2 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Final Fantasy / Sephiroth / Sephiroth — Final Fantasy — sephiroth-stl-3-final-fantasy — principal",
+      "aliases": [
+        "Games / Final Fantasy / Sephiroth / Sephiroth — Final Fantasy — sephiroth 3-final-fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA ceeccd2ada577da3e0d1e3b108941fd1945fc10c7aac996529fe2fc196bae82f e caminho RV1 de 2026-09-30; preserva mdl_786ee7f0ca9aa8c1ec1f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Final Fantasy / Vincent Valentine / Vincent Valentine — Final Fantasy — vincent-valentine-stl-bust-final-fantasy — principal",
+      "aliases": [
+        "Games / Final Fantasy / Vincent Valentine / Vincent Valentine — Final Fantasy — vincent-valentine bust-final-fantasy — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 610c5d13775942f85c983a139b9d1a8329b9fb6bcfe23cd16261ce955a775dac e caminho RV1 de 2026-09-30; preserva mdl_a3a0fcb0bb5ff21a98bc após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Ghost of Tsushima / Jin Sakai / jin-sakai-stl-3-ghost-of-tsushima-principal",
+      "aliases": [
+        "Games / Ghost of Tsushima / Jin Sakai / jin-sakai 3-ghost-of-tsushima-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 012c3753766a80824ba2e21045f0918bee4b917859ccf56940b75830bebcaea8 e caminho RV1 de 2026-09-30; preserva mdl_6dfd2464e370f87cff8d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / God of War / Hércules / hercules-stl-3-bust-extras-god-of-war-principal",
+      "aliases": [
+        "Games / God of War / Hércules / hercules 3-bust-extras-god-of-war-principal"
+      ],
+      "reason": "Continuidade auditada por SHA e069f68e780f74f66ac6c58a366275d6d56dfe2921ab9b16593769b11d90e733 e caminho RV1 de 2026-09-30; preserva mdl_0518118ed5e83fc50be8 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / God of War / Kratos / Kratos — God of War — kratos-stl-10-god-of-war — principal",
+      "aliases": [
+        "Games / God of War / Kratos / Kratos — God of War — kratos 10-god-of-war — principal"
+      ],
+      "reason": "Continuidade auditada por SHA ac9721af94ce3c229bbad40b4b10904647a4c294f18db62acf5178f56ad8a9d5 e caminho RV1 de 2026-09-30; preserva mdl_a31a41dae1eafdd34e20 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / God of War / Kratos / Kratos — God of War — kratos-stl-11-bust-god-of-war — principal",
+      "aliases": [
+        "Games / God of War / Kratos / Kratos — God of War — kratos 11-bust-god-of-war — principal"
+      ],
+      "reason": "Continuidade auditada por SHA c1ca9e1dc5c1b771cea12bd5c761a0b96966fe59a431081bcb64ff812e702d2e e caminho RV1 de 2026-09-30; preserva mdl_a2e23c165c143f82c26b após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / God of War / Kratos / Kratos — God of War — kratos-stl-12-bust-god-of-war — principal",
+      "aliases": [
+        "Games / God of War / Kratos / Kratos — God of War — kratos 12-bust-god-of-war — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 96965601873e734aa5e88bd5ed3eda331a1ba59f1548d4195533233866fadc05 e caminho RV1 de 2026-09-30; preserva mdl_40441cb72417692b5816 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / God of War / Kratos / kratos-god-of-war-imagem-01",
+      "aliases": [
+        "Games / God of War / Kratos / kratos-god-of-war 01"
+      ],
+      "reason": "Continuidade auditada por SHA 03637cd90fc66b983a5d6c083e4fd533d542aa249463fa1d0cd380cd3af9c6fa e caminho RV1 de 2026-09-30; preserva mdl_8a962c832e5b51b834cc após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / God of War / Thor / Thor — God of War — thor-stl-god-of-war — principal",
+      "aliases": [
+        "Games / God of War / Thor / Thor — God of War — thor god-of-war — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 89bb30d002012f96a3df52351f547a69b6ff44321e3ea03e7259ea336e226683 e caminho RV1 de 2026-09-30; preserva mdl_7852c371409d9eace6f4 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Halo / Master Chief / Master Chief — Halo — master-chief-stl-3-bust-halo — principal",
+      "aliases": [
+        "Games / Halo / Master Chief / Master Chief — Halo — master-chief 3-bust-halo — principal"
+      ],
+      "reason": "Continuidade auditada por SHA b43e55bdae30747e882293b4a26d1a6b339e5a3b617e2a0ba768fe63156e1ab7 e caminho RV1 de 2026-09-30; preserva mdl_c221a5a1bbebaebb1eef após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / League of Legends / Ahri / Ahri — League of Legends — spirit-blossom-ahri-stl-league-of-legends — principal",
+      "aliases": [
+        "Games / League of Legends / Ahri / Ahri — League of Legends — spirit-blossom-ahri league-of-legends — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 294579a2c15792808b1c8ea532942df37d5667ebf506270426c34abd73dcef7f e caminho RV1 de 2026-09-30; preserva mdl_9b58f295436f6a142d28 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Mass Effect / Garrus Vakarian / Garrus Vakarian — Mass Effect — garrus-vakarian-stl-mass-effect — principal",
+      "aliases": [
+        "Games / Mass Effect / Garrus Vakarian / Garrus Vakarian — Mass Effect — garrus-vakarian mass-effect — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 8639e8624d8481ff0797032f163e393a0c013fec7dd81868710dff5fa081b7cc e caminho RV1 de 2026-09-30; preserva mdl_7c87e4c9643f8bd26904 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Mass Effect / Shepard / Shepard — Mass Effect — shepard-stl-mass-effect — principal",
+      "aliases": [
+        "Games / Mass Effect / Shepard / Shepard — Mass Effect — shepard mass-effect — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 214dc8e3c18ebcb7ef6033950e178cc93a0e69c5c90f9157c6f02905c4a6ee2b e caminho RV1 de 2026-09-30; preserva mdl_42cfc33ce26647b728aa após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Mass Effect / Tali'Zorah / tali-zorah-mass-effect-imagem-02",
+      "aliases": [
+        "Games / Mass Effect / Tali'Zorah / tali-zorah-mass-effect 02"
+      ],
+      "reason": "Continuidade auditada por SHA 83e13fb056e9acae528a1a56df3b929d6812229a173357a710df21bbba9068dc e caminho RV1 de 2026-09-30; preserva mdl_328f841fd54157ebdff9 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Mega Man / Mega Man X / Mega Man X — Mega Man — mega-man-x-stl-2-mega-man — principal",
+      "aliases": [
+        "Games / Mega Man / Mega Man X / Mega Man X — Mega Man — mega-man-x 2-mega-man — principal"
+      ],
+      "reason": "Continuidade auditada por SHA c75dfd7bdde25670413cb9b0d934b1a4c54bb5d0ea45842af8adaa5892f6e96e e caminho RV1 de 2026-09-30; preserva mdl_2693693cbb7e6f4fbe53 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Mega Man / Zero / Zero — Mega Man — zero-stl-2-extras-mega-man — principal",
+      "aliases": [
+        "Games / Mega Man / Zero / Zero — Mega Man — zero 2-extras-mega-man — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 63a268b24fdf441cb28ffea1bc193c1f6c73274318790270ec02fb365a2bcae7 e caminho RV1 de 2026-09-30; preserva mdl_58691ab84f2fcd7906bf após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Metal Gear / Big Boss / Big Boss — Metal Gear — big-boss-stl-3-metal-gear — principal",
+      "aliases": [
+        "Games / Metal Gear / Big Boss / Big Boss — Metal Gear — big-boss 3-metal-gear — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 421d02131e25d933623ae6d77eed0f62df756c68b5546c36a2989712fc21503d e caminho RV1 de 2026-09-30; preserva mdl_bccd5cff1c3fafa4763f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Pragmata / Diana e Hugh / Diana e Hugh — Pragmata — diana-and-hugh-diorama-pragmata-stl — principal",
+      "aliases": [
+        "Games / Pragmata / Diana e Hugh / Diana e Hugh — Pragmata — diana-and-hugh-diorama-pragmata — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 8d470a4f2d50b6f7c856c5d297e682622654627f81b382aac0c922b363b5d6b0 e caminho RV1 de 2026-09-30; preserva mdl_f317311484b16bff122c após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Príncipe da Pérsia / Príncipe da Pérsia / prince-of-persia-stl",
+      "aliases": [
+        "Games / Príncipe da Pérsia / Príncipe da Pérsia / prince-of-persia"
+      ],
+      "reason": "Continuidade auditada por SHA bd51f682b2a65b5d9e2a4993199179a0e595cf29bda007afa0bc22c9536bc525 e caminho RV1 de 2026-09-30; preserva mdl_3f78e4863ec40e6a9fd0 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Red Dead Redemption / Arthur Morgan / arthur-morgan-red-dead-redemption-imagem-02",
+      "aliases": [
+        "Games / Red Dead Redemption / Arthur Morgan / arthur-morgan-red-dead-redemption 02"
+      ],
+      "reason": "Continuidade auditada por SHA 0816a4ee8d559d86ec2262db6f044757db034a6883d22c3abfc72e71ebbec4fd e caminho RV1 de 2026-09-30; preserva mdl_d04a164347b9b320fa8f após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Red Dead Redemption / Arthur Morgan / arthur-morgan-stl-3-red-dead-redemption-principal",
+      "aliases": [
+        "Games / Red Dead Redemption / Arthur Morgan / arthur-morgan 3-red-dead-redemption-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 429ec195d9842db2a237a1aacecb39f74e98bbb0a8fb49543a5897e6d557726d e caminho RV1 de 2026-09-30; preserva mdl_410b142edc02b0a458eb após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Albert Wesker / Albert Wesker — Resident Evil — albert-wesker-stl-resident-evil — principal",
+      "aliases": [
+        "Games / Resident Evil / Albert Wesker / Albert Wesker — Resident Evil — albert-wesker resident-evil — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 2574b8fd4621c8029d5aac0553575897aef3849faa4bd291341c62853a093500 e caminho RV1 de 2026-09-30; preserva mdl_3e72cfcbdcecdf04b2ec após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Claire Redfield / Claire Redfield — Resident Evil — claire-redfield-stl-resident-evil — principal",
+      "aliases": [
+        "Games / Resident Evil / Claire Redfield / Claire Redfield — Resident Evil — claire-redfield resident-evil — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7b5ee4491672f801effb9fa5a0072b052a0d0b92739a912da5414ab463f88ce3 e caminho RV1 de 2026-09-30; preserva mdl_e914fe03792513158b87 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Grace Ashcroft / grace-ashcroft-stl-2-resident-evil-principal",
+      "aliases": [
+        "Games / Resident Evil / Grace Ashcroft / grace-ashcroft 2-resident-evil-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7ba0b40c4a298a1e13a639b5c95ae81a1fdf2be9d3977e157b4795264708728e e caminho RV1 de 2026-09-30; preserva mdl_62578987ce30ebc8114d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Leon S. Kennedy / Leon S. Kennedy — Resident Evil — leon-s-kennedy-stl-5-resident-evil — principal",
+      "aliases": [
+        "Games / Resident Evil / Leon S. Kennedy / Leon S. Kennedy — Resident Evil — leon-s-kennedy 5-resident-evil — principal"
+      ],
+      "reason": "Continuidade auditada por SHA c2aaebcac6bf46d193e4ff6af28d05ad26eeaf385c1d20afd9ecc3ad5d8c368b e caminho RV1 de 2026-09-30; preserva mdl_c5616ffab4d46b446302 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Leon S. Kennedy / Leon S. Kennedy — Resident Evil — leon-s-kennedy-stl-6-resident-evil — principal",
+      "aliases": [
+        "Games / Resident Evil / Leon S. Kennedy / Leon S. Kennedy — Resident Evil — leon-s-kennedy 6-resident-evil — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 63181cacd8dab278555ddab2464714ca4514dd518622b1f21e0523a06e70e910 e caminho RV1 de 2026-09-30; preserva mdl_300cffe164feab20c551 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Leon S. Kennedy / Leon S. Kennedy — Resident Evil — leon-s-kennedy-stl-7-bust-resident-evil — principal",
+      "aliases": [
+        "Games / Resident Evil / Leon S. Kennedy / Leon S. Kennedy — Resident Evil — leon-s-kennedy 7-bust-resident-evil — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 3933cabc6892a408eadfefcd6a4065a0e8da6c21b7c6c8dcb09f978567349ec7 e caminho RV1 de 2026-09-30; preserva mdl_502bab0e901695652695 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Leon S. Kennedy / leon-s-kennedy-resident-evil-imagem-01",
+      "aliases": [
+        "Games / Resident Evil / Leon S. Kennedy / leon-s-kennedy-resident-evil 01"
+      ],
+      "reason": "Continuidade auditada por SHA 84059572f3f0cd6c6b3ceabfd637965d09be03f629b152f16177774853fd3a4b e caminho RV1 de 2026-09-30; preserva mdl_185daf05d5b37311c912 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Leon S. Kennedy / leon-s-kennedy-stl-3-resident-evil-principal",
+      "aliases": [
+        "Games / Resident Evil / Leon S. Kennedy / leon-s-kennedy 3-resident-evil-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 15dcc429cffe6d2debcc4f1d1f8e2753f2a728d90b1d51e7ffbe90a7b35b618b e caminho RV1 de 2026-09-30; preserva mdl_af1a98c17638291e5326 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Resident Evil / Mãe Miranda / Mãe Miranda — Resident Evil — mother-miranda-stl-resident-evil — principal",
+      "aliases": [
+        "Games / Resident Evil / Mãe Miranda / Mãe Miranda — Resident Evil — mother-miranda resident-evil — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 46ecb010e15e11d37d466fa06562d01782df03ae16be2c9577c5a17c6af99ebf e caminho RV1 de 2026-09-30; preserva mdl_167483fb5fc0706ed7db após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Sekiro - Shadows Die Twice / Sekiro / Sekiro — Sekiro - Shadows Die Twice — sekiro-stl-3-sekiro-shadows-die-twice — principal",
+      "aliases": [
+        "Games / Sekiro - Shadows Die Twice / Sekiro / Sekiro — Sekiro Shadows Die Twice — sekiro 3-sekiro-shadows-die-twice — principal"
+      ],
+      "reason": "Continuidade auditada por SHA aa965b78e6f39d9fb5832fea10eaa0b55db26cf7e48a90c115d6f5abaca330ce e caminho RV1 de 2026-09-30; preserva mdl_3e4406c63f4b3dbf9d82 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Soul Calibur / Ivy Valentine / Ivy Valentine — Soul Calibur — ivy-valentine-stl-soul-calibur — principal",
+      "aliases": [
+        "Games / Soul Calibur / Ivy Valentine / Ivy Valentine — Soul Calibur — ivy-valentine soul-calibur — principal"
+      ],
+      "reason": "Continuidade auditada por SHA adb95b56d1ebaf3f374035482350fb2a439a74c755dcf976faacff0887f9b086 e caminho RV1 de 2026-09-30; preserva mdl_d9cec5623039b9db3438 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Starcraft / Ultralisk / Ultralisk — Starcraft — ultralisk-stl-starcraft — principal",
+      "aliases": [
+        "Games / Starcraft / Ultralisk / Ultralisk — Starcraft — ultralisk starcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA fd2a1383f2b5f1cf571ffbff9daefc9399be7fd318872ff9208d06313e51a1e5 e caminho RV1 de 2026-09-30; preserva mdl_7c864229a0cc263570b4 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Stellar Blade / Lily / lily-stl-stellar-blade-principal",
+      "aliases": [
+        "Games / Stellar Blade / Lily / lily stellar-blade-principal"
+      ],
+      "reason": "Continuidade auditada por SHA d168878ffb9ad8dda5ee111a763236e7fe2a17b8a99fa6b1ddd15dc886084b14 e caminho RV1 de 2026-09-30; preserva mdl_08cbc65dba57fd1ac8e9 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Super Mario / Mario / Mario — Super Mario — mario-stl-super-mario — principal",
+      "aliases": [
+        "Games / Super Mario / Mario / Mario — Super Mario — mario super-mario — principal"
+      ],
+      "reason": "Continuidade auditada por SHA c923237f805a842cbbfdbcbc720bf68a986549e429a8d417698d1ce62da46cb5 e caminho RV1 de 2026-09-30; preserva mdl_4c080d8b5889dd412ac2 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Tekken / Jin Kazama / Jin Kazama — Tekken — jin-kazama-stl-bust-tekken — principal",
+      "aliases": [
+        "Games / Tekken / Jin Kazama / Jin Kazama — Tekken — jin-kazama bust-tekken — principal"
+      ],
+      "reason": "Continuidade auditada por SHA d9aec9c01d35d2d7effe22c97390342fb4c462b1a64824e4016d2d4773cb6c04 e caminho RV1 de 2026-09-30; preserva mdl_9bbe835d48b5cd0a3aee após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / The Elder Scrolls / Dovahkiin / Dovahkiin — The Elder Scrolls — dovahkiin-stl-bust-the-elder-scrolls — principal",
+      "aliases": [
+        "Games / The Elder Scrolls / Dovahkiin / Dovahkiin — The Elder Scrolls — dovahkiin bust-the-elder-scrolls — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 881b2cc178271b37cfad78324cbe0acb3b6b8bd04da642024207af82c9b5bea9 e caminho RV1 de 2026-09-30; preserva mdl_22a0725a40ae63acdedf após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / The Witcher / Ciri / Ciri — The Witcher — ciri-stl-5-bust-extras-the-witcher — principal",
+      "aliases": [
+        "Games / The Witcher / Ciri / Ciri — The Witcher — ciri 5-bust-extras-the-witcher — principal"
+      ],
+      "reason": "Continuidade auditada por SHA f162e2ae56fcec18657c36712ffd03a2fb94bffd912dea7d1fbf3ac06890b575 e caminho RV1 de 2026-09-30; preserva mdl_ba55deeb36017a246318 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / The Witcher / Yennefer / Yennefer — The Witcher — yennefer-of-vengerberg-stl-5-bust-the-witcher — principal",
+      "aliases": [
+        "Games / The Witcher / Yennefer / Yennefer — The Witcher — yennefer-of-vengerberg 5-bust-the-witcher — principal"
+      ],
+      "reason": "Continuidade auditada por SHA a92e1a0ecabeba1343efecce96b279d1e00aecd552bd59ce8b4359a88908a025 e caminho RV1 de 2026-09-30; preserva mdl_743fb6f982aa53d6c957 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Alleria Windrunner / alleria-windrunner-stl-warcraft-principal",
+      "aliases": [
+        "Games / Warcraft / Alleria Windrunner / alleria-windrunner warcraft-principal"
+      ],
+      "reason": "Continuidade auditada por SHA a74679eac415f0ac73d4a1520ffeea4224a4c8031ae8d6b25589565b86ad37de e caminho RV1 de 2026-09-30; preserva mdl_cf2265fa6c4d40395250 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Arthas Menethil / Lich King — Warcraft — lich-king-stl-2-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Arthas Menethil / Lich King — Warcraft — lich-king 2-warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 6785667be57bc978e16c7337adaeb11ae5ca3927e2ae05af2425b2d8c0bc8264 e caminho RV1 de 2026-09-30; preserva mdl_16630e131a6806704e95 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Cairne Bloodhoof / cairne-bloodhoof-stl-warcraft-principal",
+      "aliases": [
+        "Games / Warcraft / Cairne Bloodhoof / cairne-bloodhoof warcraft-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 223a0adb4a281b3c69510b7172aa450dea34531f1ccf712b7d2a29b1b6656c2b e caminho RV1 de 2026-09-30; preserva mdl_e80cab7e81ca192423f9 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Denathrius / denathrius-stl-warcraft-principal",
+      "aliases": [
+        "Games / Warcraft / Denathrius / denathrius warcraft-principal"
+      ],
+      "reason": "Continuidade auditada por SHA 29be4953203771d0a91cf71c9147d8480356f89e8ca5768f76b5d16d4956e12c e caminho RV1 de 2026-09-30; preserva mdl_635813af3c50e74b6241 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Durotan / Durotan — Warcraft — durotan-stl-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Durotan / Durotan — Warcraft — durotan warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 75d3e7edd77ebc1dc0c87af6164f16a7981239d6e02709da280159c8f1c2834d e caminho RV1 de 2026-09-30; preserva mdl_54b4ba2d76e0f296567c após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Illidan Stormrage / illidan-stormrage-stl-4-warcraft",
+      "aliases": [
+        "Games / Warcraft / Illidan Stormrage / illidan-stormrage 4-warcraft"
+      ],
+      "reason": "Continuidade auditada por SHA 62dcaacb2b61bf31557c2b443c8456b4b991ed6868357e70955a9f8262bf5229 e caminho RV1 de 2026-09-30; preserva mdl_95a239fd42c3649d30e9 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Jaina Proudmoore / Jaina Proudmoore — Warcraft — jaina-proudmoore-stl-2-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Jaina Proudmoore / Jaina Proudmoore — Warcraft — jaina-proudmoore 2-warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA a848fad519cd6840579b3f44f86918a62ed3aebd12a91f310edfd2f33616c440 e caminho RV1 de 2026-09-30; preserva mdl_dcdf21c6955b455aa79a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Lady Liadrin / Lady Liadrin — Warcraft — lady-liadrin-stl-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Lady Liadrin / Lady Liadrin — Warcraft — lady-liadrin warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 47ba099579f8f2a518d104ad3d876c5c13ef5b6aef0bf927c543f08470a80a1e e caminho RV1 de 2026-09-30; preserva mdl_537197cb2b44b2a7ef33 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Paladino / Paladino — Warcraft — paladin-stl-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Paladino / Paladino — Warcraft — paladin warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA cbed34bbb6fb30462bc251654b28273de5bef5cc9df91e8497f03d2c515f4edc e caminho RV1 de 2026-09-30; preserva mdl_53da60bb82635533c6f6 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Valeera Sanguinar / Valeera Sanguinar — Warcraft — valeera-sanguinar-stl-2-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Valeera Sanguinar / Valeera Sanguinar — Warcraft — valeera-sanguinar 2-warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 917d289503bbdf162724693e0bdbe1c6cd37c4ea6472186b37b9cce91854c139 e caminho RV1 de 2026-09-30; preserva mdl_93c86dcf19df755c9809 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Warcraft / Xal'atath / Xal'atath — Warcraft — xalatath-stl-2-warcraft — principal",
+      "aliases": [
+        "Games / Warcraft / Xal'atath / Xal'atath — Warcraft — xalatath 2-warcraft — principal"
+      ],
+      "reason": "Continuidade auditada por SHA d7243e2643cd3a70f7ad0c5d18659159068e91c73fad00d1af409822b21bf1ad e caminho RV1 de 2026-09-30; preserva mdl_f4cf683cfaefaa5f6392 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Wuthering Waves / Aemeath / Aemeath — Wuthering Waves — aemeath-stl-wuthering-waves — principal",
+      "aliases": [
+        "Games / Wuthering Waves / Aemeath / Aemeath — Wuthering Waves — aemeath wuthering-waves — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7b50101507ada07d5245b7323baec356e4021ce3e552ab0d0a481525449b6b39 e caminho RV1 de 2026-09-30; preserva mdl_b18596b6dcaa6024b107 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Games / Zelda / Princesa Zelda / Zelda — The Legend of Zelda — zelda-stl-3-the-legend-of-zelda — principal",
+      "aliases": [
+        "Games / Zelda / Princesa Zelda / Zelda — The Legend of Zelda — zelda 3-the-legend-of-zelda — principal"
+      ],
+      "reason": "Continuidade auditada por SHA b76e1bb62d1d445fa0b8d58808bc6f3c74595c8e491c2bf1671c3874059020f0 e caminho RV1 de 2026-09-30; preserva mdl_bf6da9eb1ae723d09f08 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Marvel & DC / Marvel / Vilões / Doutor Destino / doutor-destino-marvel-imagem-01",
+      "aliases": [
+        "Marvel & DC / Marvel / Vilões / Doutor Destino / doutor-destino-marvel 01"
+      ],
+      "reason": "Continuidade auditada por SHA 6458d800974b54d51548ca6766a7030987ec9ad27d58697a453d605955a986b5 e caminho RV1 de 2026-09-30; preserva mdl_14d33631c9b4e1f18d53 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Marvel & DC / Marvel / Vilões / Juggernaut / Juggernaut — Marvel — juggernaut-stl-2-bust-marvel — principal",
+      "aliases": [
+        "Marvel & DC / Marvel / Vilões / Juggernaut / Juggernaut — Marvel — juggernaut 2-bust-marvel — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 5ba8e4f58ad0cec568c16e03bea7cfd1c785f3be1b66c24a4eb541c500d665f6 e caminho RV1 de 2026-09-30; preserva mdl_da206f0798844f83d459 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Marvel & DC / Marvel / Vilões / Magneto / magneto-marvel-imagem-02",
+      "aliases": [
+        "Marvel & DC / Marvel / Vilões / Magneto / magneto-marvel 02"
+      ],
+      "reason": "Continuidade auditada por SHA 1e3ccffe616a54d1ad405fadabe98783c6b283ef9bbc9d57b8e9589465602f25 e caminho RV1 de 2026-09-30; preserva mdl_f615fa037c553d00b60a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Pessoas / Black Sabbath / Ozzy Osbourne / Ozzy Osbourne — Black Sabbath — ozzy-osbourne-stl-bust-extras-black-sabath — principal",
+      "aliases": [
+        "Pessoas / Black Sabbath / Ozzy Osbourne / Ozzy Osbourne — Black Sabbath — ozzy-osbourne bust-extras-black-sabath — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 8ad49c9ca352bda353a4263fdd7eab7568b0479cb5a5b5c062493fc0919792ac e caminho RV1 de 2026-09-30; preserva mdl_00a73b55075ea28b5262 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Pessoas / Elvis Presley / Elvis Presley — Elvis Presley — elvis-presley-stl-bust — principal",
+      "aliases": [
+        "Pessoas / Elvis Presley / Elvis Presley — Elvis Presley — elvis-presley bust — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 7a61b22d83cf7529f0061c8f8a412636e16ce7eec8695a7fc7984af13f482432 e caminho RV1 de 2026-09-30; preserva mdl_4ad341de6fe9362ef923 após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Pessoas / Iron Maiden / Eddie the Head / Eddie the Head — Iron Maiden — eddie-the-head-stl-bust-extras-iron-maiden — principal",
+      "aliases": [
+        "Pessoas / Iron Maiden / Eddie the Head / Eddie the Head — Iron Maiden — eddie-the-head bust-extras-iron-maiden — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 36ea59e4c33038b160a029c209bd5a1f9d584ff2dd5339e9755c22f5f53f7b22 e caminho RV1 de 2026-09-30; preserva mdl_ab9cc25c25de654b595a após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Pessoas / Michael Jackson / Michael Jackson — Michael Jackson — michael-jackson-stl-bust — principal",
+      "aliases": [
+        "Pessoas / Michael Jackson / Michael Jackson — Michael Jackson — michael-jackson bust — principal"
+      ],
+      "reason": "Continuidade auditada por SHA c1c7d5bb7963604096ac5c333fcdd3b88c2506c5760d9416cff70c48ffe73898 e caminho RV1 de 2026-09-30; preserva mdl_dae4be974cdb7f10ab6d após renome organizacional do mesmo arquivo."
+    },
+    {
+      "canonicalIdentityKey": "Tokusatsu & Cultura Japonesa / Power Rangers / Ranger Sombrio / Ranger Sombrio — Power Rangers — shadow-ranger-stl-power-rangers — principal",
+      "aliases": [
+        "Tokusatsu & Cultura Japonesa / Power Rangers / Ranger Sombrio / Ranger Sombrio — Power Rangers — shadow-ranger power-rangers — principal"
+      ],
+      "reason": "Continuidade auditada por SHA 8f3728eed3b86960ea13acd684dbc93491b0461f7da05f87dc788beae7e007e8 e caminho RV1 de 2026-09-30; preserva mdl_3748b471194c3ace236d após renome organizacional do mesmo arquivo."
     }
   ]
 }

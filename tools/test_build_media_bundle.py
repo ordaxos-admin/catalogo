@@ -11,6 +11,7 @@ from PIL import Image
 
 from build_media_bundle import (
     build_bundle,
+    disambiguate_public_variants,
     franchise_index,
     load_taxonomy_config,
     media_build_output_lock,
@@ -38,6 +39,106 @@ class MediaBundleTests(unittest.TestCase):
             model_variant_name("Cammy", "Cammy", "Street Fighter", False),
             "",
         )
+
+    def test_disambiguate_public_variants_labels_base_model_as_principal(self) -> None:
+        entries = [
+            {
+                "id": "mdl-a",
+                "identityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo",
+                "sourceIdentityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo",
+                "categorySlug": "animes",
+                "franchiseSlug": "dragon-ball",
+                "folderPathKey": "dioramas/goku-e-piccolo",
+                "displayName": "Goku e Piccolo",
+                "variantName": "",
+                "searchText": "goku e piccolo",
+            },
+            {
+                "id": "mdl-b",
+                "identityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo-2",
+                "sourceIdentityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo-2",
+                "categorySlug": "animes",
+                "franchiseSlug": "dragon-ball",
+                "folderPathKey": "dioramas/goku-e-piccolo",
+                "displayName": "Goku e Piccolo",
+                "variantName": "Modelo 2",
+                "searchText": "goku e piccolo modelo 2",
+            },
+        ]
+
+        adjusted = disambiguate_public_variants(entries)
+
+        self.assertEqual(adjusted, 1)
+        self.assertEqual(entries[0]["variantName"], "Principal")
+        self.assertEqual(entries[1]["variantName"], "Modelo 2")
+        self.assertIn("principal", entries[0]["searchText"])
+        validate_variant_disambiguation(entries)
+
+    def test_disambiguate_public_variants_uses_source_label_for_duplicate_variant(self) -> None:
+        entries = [
+            {
+                "id": "mdl-a",
+                "identityKey": "Games / Street Fighter / Ryu / Ryu 02",
+                "sourceIdentityKey": "Games / Street Fighter / Ryu / Ryu 02",
+                "categorySlug": "games",
+                "franchiseSlug": "street-fighter",
+                "folderPathKey": "ryu",
+                "displayName": "Ryu",
+                "variantName": "Modelo 02",
+                "searchText": "ryu modelo 02",
+            },
+            {
+                "id": "mdl-b",
+                "identityKey": "Games / Street Fighter / Ryu / ryu",
+                "sourceIdentityKey": "Games / Street Fighter / Ryu / ryu-modelo-02",
+                "categorySlug": "games",
+                "franchiseSlug": "street-fighter",
+                "folderPathKey": "ryu",
+                "displayName": "Ryu",
+                "variantName": "Modelo 02",
+                "searchText": "ryu modelo 02",
+            },
+        ]
+
+        adjusted = disambiguate_public_variants(entries)
+
+        self.assertEqual(adjusted, 1)
+        self.assertEqual(entries[0]["variantName"], "Modelo 02")
+        self.assertEqual(entries[1]["variantName"], "Ryu modelo 02")
+        validate_variant_disambiguation(entries)
+
+    def test_disambiguate_public_variants_has_deterministic_last_resort_suffix(self) -> None:
+        entries = [
+            {
+                "id": "mdl-a",
+                "identityKey": "Games / Resident Evil / Ada Wong / Ada-Wong-2",
+                "sourceIdentityKey": "Games / Resident Evil / Ada Wong / Ada-Wong-2",
+                "categorySlug": "games",
+                "franchiseSlug": "resident-evil",
+                "folderPathKey": "ada-wong",
+                "displayName": "Ada Wong",
+                "variantName": "Ada wong 2",
+                "searchText": "ada wong 2",
+            },
+            {
+                "id": "mdl-b",
+                "identityKey": "Games / Resident Evil / Ada Wong / ada_wong_2",
+                "sourceIdentityKey": "Games / Resident Evil / Ada Wong / ada_wong_2",
+                "categorySlug": "games",
+                "franchiseSlug": "resident-evil",
+                "folderPathKey": "ada-wong",
+                "displayName": "Ada Wong",
+                "variantName": "Ada wong 2",
+                "searchText": "ada wong 2",
+            },
+        ]
+
+        adjusted = disambiguate_public_variants(entries)
+
+        self.assertEqual(adjusted, 1)
+        self.assertEqual(entries[0]["variantName"], "Ada wong 2")
+        self.assertEqual(entries[1]["variantName"], "Ada wong 2 · Variante 2")
+        validate_variant_disambiguation(entries)
 
     def test_public_display_name_uses_character_leaf_but_not_generic_group(self) -> None:
         self.assertEqual(

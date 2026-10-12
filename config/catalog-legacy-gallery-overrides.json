@@ -75,9 +75,10 @@
       "memberSlugs": [
         "dragon-ball-freeza-forma-final-frente",
         "dragon-ball-freeza-forma-final-lateral",
-        "dragon-ball-freeza-forma-final-costas"
+        "dragon-ball-freeza-forma-final-costas",
+        "dragon-ball-freeza-forma-final-em-pe"
       ],
-      "reason": "Alta confiança: frente/lateral/costas do mesmo produto."
+      "reason": "Revisão visual confirmada em 2026-10-12: frente, lateral, costas e em pé mostram a mesma escultura e a mesma base sob vistas diferentes."
     },
     {
       "categorySlug": "animes-desenhos",
@@ -266,10 +267,22 @@
       ],
       "matchMode": "explicit-members",
       "reason": "Revisão visual de 2026-10-07: os dois arquivos mostram a mesma escultura; o segundo é apenas um close/render adicional."
+    },
+    {
+      "categorySlug": "marvel-dc",
+      "franchiseSlug": "equipes-e-grupos",
+      "folderPathKey": "vingadores/hulk",
+      "family": "equipes-e-grupos-planeta-hulk-diorama",
+      "canonicalSlug": "equipes-e-grupos-planeta-hulk-diorama-vista-frontal",
+      "memberSlugs": [
+        "equipes-e-grupos-planeta-hulk-diorama-vista-frontal",
+        "equipes-e-grupos-planeta-hulk-diorama-vista-lateral"
+      ],
+      "reason": "Revisão visual confirmada em 2026-10-12: frontal e lateral mostram o mesmo diorama, personagens, pose, base e acessórios sob ângulos diferentes."
     }
   ],
-  "auditedExtraCards": 32,
-  "auditedAt": "2026-10-07",
-  "auditedGroups": 21,
-  "auditedMemberCards": 53
+  "auditedExtraCards": 34,
+  "auditedAt": "2026-10-12",
+  "auditedGroups": 22,
+  "auditedMemberCards": 56
 }

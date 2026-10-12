@@ -105,6 +105,94 @@ def model_variant_name(
     return label[:160]
 
 
+def normalize_variant_label(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip()).casefold()
+
+
+def variant_source_hint(entry: dict) -> str:
+    identity = str(entry.get("sourceIdentityKey") or entry.get("identityKey") or "").strip()
+    leaf = identity.rsplit(" / ", 1)[-1].strip() if identity else ""
+    return humanize_stem(leaf)[:160] if leaf else ""
+
+
+def disambiguate_public_variants(entries: list[dict]) -> int:
+    """Make same-name products visibly distinct without product-specific rules.
+
+    Existing non-empty variant labels are preserved whenever possible. A base
+    product in a multi-product group receives ``Principal``. If two products
+    already expose the same variant label, the later stable entry falls back to
+    its full source identity leaf. Only if that source label is still ambiguous
+    do we add a deterministic ``Variante N`` suffix.
+    """
+    groups: dict[tuple[str, str, str, str], list[dict]] = defaultdict(list)
+    for entry in entries:
+        key = (
+            str(entry.get("categorySlug") or "").strip(),
+            str(entry.get("franchiseSlug") or "").strip(),
+            str(entry.get("folderPathKey") or "").strip(),
+            str(entry.get("displayName") or "").strip().casefold(),
+        )
+        groups[key].append(entry)
+
+    adjustments = 0
+    for members in groups.values():
+        if len(members) < 2:
+            continue
+        members.sort(key=lambda entry: (
+            str(entry.get("sourceIdentityKey") or "").casefold(),
+            str(entry.get("identityKey") or "").casefold(),
+            str(entry.get("id") or ""),
+        ))
+        protected = {
+            normalize_variant_label(str(entry.get("variantName") or ""))
+            for entry in members
+            if str(entry.get("variantName") or "").strip()
+        }
+        used: set[str] = set()
+
+        for entry in members:
+            original = str(entry.get("variantName") or "").strip()
+            candidate = original
+            normalized = normalize_variant_label(candidate)
+
+            if not normalized:
+                principal = "Principal"
+                if normalize_variant_label(principal) not in protected and normalize_variant_label(principal) not in used:
+                    candidate = principal
+                else:
+                    candidate = ""
+                normalized = normalize_variant_label(candidate)
+
+            if not normalized or normalized in used:
+                hint = variant_source_hint(entry)
+                hint_normalized = normalize_variant_label(hint)
+                if hint_normalized and hint_normalized not in protected and hint_normalized not in used:
+                    candidate = hint
+                    normalized = hint_normalized
+                else:
+                    base = hint or original or "Variante"
+                    index = 2
+                    while True:
+                        suffix = f" · Variante {index}"
+                        available = max(1, 160 - len(suffix))
+                        candidate = f"{base[:available].rstrip()}{suffix}"
+                        normalized = normalize_variant_label(candidate)
+                        if normalized not in protected and normalized not in used:
+                            break
+                        index += 1
+
+            used.add(normalized)
+            if candidate != original:
+                entry["variantName"] = candidate
+                search_text = str(entry.get("searchText") or "").strip()
+                searchable_variant = candidate.casefold()
+                if searchable_variant not in search_text.casefold():
+                    entry["searchText"] = f"{search_text} {searchable_variant}".strip()
+                adjustments += 1
+
+    return adjustments
+
+
 def model_display_name(hierarchy: list[str], public_collection_parts: list[str], source_stem: str, audited_public: bool) -> str:
     """Return the customer-facing model name without discarding source search context.
 
@@ -920,9 +1008,11 @@ def build_bundle(
     save_media_build_state(state_path, state)
 
     built_entries = [results[identity_key][0] for identity_key in model_keys]
+    variant_adjustments = disambiguate_public_variants(built_entries)
     validate_built_model_identifiers(built_entries)
     validate_built_taxonomy_identifiers(built_entries)
     validate_variant_disambiguation(built_entries)
+    save_media_build_state(state_path, state)
 
     temporary_index = model_index.with_suffix(model_index.suffix + ".tmp")
     published_images = 0
@@ -947,6 +1037,7 @@ def build_bundle(
         "mediaBuildState": str(state_path),
         "identityAliasesApplied": sum(1 for key in model_keys if stable_keys[key] != key),
         "identityHistoryEntries": len(state["identityHistory"]),
+        "variantLabelsAdjusted": variant_adjustments,
     }
     (output / "publish-summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
