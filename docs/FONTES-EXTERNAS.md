@@ -8,16 +8,49 @@ O catálogo aceita lotes externos sem misturar aquisição de terceiros com a id
 
 A origem externa nunca substitui o SSOT do catálogo e nunca autoriza remoção automática de mídia já publicada.
 
-## STL Forge
+## Configuração da fonte
 
-`config/external-catalog-sources.json` registra a configuração conhecida da fonte `stlforge`.
+A identidade, domínio e regras particulares de um fornecedor ficam fora do repositório, em arquivo operacional ignorado pelo Git, por exemplo:
 
-A página pública da STL Forge usa WooCommerce e expõe produtos com título, categorias, tags e galerias multi-imagem. O contrato desta integração preserva:
+`.external-ingest/source.json`
+
+Contrato esperado:
+
+```json
+{
+  "version": 1,
+  "sources": {
+    "vendor-a": {
+      "origin": "https://vendor.example",
+      "productPathPrefixes": ["/product/"],
+      "allowedImageHosts": ["vendor.example", "cdn.vendor.example"],
+      "taxonomySignals": {
+        "Anime": "Animes & Desenhos",
+        "Videogames": "Games",
+        "Movies": "Filmes & Séries",
+        "Series": "Filmes & Séries",
+        "Marvel": "Marvel & DC",
+        "DC": "Marvel & DC"
+      },
+      "nonFranchiseTerms": ["Anime", "Videogames", "Premium", "NSFW"],
+      "featureTerms": {
+        "nsfw": "NSFW",
+        "bust": "Bust",
+        "premium": "Premium"
+      }
+    }
+  }
+}
+```
+
+O repositório versiona o **contrato de ingestão**, não a marca ou endpoint de terceiros. Isso preserva o gate de identidade comercial e permite trocar/adicionar fontes sem hardcode.
+
+O contrato preserva:
 
 - **1 produto externo = 1 identidade de entrada**;
 - todas as imagens desse produto ficam na mesma galeria de entrada;
 - `NSFW`, `Bust`, `Premium`, `Extras` e similares são recursos/variantes, não categorias públicas novas;
-- a categoria pública do Tonecos é resolvida somente por sinais configurados;
+- a categoria pública é resolvida somente por sinais configurados que apontem para o SSOT real;
 - conflito ou ausência de categoria/franquia fica `review_*` e bloqueia materialização;
 - preço, texto comercial e descrição da loja externa não entram na identidade canônica;
 - URL do produto e URL de cada imagem ficam apenas como proveniência.
@@ -35,14 +68,15 @@ Exporte a resposta de produtos da WooCommerce Store API para JSON e execute:
 ```bash
 python tools/import_woocommerce_catalog.py \
   "/caminho/products.json" \
-  --source-id stlforge \
+  --source-id vendor-a \
+  --config ".external-ingest/source.json" \
   --output ".external-ingest"
 ```
 
 Saídas:
 
 ```text
-.external-ingest/stlforge/
+.external-ingest/vendor-a/
   products.jsonl
   image-download-plan.jsonl
   summary.json
@@ -71,8 +105,8 @@ Exemplo:
 
 ```text
 /caminho/fonte-autorizada/
-  stlforge/
-    juri-han-stl-street-fighter/
+  vendor-a/
+    personagem-modelo/
       001-12345.webp
       002-12346.webp
       ...
@@ -84,8 +118,8 @@ Nenhum arquivo precisa ser renomeado manualmente além do plano determinístico.
 
 ```bash
 python tools/build_external_image_manifest.py \
-  ".external-ingest/stlforge/products.jsonl" \
-  ".external-ingest/stlforge/image-download-plan.jsonl" \
+  ".external-ingest/vendor-a/products.jsonl" \
+  ".external-ingest/vendor-a/image-download-plan.jsonl" \
   --images-root "/caminho/fonte-autorizada" \
   --output ".external-ingest/manifest.jsonl" \
   --summary ".external-ingest/manifest-summary.json"
@@ -121,11 +155,11 @@ Depois, candidatos perceptuais continuam exigindo `resolve_gallery_merge.py` e o
 
 NSFW continua sendo uma variante/feature transversal. Não existe uma categoria pública paralela `NSFW`.
 
-Um produto como `Cynthia STL + Bust + NSFW – Pokemon` é normalizado como:
+Um título externo como `Personagem STL + Bust + NSFW – Franquia` pode ser normalizado como:
 
-- display name: `Cynthia`;
-- franquia candidata: `Pokemon`;
-- categoria pública candidata: `Animes & Desenhos`;
+- display name: `Personagem`;
+- franquia candidata: `Franquia`;
+- categoria pública candidata: resolvida pelo SSOT configurado;
 - features: `Bust`, `NSFW` e demais sinais presentes;
 - todas as imagens do mesmo produto permanecem na mesma identidade de entrada.
 
