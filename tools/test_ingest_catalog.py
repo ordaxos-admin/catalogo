@@ -103,9 +103,9 @@ class CatalogIngestTests(unittest.TestCase):
             composed = "Games/Sagá/modelo.png"
             decomposed = "Games/Saga\u0301/modelo.png"
             registry.write_text(
-                "sha256,caminho\n"
-                + ("a" * 64) + f",{composed}\n"
-                + ("b" * 64) + f",{decomposed}\n",
+                "sha256,caminho,status\n"
+                + ("a" * 64) + f",{composed},OK_VISUAL|RV1\n"
+                + ("b" * 64) + f",{decomposed},OK_VISUAL|RV1\n",
                 encoding="utf-8-sig",
             )
 
@@ -121,13 +121,55 @@ class CatalogIngestTests(unittest.TestCase):
             Image.new("RGB", (64, 64), "white").save(image_path)
             registry = root / "audit.csv"
             registry.write_text(
-                "sha256,caminho\n"
+                "sha256,caminho,status\n"
                 + ("0" * 64)
-                + ",99 - LOTES CONSOLIDADOS\\duplicate.png\n",
+                + ",99 - LOTES CONSOLIDADOS\\duplicate.png,OK_VISUAL|RV1\n",
                 encoding="utf-8-sig",
             )
 
             with self.assertRaisesRegex(RuntimeError, "fora de categoria auditada"):
+                load_audit_registry(root, registry)
+
+    def test_audit_registry_rejects_non_public_status(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry = root / "audit.csv"
+            registry.write_text(
+                "sha256,caminho,status\n"
+                + ("0" * 64)
+                + ",OK - Games [1]\\hero.png,PENDENTE\n",
+                encoding="utf-8-sig",
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "não aprovada para publicação"):
+                load_audit_registry(root, registry)
+
+    def test_audit_registry_rejects_lookalike_public_status(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry = root / "audit.csv"
+            registry.write_text(
+                "sha256,caminho,status\n"
+                + ("0" * 64)
+                + ",OK - Games [1]\\hero.png,OK_VISUAL_INVALID\n",
+                encoding="utf-8-sig",
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "não aprovada para publicação"):
+                load_audit_registry(root, registry)
+
+    def test_audit_registry_rejects_empty_versioned_public_status(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            registry = root / "audit.csv"
+            registry.write_text(
+                "sha256,caminho,status\n"
+                + ("0" * 64)
+                + ",OK - Games [1]\\hero.png,OK_VISUAL|\n",
+                encoding="utf-8-sig",
+            )
+
+            with self.assertRaisesRegex(RuntimeError, "aprovada para publica"):
                 load_audit_registry(root, registry)
 
     def test_progress_checkpoint_is_atomic_and_resumable(self) -> None:
