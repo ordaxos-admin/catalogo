@@ -28,6 +28,8 @@ O contrato preserva:
 
 Quando a origem fornece `image.id`, esse ID é a identidade estável da mídia. Quando não fornece, o pipeline usa `SHA-256(sourceUrl)` como fallback determinístico. A posição `1..N` representa somente a ordem da galeria e **nunca participa da identidade da imagem**.
 
+Cada item do plano registra `sourceImageIdentityKind` (`provider_id` ou `url_sha256`), tornando auditável qual fonte de identidade foi usada sem inferir isso pelo nome do arquivo.
+
 O `targetPath` também não depende da ordem nem do slug do produto: ele usa o ID estável do produto e a identidade estável da imagem. Assim, renomear um produto ou reordenar sua galeria não cria cópias artificiais.
 
 ## Aquisição é uma etapa separada
