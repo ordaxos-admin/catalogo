@@ -85,6 +85,9 @@ class BuildExternalImageManifestTests(unittest.TestCase):
             self.assertEqual(summary["images"], 2)
             self.assertEqual(summary["networkDownloads"], 0)
             self.assertTrue(summary["completeGalleryCoverage"])
+            self.assertEqual(summary["watermarkStatus"], {"clear": 0, "watermarked": 0, "unknown": 2})
+            self.assertFalse(summary["watermarkAuditComplete"])
+            self.assertTrue(all(row["watermark_status"] == "unknown" for row in rows))
 
     def test_legacy_or_tampered_product_identity_is_rejected(self) -> None:
         product = self.product(image_count=1)
@@ -197,6 +200,79 @@ class BuildExternalImageManifestTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with self.assertRaisesRegex(ExternalManifestError, "imageCount positivo"):
                 build_manifest([product], [], images_root=Path(tmp))
+
+    def test_media_audit_binds_watermark_status_to_exact_materialized_bytes(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target_dir = root / self.SOURCE_ID / "product-42"
+            target_dir.mkdir(parents=True)
+            image_path = target_dir / "101.webp"
+            Image.new("RGB", (160, 120), (20, 40, 60)).save(image_path, "WEBP")
+            digest = module.sha256_file(image_path)
+            audit = [{
+                "version": 1,
+                "sourceProductKey": self.PRODUCT_KEY,
+                "sourceImageId": "101",
+                "sha256": digest,
+                "watermarkStatus": "clear",
+                "reviewMethod": "manual_visual",
+            }]
+
+            rows, summary = build_manifest(
+                [self.product(image_count=1)],
+                [self.plan(1, "001.webp")],
+                images_root=root,
+                media_audit=audit,
+            )
+
+            self.assertEqual(rows[0]["watermark_status"], "clear")
+            self.assertEqual(rows[0]["watermark_audit"]["sha256"], digest)
+            self.assertEqual(summary["watermarkStatus"], {"clear": 1, "watermarked": 0, "unknown": 0})
+            self.assertTrue(summary["watermarkAuditComplete"])
+
+    def test_media_audit_hash_mismatch_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target_dir = root / self.SOURCE_ID / "product-42"
+            target_dir.mkdir(parents=True)
+            Image.new("RGB", (160, 120), (20, 40, 60)).save(target_dir / "101.webp", "WEBP")
+            audit = [{
+                "version": 1,
+                "sourceProductKey": self.PRODUCT_KEY,
+                "sourceImageId": "101",
+                "sha256": "0" * 64,
+                "watermarkStatus": "clear",
+            }]
+
+            with self.assertRaisesRegex(ExternalManifestError, "não corresponde aos bytes"):
+                build_manifest(
+                    [self.product(image_count=1)],
+                    [self.plan(1, "001.webp")],
+                    images_root=root,
+                    media_audit=audit,
+                )
+
+    def test_unused_media_audit_fails_closed(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target_dir = root / self.SOURCE_ID / "product-42"
+            target_dir.mkdir(parents=True)
+            Image.new("RGB", (160, 120), (20, 40, 60)).save(target_dir / "101.webp", "WEBP")
+            audit = [{
+                "version": 1,
+                "sourceProductKey": self.PRODUCT_KEY,
+                "sourceImageId": "999",
+                "sha256": "1" * 64,
+                "watermarkStatus": "watermarked",
+            }]
+
+            with self.assertRaisesRegex(ExternalManifestError, "sem mídia correspondente"):
+                build_manifest(
+                    [self.product(image_count=1)],
+                    [self.plan(1, "001.webp")],
+                    images_root=root,
+                    media_audit=audit,
+                )
 
 
 if __name__ == "__main__":

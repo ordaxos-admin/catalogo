@@ -15,8 +15,10 @@ def row(
     width: int = 800,
     height: int = 1200,
     size: int = 100_000,
+    watermark: str | None = None,
+    external: bool = False,
 ):
-    return {
+    result = {
         "path": path,
         "status": "OK",
         "canonical": True,
@@ -29,6 +31,11 @@ def row(
         "model_key": "Games / Saga / Heroi",
         "public_model_key": model,
     }
+    if watermark is not None:
+        result["watermark_status"] = watermark
+    if external:
+        result["source_provenance"] = {"kind": "AUTHORIZED_EXTERNAL_MEDIA"}
+    return result
 
 
 class GalleryMergePlannerTests(unittest.TestCase):
@@ -177,6 +184,99 @@ class GalleryMergePlannerTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(RuntimeError, "produtos diferentes"):
                 read_identity_mapping(path)
+
+    def test_watermarked_external_image_is_rejected_even_when_quality_is_higher(self):
+        existing = [row("catalogo/frente.jpg", "a" * 64, "0000000000000000", 55)]
+        incoming = [row(
+            "fonte-externa/frente-hq.png",
+            "b" * 64,
+            "0000000000000001",
+            99,
+            width=3000,
+            height=4000,
+            watermark="watermarked",
+            external=True,
+        )]
+
+        plan = plan_gallery_merge(existing, incoming)
+
+        self.assertEqual(plan["counts"], {"reject_watermarked": 1})
+        self.assertEqual(plan["actions"][0]["action"], "reject_watermarked")
+        self.assertEqual(plan["actions"][0]["recommendedSource"], "existing_or_planned")
+
+    def test_external_image_without_watermark_audit_is_blocked(self):
+        incoming = [row(
+            "fonte-externa/costas.jpg",
+            "b" * 64,
+            "ffffffffffffffff",
+            90,
+            external=True,
+        )]
+
+        plan = plan_gallery_merge([], incoming)
+
+        self.assertEqual(plan["counts"], {"review_watermark_required": 1})
+        self.assertEqual(plan["actions"][0]["action"], "review_watermark_required")
+        self.assertEqual(plan["actions"][0]["recommendedSource"], "audit_required")
+
+    def test_clear_external_image_beats_watermarked_existing_match_before_quality(self):
+        existing = [row(
+            "catalogo/frente-watermark.jpg",
+            "a" * 64,
+            "0000000000000000",
+            98,
+            width=3000,
+            height=4000,
+            watermark="watermarked",
+        )]
+        incoming = [row(
+            "fonte-externa/frente-clear.jpg",
+            "b" * 64,
+            "0000000000000001",
+            75,
+            width=1600,
+            height=2200,
+            watermark="clear",
+            external=True,
+        )]
+
+        plan = plan_gallery_merge(existing, incoming)
+
+        action = plan["actions"][0]
+        self.assertEqual(action["action"], "review_visual_candidate")
+        self.assertEqual(action["recommendedSource"], "incoming")
+        self.assertEqual(action["reason"], "clear_incoming_beats_watermarked_match")
+        self.assertEqual(plan["counts"]["review_prefers_incoming"], 1)
+
+    def test_verified_clear_external_is_recommended_over_unverified_legacy_even_if_lower_score(self):
+        existing = [row(
+            "catalogo/frente-legado.png",
+            "a" * 64,
+            "0000000000000000",
+            99,
+            width=3000,
+            height=4000,
+        )]
+        incoming = [row(
+            "fonte-externa/frente-clear.jpg",
+            "b" * 64,
+            "0000000000000001",
+            70,
+            width=1400,
+            height=2000,
+            watermark="clear",
+            external=True,
+        )]
+
+        plan = plan_gallery_merge(existing, incoming)
+
+        action = plan["actions"][0]
+        self.assertEqual(action["action"], "review_visual_candidate")
+        self.assertEqual(action["recommendedSource"], "incoming")
+        self.assertEqual(
+            action["reason"],
+            "verified_clear_incoming_beats_unverified_legacy_match",
+        )
 
 
 if __name__ == "__main__":

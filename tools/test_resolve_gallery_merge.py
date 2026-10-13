@@ -5,7 +5,7 @@ from pathlib import Path
 from resolve_gallery_merge import read_decisions, resolve_gallery_merge
 
 
-def image(path: str, sha: str) -> dict:
+def image(path: str, sha: str, *, watermark: str = "legacy_accepted") -> dict:
     return {
         "source": "incoming",
         "path": path,
@@ -15,15 +15,16 @@ def image(path: str, sha: str) -> dict:
         "width": 800,
         "height": 1200,
         "bytes": 100000,
+        "watermarkStatus": watermark,
     }
 
 
-def action(kind: str, path: str, sha: str, *, model: str = "Games / Saga / Heroi / modelo-01", matches=None) -> dict:
+def action(kind: str, path: str, sha: str, *, model: str = "Games / Saga / Heroi / modelo-01", matches=None, watermark: str = "legacy_accepted") -> dict:
     return {
         "model": model,
         "sourceModel": "fonte / produto-01",
         "action": kind,
-        "incoming": image(path, sha),
+        "incoming": image(path, sha, watermark=watermark),
         "matches": matches or [],
     }
 
@@ -161,6 +162,59 @@ class ResolveGalleryMergeTests(unittest.TestCase):
             )
             with self.assertRaisesRegex(RuntimeError, "decisão inválida"):
                 read_decisions(path)
+
+    def test_unknown_external_watermark_requires_upstream_media_audit(self):
+        plan = {
+            "version": 1,
+            "actions": [
+                action(
+                    "review_watermark_required",
+                    "fonte/sem-auditoria.jpg",
+                    "9" * 64,
+                    watermark="unknown",
+                )
+            ],
+        }
+
+        with self.assertRaisesRegex(RuntimeError, "--media-audit"):
+            resolve_gallery_merge(plan)
+
+    def test_watermarked_rejection_is_recorded_and_never_promoted(self):
+        plan = {
+            "version": 1,
+            "actions": [
+                action(
+                    "reject_watermarked",
+                    "fonte/com-marca.jpg",
+                    "8" * 64,
+                    watermark="watermarked",
+                )
+            ],
+        }
+
+        resolved = resolve_gallery_merge(plan)
+
+        self.assertTrue(resolved["ready"])
+        self.assertEqual(resolved["counts"], {"reject_watermarked": 1})
+        self.assertEqual(resolved["promotions"], [])
+        self.assertEqual(len(resolved["rejectedWatermarked"]), 1)
+        self.assertEqual(resolved["policy"]["watermarkedIncomingPromoted"], 0)
+
+    def test_tampered_add_view_cannot_bypass_watermark_gate(self):
+        plan = {
+            "version": 1,
+            "actions": [
+                action(
+                    "add_view",
+                    "fonte/com-marca.jpg",
+                    "7" * 64,
+                    watermark="watermarked",
+                )
+            ],
+        }
+
+        with self.assertRaisesRegex(RuntimeError, "add_view bloqueado"):
+            resolve_gallery_merge(plan)
 
 
 if __name__ == "__main__":

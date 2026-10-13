@@ -4,7 +4,7 @@
 
 O catálogo aceita lotes externos sem misturar aquisição de terceiros com a identidade pública do produto. A fronteira é explícita:
 
-`fonte autorizada -> inventário normalizado -> mídia materializada -> manifest externo -> revisão de galeria -> promoção`
+`fonte autorizada -> inventário normalizado -> mídia materializada -> manifest externo + auditoria visual -> revisão de galeria -> promoção`
 
 A origem externa nunca substitui o SSOT do catálogo e nunca autoriza remoção automática de mídia já publicada.
 
@@ -92,6 +92,7 @@ python tools/build_external_image_manifest.py \
   ".external-ingest/vendor-a/products.jsonl" \
   ".external-ingest/vendor-a/image-download-plan.jsonl" \
   --images-root "/caminho/fonte-autorizada" \
+  --media-audit ".external-ingest/vendor-a/media-audit.jsonl" \
   --output ".external-ingest/manifest.jsonl" \
   --summary ".external-ingest/manifest-summary.json"
 ```
@@ -104,13 +105,26 @@ Esse gate:
 - recusa path traversal e arquivo ausente;
 - abre/verifica cada imagem;
 - recalcula SHA-256 e dHash;
-- mede dimensões, nitidez e quality score;
+- mede dimensões, nitidez e `quality_score`;
 - preserva uma mesma `public_model_key` para todas as vistas do produto;
 - grava proveniência `AUTHORIZED_EXTERNAL_MEDIA`;
+- liga a auditoria de marca d'água ao `sourceProductKey + sourceImageId + SHA-256` dos bytes realmente materializados;
 - só emite `completeGalleryCoverage=true` quando a galeria inteira foi comprovada;
 - não acessa a rede.
 
 Isso impede que um produto anunciado com, por exemplo, 7 imagens seja promovido silenciosamente com apenas 5 materializadas.
+
+### Auditoria de marca d'água
+
+A ausência de marca d'água não é inferida por heurística frágil de pixels. A decisão vem de um artefato operacional auditável, mantido fora do Git, ligado ao hash exato da imagem:
+
+```json
+{"version":1,"sourceProductKey":"vendor-a:product:42","sourceImageId":"1001","sha256":"<64 hex>","watermarkStatus":"clear","reviewMethod":"manual_visual"}
+```
+
+`watermarkStatus` aceita somente `clear` ou `watermarked`. Sem linha correspondente, a imagem fica `watermark_status=unknown`; se o SHA mudou desde a revisão, o build falha fechado; auditoria sobrando ou apontando para outra mídia também falha. O resumo informa contagens `clear/watermarked/unknown` e `watermarkAuditComplete`.
+
+Esse gate é proposital: mídia externa `watermarked` nunca é promovida, e `unknown` não pode avançar como nova vista nem substituir mídia existente até ser auditada.
 
 ## 4. Reconciliar com o catálogo atual
 
@@ -124,6 +138,18 @@ python tools/plan_gallery_merge.py \
 ```
 
 Produto externo que corresponda a ficha já existente deve usar `model-identity-map.csv` explícito. Nome, slug ou similaridade perceptual nunca autorizam fusão de identidade. Candidatos perceptuais continuam exigindo revisão por `resolve_gallery_merge.py` e manifesto de promoção auditável.
+
+Depois que a identidade do modelo é explicitamente reconciliada, a seleção de mídia segue esta ordem:
+
+1. duplicata SHA-256 exata é ignorada, porque não acrescenta conteúdo;
+2. mídia externa `watermarked` é rejeitada mesmo que tenha resolução ou `quality_score` maior;
+3. mídia externa `unknown` bloqueia a promoção até existir auditoria ligada ao SHA atual;
+4. entre vistas equivalentes elegíveis, dimensões, nitidez, formato e `quality_score` determinam a recomendação técnica;
+5. uma externa comprovadamente `clear` é recomendada antes de uma vista equivalente `watermarked` **ou de legado sem auditoria específica de watermark**; entre duas mídias explicitamente elegíveis/limpas, vence a qualidade técnica;
+6. uma vista realmente distinta e `clear` é adicionada à galeria, em vez de substituir outra vista;
+7. qualquer substituição por similaridade perceptual continua exigindo decisão explícita; não existe delete automático do master.
+
+Assim, duas fontes podem conter o mesmo personagem/modelo sem criar duas fichas públicas e sem fazer a fonte externa vencer apenas por ser nova: vence a mídia comprovadamente limpa e tecnicamente melhor para aquela vista.
 
 ## Política NSFW
 

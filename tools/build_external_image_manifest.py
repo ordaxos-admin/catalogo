@@ -32,6 +32,13 @@ from ingest_catalog import (
     sha256_file,
     sharpness_score,
 )
+from media_quality_policy import (
+    MediaQualityPolicyError,
+    WATERMARK_CLEAR,
+    WATERMARK_UNKNOWN,
+    WATERMARK_WATERMARKED,
+    audited_watermark_status,
+)
 
 
 class ExternalManifestError(RuntimeError):
@@ -58,6 +65,37 @@ def read_jsonl(path: Path) -> list[dict[str, Any]]:
                 )
             rows.append(row)
     return rows
+
+
+def watermark_audit_index(
+    rows: list[dict[str, Any]],
+) -> dict[tuple[str, str], dict[str, Any]]:
+    indexed: dict[tuple[str, str], dict[str, Any]] = {}
+    for row in rows:
+        if row.get("version") != 1:
+            raise ExternalManifestError("auditoria de marca d'água com versão inválida")
+        product_key = str(row.get("sourceProductKey") or "").strip()
+        image_id = str(row.get("sourceImageId") or "").strip()
+        digest = str(row.get("sha256") or "").strip().lower()
+        if not product_key or not image_id:
+            raise ExternalManifestError("auditoria de marca d'água sem identidade de mídia")
+        if len(digest) != 64 or any(ch not in "0123456789abcdef" for ch in digest):
+            raise ExternalManifestError(
+                f"auditoria de marca d'água com SHA-256 inválido: {product_key}/{image_id}"
+            )
+        try:
+            audited_watermark_status(row.get("watermarkStatus"))
+        except MediaQualityPolicyError as exc:
+            raise ExternalManifestError(
+                f"{exc}: {product_key}/{image_id}"
+            ) from exc
+        key = (product_key, image_id)
+        if key in indexed:
+            raise ExternalManifestError(
+                f"auditoria de marca d'água duplicada: {product_key}/{image_id}"
+            )
+        indexed[key] = row
+    return indexed
 
 
 def safe_local_path(root: Path, relative: str) -> Path:
@@ -235,6 +273,8 @@ def analyze_file(
     root: Path,
     image_plan: dict[str, Any],
     product: dict[str, Any],
+    *,
+    watermark_audit: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     relative = str(image_plan.get("targetPath") or "").strip()
     path = safe_local_path(root, relative)
@@ -265,7 +305,30 @@ def analyze_file(
         raise ExternalManifestError(f"dimensões inválidas: {relative}")
 
     source_product_key = str(product["sourceProductKey"])
+    source_image_id = str(image_plan.get("sourceImageId") or "")
     incoming_model = str(product["incomingModel"])
+    watermark_status = WATERMARK_UNKNOWN
+    watermark_audit_meta: dict[str, Any] | None = None
+    if watermark_audit is not None:
+        audit_digest = str(watermark_audit.get("sha256") or "").strip().lower()
+        if audit_digest != digest:
+            raise ExternalManifestError(
+                "auditoria de marca d'água não corresponde aos bytes materializados: "
+                f"{source_product_key}/{source_image_id}"
+            )
+        try:
+            watermark_status = audited_watermark_status(watermark_audit.get("watermarkStatus"))
+        except MediaQualityPolicyError as exc:
+            raise ExternalManifestError(
+                f"{exc}: {source_product_key}/{source_image_id}"
+            ) from exc
+        watermark_audit_meta = {
+            "version": 1,
+            "sha256": audit_digest,
+            "reviewMethod": str(watermark_audit.get("reviewMethod") or "").strip() or None,
+            "note": str(watermark_audit.get("note") or "").strip() or None,
+        }
+
     return {
         "path": relative,
         "size": stat.st_size,
@@ -279,6 +342,8 @@ def analyze_file(
         "megapixels": round(width * height / 1_000_000, 3),
         "sharpness": sharpness,
         "quality_score": quality_score(width, height, sharpness, path.suffix),
+        "watermark_status": watermark_status,
+        "watermark_audit": watermark_audit_meta,
         "category": str(product["canonicalCategoryCandidate"]),
         "franchise": str(product["franchiseCandidate"]),
         "model_key": incoming_model,
@@ -305,12 +370,15 @@ def build_manifest(
     image_plan: list[dict[str, Any]],
     *,
     images_root: Path,
+    media_audit: list[dict[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], dict[str, Any]]:
     indexed = product_index(products)
     validate_plan_coverage(indexed, image_plan)
+    audit_index = watermark_audit_index(list(media_audit or []))
 
     seen_targets: set[str] = set()
     seen_source_pairs: set[tuple[str, str]] = set()
+    used_audits: set[tuple[str, str]] = set()
     rows: list[dict[str, Any]] = []
 
     for plan in image_plan:
@@ -326,7 +394,24 @@ def build_manifest(
                 f"sourceUrl ausente/duplicada no plano: {key} {source_url!r}"
             )
         seen_source_pairs.add(source_pair)
-        rows.append(analyze_file(images_root, plan, indexed[key]))
+        audit_key = (key, str(plan.get("sourceImageId") or "").strip())
+        audit = audit_index.get(audit_key)
+        if audit is not None:
+            used_audits.add(audit_key)
+        rows.append(
+            analyze_file(
+                images_root,
+                plan,
+                indexed[key],
+                watermark_audit=audit,
+            )
+        )
+
+    unused_audits = sorted(set(audit_index).difference(used_audits))
+    if unused_audits:
+        raise ExternalManifestError(
+            f"auditorias de marca d'água sem mídia correspondente no plano: {unused_audits[:5]}"
+        )
 
     rows.sort(
         key=lambda row: (
@@ -342,6 +427,10 @@ def build_manifest(
             f"produtos prontos sem nenhuma imagem materializada: {missing_products[:5]}"
         )
 
+    watermark_counts = {
+        status: sum(1 for row in rows if row.get("watermark_status") == status)
+        for status in (WATERMARK_CLEAR, WATERMARK_WATERMARKED, WATERMARK_UNKNOWN)
+    }
     summary = {
         "version": 1,
         "products": len(product_keys),
@@ -350,6 +439,8 @@ def build_manifest(
         "networkDownloads": 0,
         "provenance": "AUTHORIZED_EXTERNAL_MEDIA",
         "completeGalleryCoverage": True,
+        "watermarkStatus": watermark_counts,
+        "watermarkAuditComplete": watermark_counts[WATERMARK_UNKNOWN] == 0,
     }
     return rows, summary
 
@@ -372,6 +463,14 @@ def main() -> int:
     parser.add_argument("products", type=Path, help="products.jsonl normalizado")
     parser.add_argument("image_plan", type=Path, help="image-download-plan.jsonl")
     parser.add_argument("--images-root", type=Path, required=True)
+    parser.add_argument(
+        "--media-audit",
+        type=Path,
+        help=(
+            "JSONL opcional, fora do repositório, com sourceProductKey/sourceImageId/"
+            "sha256/watermarkStatus; mídia sem auditoria fica watermark_status=unknown"
+        ),
+    )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--summary", type=Path)
     args = parser.parse_args()
@@ -381,6 +480,7 @@ def main() -> int:
             read_jsonl(args.products),
             read_jsonl(args.image_plan),
             images_root=args.images_root,
+            media_audit=read_jsonl(args.media_audit) if args.media_audit else None,
         )
         write_jsonl(args.output, rows)
         if args.summary:
