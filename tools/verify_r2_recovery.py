@@ -102,6 +102,11 @@ def validate_mapping(payload: Any, expected_models: set[str]) -> dict[str, str]:
             raise RecoveryVerificationError(f"mapping entry {index} sem modelId/relativePath")
         if model_id in mapped:
             raise RecoveryVerificationError(f"modelId duplicado no mapping: {model_id}")
+        normalized_path = relative_path.replace("\\", "/")
+        if Path(normalized_path).suffix.lower() != ".webp":
+            raise RecoveryVerificationError(
+                f"destino recuperado deve preservar o formato WebP real: {model_id}: {relative_path}"
+            )
         mapped[model_id] = relative_path
 
     found_models = set(mapped)
@@ -121,7 +126,6 @@ def safe_local_path(root: Path, relative_path: str) -> tuple[Path, str]:
     parts = normalized.split("/")
     if any(part in {"", ".", ".."} for part in parts):
         raise RecoveryVerificationError(f"relativePath inseguro: {relative_path!r}")
-    # Reject drive-qualified Windows paths even when running tests on POSIX.
     if re.match(r"^[A-Za-z]:", normalized):
         raise RecoveryVerificationError(f"relativePath absoluto não permitido: {relative_path!r}")
 
