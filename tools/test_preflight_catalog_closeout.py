@@ -42,6 +42,27 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
         report = ingest / "closeout-preflight.json"
         return repo, catalog, registry, mapping, incoming, manifest, ingest, bundle, report
 
+    def test_run_step_forces_utf8_subprocess_boundary(self) -> None:
+        completed = module.subprocess.CompletedProcess(
+            args=[sys.executable, "tool.py"],
+            returncode=0,
+            stdout='{"mensagem":"ação — café"}\n',
+            stderr="",
+        )
+        caller_env = {"SENTINEL": "preserved"}
+        with patch.object(module.subprocess, "run", return_value=completed) as mocked:
+            result = module.run_step(Path("."), "unicode-step", ["tool.py"], env=caller_env)
+
+        self.assertEqual(result["summary"]["mensagem"], "ação — café")
+        kwargs = mocked.call_args.kwargs
+        self.assertTrue(kwargs["text"])
+        self.assertEqual(kwargs["encoding"], "utf-8")
+        self.assertEqual(kwargs["errors"], "strict")
+        self.assertEqual(kwargs["env"]["SENTINEL"], "preserved")
+        self.assertEqual(kwargs["env"]["PYTHONUTF8"], "1")
+        self.assertEqual(kwargs["env"]["PYTHONIOENCODING"], "utf-8")
+        self.assertEqual(caller_env, {"SENTINEL": "preserved"})
+
     def test_dry_run_stops_before_local_mutation_when_copies_are_pending(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             args = self.paths(tmp)
