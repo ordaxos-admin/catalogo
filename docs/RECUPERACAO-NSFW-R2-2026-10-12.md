@@ -13,6 +13,7 @@ Este documento **não** declara os derivados como equivalentes byte a byte ao ar
 - Ausência temporária da fonte física não autoriza aposentadoria do modelo publicado.
 - `thumb.webp`, `card.webp` e `detail.webp` são derivados; nunca devem herdar falsamente o SHA do original histórico.
 - Entre os derivados disponíveis, `detail.webp` é o candidato de recuperação por preservar a maior resolução publicada.
+- `REGISTRO-AUDITORIA-IMAGENS.csv` continua sendo o SSOT dos bytes físicos atuais; não existe bypass especial na ingestão.
 - Nenhuma escrita em D1/R2 é necessária para esta etapa.
 
 ## Objetos confirmados no R2
@@ -41,13 +42,13 @@ Esses registros permanecem nas franquias originais (`Resident Evil`, `Street Fig
 2. salvar os três downloads em uma pasta de entrada isolada, fora do SSOT, usando exatamente `<modelId>.webp` como nome de arquivo;
 3. usar `tools/materialize_r2_recovery.py` primeiro sem `--apply` para validar integralmente os três downloads e os destinos do mapping;
 4. somente após o dry-run verde executar o mesmo comando com `--apply`;
-5. o materializador recusa overwrite divergente e aceita idempotentemente destino já existente com SHA/tamanho corretos;
-6. executar `tools/verify_r2_recovery.py` contra o SSOT materializado e exigir cobertura integral dos 3 IDs;
-7. preservar o SHA histórico anterior apenas como lineage/ancestralidade, nunca como checksum do arquivo recuperado;
-8. regenerar ingestão e bundle sob `MEDIA_METADATA_VERSION=8`;
-9. comprovar coexistência Normal + NSFW como variantes distintas;
-10. executar `publish_r2.py --dry-run` e o preflight D1 sem escrita de produção;
-11. somente depois dos gates verdes avaliar os dois reparos monotônicos de galeria e a saída da PR de draft.
+5. executar `tools/verify_r2_recovery.py` e exigir cobertura integral dos 3 IDs, emitindo `recovery-provenance.jsonl`;
+6. executar `tools/apply_r2_recovery_registry.py` primeiro em dry-run e depois com `--apply` para reconciliar atomicamente o `REGISTRO-AUDITORIA-IMAGENS.csv` com os bytes recuperados;
+7. o patcher preserva o SHA anterior em `historical_sha256` e grava `provenance`, bucket, chave R2, `modelId` e tamanho; nunca registra o SHA histórico como checksum do derivado recuperado;
+8. regenerar a ingestão usando o **mesmo** `--audit-registry` canônico, sem overlay/bypass;
+9. regenerar o bundle sob `MEDIA_METADATA_VERSION=8` e comprovar coexistência Normal + NSFW como variantes distintas;
+10. executar `publish_r2.py --dry-run` e `publish_d1.py --check-production` sem escrita de produção;
+11. somente depois desses gates verdes avaliar/aplicar os dois reparos monotônicos de galeria e a saída da PR de draft.
 
 ## Mapping local fail-closed
 
@@ -142,7 +143,50 @@ O verifier é deliberadamente sem rede e sem cópia. Ele:
 - grava provenance somente depois da validação integral;
 - informa `networkReads=0` e `writesToSourceRoot=0` no resumo.
 
-A existência do arquivo de provenance não substitui a ingestão. Ela prova apenas que os bytes materializados correspondem exatamente aos objetos R2 auditados e que os três destinos físicos foram cobertos.
+## Reconciliação do registro auditado
+
+A materialização por si só não autoriza alterar o SHA do SSOT auditado. Antes da nova ingestão, faça um dry-run do patcher:
+
+```bash
+python tools/apply_r2_recovery_registry.py \
+  --registry "/raiz/do/Catalogo/00 - ESTATISTICAS - CATALOGO/REGISTRO-AUDITORIA-IMAGENS.csv" \
+  --manifest config/catalog-r2-recovery-manifest.json \
+  --provenance "/raiz/do/Catalogo/.catalog-ingest/recovery-provenance.jsonl" \
+  --root "/raiz/do/Catalogo"
+```
+
+O dry-run reabre e recalcula os bytes físicos, exige cobertura exata do manifesto e confirma que cada destino existe **uma única vez** no registro auditado. Nenhuma linha é alterada nesse modo.
+
+Com o dry-run verde, aplique atomicamente:
+
+```bash
+python tools/apply_r2_recovery_registry.py \
+  --registry "/raiz/do/Catalogo/00 - ESTATISTICAS - CATALOGO/REGISTRO-AUDITORIA-IMAGENS.csv" \
+  --manifest config/catalog-r2-recovery-manifest.json \
+  --provenance "/raiz/do/Catalogo/.catalog-ingest/recovery-provenance.jsonl" \
+  --root "/raiz/do/Catalogo" \
+  --report "/raiz/do/Catalogo/.catalog-ingest/recovery-registry-report.json" \
+  --apply
+```
+
+O patcher:
+
+- mantém o CSV como SSOT atual em vez de criar exceção na ingestão;
+- troca `sha256` somente depois de reverificar os bytes físicos contra o manifesto canônico;
+- preserva o SHA anterior em `historical_sha256`;
+- grava `provenance=RECOVERED_FROM_R2_DETAIL`, `source_bucket`, `source_r2_key`, `recovery_model_id` e `recovery_size`;
+- recusa estado parcial, caminho ausente/duplicado, metadata conflitante ou SHA recuperado sem lineage histórica válida;
+- usa troca atômica do CSV e revalida a idempotência após a escrita;
+- em segunda execução correta, não reescreve o registro.
+
+Depois disso a ingestão volta a usar o comando normal, sem parâmetro especial de recuperação:
+
+```bash
+python tools/ingest_catalog.py "/raiz/do/Catalogo" --output ".catalog-ingest" \
+  --audit-registry "/raiz/do/Catalogo/00 - ESTATISTICAS - CATALOGO/REGISTRO-AUDITORIA-IMAGENS.csv"
+```
+
+Assim a regra permanece simples: o audit registry descreve os bytes físicos atuais; `historical_sha256` preserva a linhagem dos masters perdidos; provenance explica por que o SHA atual mudou.
 
 ## Estado
 
