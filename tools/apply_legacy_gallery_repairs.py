@@ -19,6 +19,8 @@ import urllib.request
 from pathlib import Path
 from typing import Any
 
+from legacy_gallery_registry import load_legacy_gallery_registry
+
 from catalog_schema_contract import (
     load_schema_contract,
     schema_migrations_statement,
@@ -29,75 +31,7 @@ from catalog_schema_contract import (
 
 
 def load_config(path: Path) -> list[dict[str, Any]]:
-    if not path.is_file():
-        raise RuntimeError(f"configuração de reparos não encontrada: {path}")
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"configuração de reparos inválida: {path}: {exc}") from exc
-    if not isinstance(payload, dict) or payload.get("version") != 2:
-        raise RuntimeError("versão do registro de reparos legados não suportada")
-    groups = payload.get("groups")
-    if not isinstance(groups, list) or not groups:
-        raise RuntimeError("registro de reparos legados vazio")
-
-    audited_at = str(payload.get("auditedAt") or "").strip()
-    audited_groups = payload.get("auditedGroups")
-    audited_member_cards = payload.get("auditedMemberCards")
-    audited_extra_cards = payload.get("auditedExtraCards")
-    if not audited_at:
-        raise RuntimeError("registro de reparos legados sem auditedAt")
-    for label, value in (
-        ("auditedGroups", audited_groups),
-        ("auditedMemberCards", audited_member_cards),
-        ("auditedExtraCards", audited_extra_cards),
-    ):
-        if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-            raise RuntimeError(f"{label} inválido no registro de reparos legados")
-
-    seen_members: set[str] = set()
-    member_cards = 0
-    for index, group in enumerate(groups, 1):
-        if not isinstance(group, dict):
-            raise RuntimeError(f"grupo de reparo inválido na posição {index}")
-        required = ("categorySlug", "franchiseSlug", "folderPathKey", "family", "canonicalSlug", "memberSlugs", "reason")
-        if any(not group.get(key) for key in required):
-            raise RuntimeError(f"grupo de reparo incompleto na posição {index}")
-        members = group["memberSlugs"]
-        if not isinstance(members, list) or len(members) < 2:
-            raise RuntimeError(f"grupo de reparo sem membros suficientes: {group.get('family')}")
-        if group["canonicalSlug"] not in members:
-            raise RuntimeError(f"canônico fora dos membros: {group['canonicalSlug']}")
-        if len(set(members)) != len(members):
-            raise RuntimeError(f"membro repetido no grupo: {group['family']}")
-        match_mode = str(group.get("matchMode") or "descriptor-family").strip()
-        if match_mode not in {"descriptor-family", "explicit-members"}:
-            raise RuntimeError(
-                f"matchMode inválido no grupo {group['family']}: {match_mode}"
-            )
-        overlap = seen_members.intersection(members)
-        if overlap:
-            raise RuntimeError(f"slug aparece em múltiplos grupos: {sorted(overlap)[:5]}")
-        seen_members.update(members)
-        member_cards += len(members)
-
-    extra_cards = member_cards - len(groups)
-    actual = {
-        "auditedGroups": len(groups),
-        "auditedMemberCards": member_cards,
-        "auditedExtraCards": extra_cards,
-    }
-    expected = {
-        "auditedGroups": audited_groups,
-        "auditedMemberCards": audited_member_cards,
-        "auditedExtraCards": audited_extra_cards,
-    }
-    if actual != expected:
-        raise RuntimeError(
-            "resumo auditado dos reparos legados diverge do registro: "
-            f"atual={actual} esperado={expected}"
-        )
-    return groups
+    return load_legacy_gallery_registry(path)["groups"]
 
 
 def require_env(name: str) -> str:
@@ -222,6 +156,33 @@ ORDER BY canonical.slug,member.position,source.slug""",
     return model_rows, list(unique_relations.values())
 
 
+def fetch_approval_state(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    slugs = sorted({slug for group in groups for slug in group["memberSlugs"]})
+    rows: list[dict[str, Any]] = []
+    for chunk in _chunks(slugs):
+        placeholders = ",".join("?" for _ in chunk)
+        result = d1_request([{
+            "sql": f"""SELECT
+canonical.slug AS canonical_slug,
+source.slug AS source_slug,
+approval.registry_family,
+approval.reason
+FROM model_gallery_member_approvals approval
+JOIN models canonical ON canonical.id=approval.canonical_model_id
+JOIN models source ON source.id=approval.source_model_id
+WHERE canonical.slug IN ({placeholders})
+   OR source.slug IN ({placeholders})
+ORDER BY canonical.slug,source.slug""",
+            "params": [*chunk, *chunk],
+        }])
+        page = result[0].get("results")
+        if not isinstance(page, list):
+            raise RuntimeError("consulta de aprovações de galeria retornou results inválido")
+        rows.extend(row for row in page if isinstance(row, dict))
+    unique = {str(row.get("source_slug") or ""): row for row in rows}
+    return list(unique.values())
+
+
 def fetch_image_source_state(groups: list[dict[str, Any]]) -> list[dict[str, Any]]:
     slugs = sorted({slug for group in groups for slug in group["memberSlugs"]})
     rows: list[dict[str, Any]] = []
@@ -306,11 +267,16 @@ def plan_repairs(
     groups: list[dict[str, Any]],
     model_rows: list[dict[str, Any]],
     relation_rows: list[dict[str, Any]],
+    approval_rows: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     models = {str(row.get("slug") or ""): row for row in model_rows}
     relations_by_source = {
         str(row.get("source_slug") or ""): row
         for row in relation_rows
+    }
+    approvals_by_source = {
+        str(row.get("source_slug") or ""): row
+        for row in (approval_rows or [])
     }
     expected_members = {slug for group in groups for slug in group["memberSlugs"]}
     if set(models) != expected_members:
@@ -319,9 +285,13 @@ def plan_repairs(
         raise RuntimeError(f"estado D1 divergente do registro: ausentes={missing[:5]} extras={extra[:5]}")
 
     statements: list[dict[str, Any]] = []
-    existing = 0
+    existing_relations = 0
+    pending_relations = 0
+    existing_approvals = 0
+    pending_approvals = 0
     sources_to_retire = 0
     expected_relations: list[dict[str, Any]] = []
+    expected_approval_sources: set[str] = set()
 
     for group in groups:
         members = [models[slug] for slug in group["memberSlugs"]]
@@ -333,7 +303,6 @@ def plan_repairs(
                 str(row.get("category_slug") or ""),
                 str(row.get("franchise_slug") or ""),
                 str(row.get("folder_path") or ""),
-                str(row.get("name") or "").strip().casefold(),
             )
             for row in members
         }
@@ -343,11 +312,11 @@ def plan_repairs(
             str(group["folderPathKey"]),
         )
         if len(scopes) != 1:
-            raise RuntimeError(f"membros divergem de escopo/nome: {group['family']}")
+            raise RuntimeError(f"membros divergem de escopo: {group['family']}")
         scope = next(iter(scopes))
-        if scope[:3] != expected_scope:
+        if scope != expected_scope:
             raise RuntimeError(
-                f"escopo D1 diverge do registro {group['family']}: {scope[:3]} != {expected_scope}"
+                f"escopo D1 diverge do registro {group['family']}: {scope} != {expected_scope}"
             )
         if int(canonical.get("published") or 0) != 1:
             raise RuntimeError(f"modelo canônico não está publicado: {canonical_slug}")
@@ -363,14 +332,32 @@ def plan_repairs(
             if not str(row.get("cover_storage_key") or "").strip():
                 raise RuntimeError(f"capa ausente: {slug}")
 
+        canonical_name = str(canonical.get("name") or "").strip().casefold()
         source_slugs = [slug for slug in group["memberSlugs"] if slug != canonical_slug]
         for position, source_slug in enumerate(source_slugs, 1):
+            source = models[source_slug]
             relation = relations_by_source.get(source_slug)
+            approval = approvals_by_source.get(source_slug)
+            requires_approval = str(source.get("name") or "").strip().casefold() != canonical_name
             expected_relations.append({
                 "canonicalSlug": canonical_slug,
                 "sourceSlug": source_slug,
                 "position": position,
             })
+
+            if approval is not None:
+                if str(approval.get("canonical_slug") or "") != canonical_slug:
+                    raise RuntimeError(
+                        f"aprovação aponta para outro canônico: {source_slug} -> "
+                        f"{approval.get('canonical_slug')}"
+                    )
+                if str(approval.get("registry_family") or "") != str(group["family"]):
+                    raise RuntimeError(f"aprovação diverge da família auditada: {source_slug}")
+                if str(approval.get("reason") or "") != str(group["reason"]):
+                    raise RuntimeError(f"aprovação diverge da razão auditada: {source_slug}")
+                existing_approvals += 1
+                expected_approval_sources.add(source_slug)
+
             if relation is not None:
                 if str(relation.get("canonical_slug")) != canonical_slug:
                     raise RuntimeError(
@@ -382,16 +369,39 @@ def plan_repairs(
                         f"posição existente diverge do registro: {source_slug}: "
                         f"{relation.get('position')} != {position}"
                     )
-                if int(models[source_slug].get("published") or 0) != 0:
+                if int(source.get("published") or 0) != 0:
                     raise RuntimeError(f"fonte anexada continua publicada: {source_slug}")
-                existing += 1
+                if requires_approval and approval is None:
+                    raise RuntimeError(
+                        f"relação com nome público divergente não possui aprovação: {source_slug}"
+                    )
+                existing_relations += 1
                 continue
 
-            if int(models[source_slug].get("published") or 0) != 1:
+            if int(source.get("published") or 0) != 1:
                 raise RuntimeError(
                     f"fonte não publicada sem relação canônica registrada: {source_slug}"
                 )
+
+            if requires_approval and approval is None:
+                pending_approvals += 1
+                expected_approval_sources.add(source_slug)
+                statements.append({
+                    "sql": """INSERT INTO model_gallery_member_approvals(
+source_model_id,canonical_model_id,registry_family,reason)
+SELECT source.id,canonical.id,?,?
+FROM models canonical
+JOIN models source ON source.slug=?
+WHERE canonical.slug=?
+  AND NOT EXISTS (
+    SELECT 1 FROM model_gallery_member_approvals approval
+    WHERE approval.source_model_id=source.id
+  )""",
+                    "params": [str(group["family"]), str(group["reason"]), source_slug, canonical_slug],
+                })
+
             sources_to_retire += 1
+            pending_relations += 1
             statements.append({
                 "sql": """INSERT INTO model_gallery_members(
 canonical_model_id,source_model_id,position)
@@ -403,21 +413,34 @@ WHERE canonical.slug=?""",
             })
 
     expected_sources = {item["sourceSlug"] for item in expected_relations}
-    unexpected = [
+    unexpected_relations = [
         row for row in relation_rows
         if str(row.get("source_slug") or "") in expected_members
         and str(row.get("source_slug") or "") not in expected_sources
     ]
-    if unexpected:
-        raise RuntimeError(f"relações inesperadas envolvendo o registro legado: {unexpected[:3]}")
+    if unexpected_relations:
+        raise RuntimeError(
+            f"relações inesperadas envolvendo o registro legado: {unexpected_relations[:3]}"
+        )
+    unexpected_approvals = [
+        row for row in (approval_rows or [])
+        if str(row.get("source_slug") or "") in expected_members
+        and str(row.get("source_slug") or "") not in expected_approval_sources
+    ]
+    if unexpected_approvals:
+        raise RuntimeError(
+            f"aprovações inesperadas envolvendo o registro legado: {unexpected_approvals[:3]}"
+        )
 
     return {
         "ready": True,
         "groups": len(groups),
         "memberCards": len(expected_members),
         "expectedRelations": len(expected_relations),
-        "existingRelations": existing,
-        "pendingRelations": len(statements),
+        "existingRelations": existing_relations,
+        "pendingRelations": pending_relations,
+        "existingApprovals": existing_approvals,
+        "pendingApprovals": pending_approvals,
         "sourcesToRetire": sources_to_retire,
         "destructiveDeletes": 0,
         "statements": statements,
@@ -576,7 +599,8 @@ def main() -> int:
         groups = load_config(args.config)
         schema = require_schema_ready()
         models, relations = fetch_state(groups)
-        plan = plan_repairs(groups, models, relations)
+        approvals = fetch_approval_state(groups)
+        plan = plan_repairs(groups, models, relations, approvals)
         public_models_before = published_model_count()
         public_summary = {key: value for key, value in plan.items() if key not in {"statements", "expected"}}
         public_summary["schema"] = schema
@@ -591,7 +615,8 @@ def main() -> int:
         sha_preflight = verify_repair_image_sources(groups, models, image_source_rows)
         batches = apply_statement_batches(plan["statements"], args.batch_size)
         models, relations = fetch_state(groups)
-        result = verify_applied(groups, models, relations)
+        approvals = fetch_approval_state(groups)
+        result = verify_applied(groups, models, relations, approvals)
         public_models_after = published_model_count()
         expected_public_models_after = public_models_before - int(plan["sourcesToRetire"])
         if public_models_after != expected_public_models_after:

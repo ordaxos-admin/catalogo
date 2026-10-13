@@ -13,6 +13,7 @@ from publish_d1 import (
     candidate_image_sources,
     exact_cross_model_sha_query,
     load_models,
+    legacy_gallery_owner_moves,
     production_inventory_statement,
     production_lookup_statements,
     production_sha_lookup_statements,
@@ -105,6 +106,25 @@ class PublishD1Tests(unittest.TestCase):
 
             with self.assertRaisesRegex(RuntimeError, "textualmente equivalentes"):
                 load_models(path)
+
+    def test_load_allows_only_configured_historical_textual_collision(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "models.jsonl"
+            rows = [
+                model("mdl_76a24cb91d53097e7641", "street-fighter-ryu-76a24cb91d", "TS-76A24CB91D53", variant="Ryu"),
+                model("mdl_367b07e514865250a36e", "street-fighter-ryu-367b07e514", "TS-367B07E51486", variant="Ryu"),
+            ]
+            rows[0]["identityKey"] = "Games / 00 - Fliperama / Street Fighter / Ryu / Ryu"
+            rows[1]["identityKey"] = "Games / 00 - Fliperama / Street Fighter / Ryu / ryu"
+            path.write_text(
+                "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            loaded = load_models(path)
+            self.assertEqual([row["id"] for row in loaded], [
+                "mdl_76a24cb91d53097e7641",
+                "mdl_367b07e514865250a36e",
+            ])
 
     def test_load_keeps_numbered_sibling_as_release_review_concern(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -920,6 +940,7 @@ class PublishD1Tests(unittest.TestCase):
 
         self.assertEqual(len(statements), 2)
         self.assertIn("COALESCE(member.canonical_model_id,s.model_id)", statements[0]["sql"])
+        self.assertIn("effective.slug AS effective_model_slug", statements[0]["sql"])
         self.assertIn("source.gallery_version=s.gallery_version", statements[0]["sql"])
         self.assertIn("effective.published=1", statements[0]["sql"])
         self.assertEqual(statements[0]["params"], ["a" * 64])
@@ -939,16 +960,82 @@ class PublishD1Tests(unittest.TestCase):
 
         ready = validate_production_image_identity(
             sources,
-            [{"source_sha256": "f" * 64, "effective_model_id": "mdl-current"}],
+            [{
+                "source_sha256": "f" * 64,
+                "effective_model_id": "mdl-current",
+                "effective_model_slug": "current",
+            }],
         )
         self.assertTrue(ready["ready"])
         self.assertEqual(ready["historicalMatches"], 1)
+        self.assertEqual(ready["approvedLegacyGalleryMoves"], 0)
 
-        with self.assertRaisesRegex(RuntimeError, "identity drift de produção"):
+        with self.assertRaisesRegex(RuntimeError, "identity drift"):
             validate_production_image_identity(
                 sources,
-                [{"source_sha256": "f" * 64, "effective_model_id": "mdl-historical"}],
+                [{
+                    "source_sha256": "f" * 64,
+                    "effective_model_id": "mdl-historical",
+                    "effective_model_slug": "historical",
+                }],
             )
+
+    def test_production_image_identity_allows_only_explicit_legacy_gallery_move(self) -> None:
+        sources = [{
+            "model_id": "mdl-canonical",
+            "image_id": "img-1",
+            "position": 1,
+            "role": "gallery",
+            "source_sha256": "e" * 64,
+            "gallery_version": 2,
+        }]
+        production = [{
+            "source_sha256": "e" * 64,
+            "effective_model_id": "mdl-source",
+            "effective_model_slug": "legacy-source",
+        }]
+
+        ready = validate_production_image_identity(
+            sources, production, {"legacy-source": "mdl-canonical"}
+        )
+        self.assertTrue(ready["ready"])
+        self.assertEqual(ready["approvedLegacyGalleryMoves"], 1)
+
+        with self.assertRaisesRegex(RuntimeError, "identity drift"):
+            validate_production_image_identity(
+                sources, production, {"different-source": "mdl-canonical"}
+            )
+        with self.assertRaisesRegex(RuntimeError, "identity drift"):
+            validate_production_image_identity(
+                sources, production, {"legacy-source": "mdl-other"}
+            )
+
+    def test_legacy_gallery_owner_moves_resolve_slugs_to_candidate_ids(self) -> None:
+        rows = [
+            model("mdl-canonical", "canonical", "TS-C", variant="Canonical"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "legacy-gallery.json"
+            path.write_text(json.dumps({
+                "version": 2,
+                "auditedAt": "2026-10-13",
+                "auditedGroups": 1,
+                "auditedMemberCards": 2,
+                "auditedExtraCards": 1,
+                "groups": [{
+                    "categorySlug": "animes-desenhos",
+                    "franchiseSlug": "dragon-ball",
+                    "folderPathKey": "grupo",
+                    "family": "family",
+                    "canonicalSlug": "canonical",
+                    "memberSlugs": ["canonical", "legacy-source"],
+                    "reason": "revisão visual explícita",
+                }],
+            }), encoding="utf-8")
+            moves = legacy_gallery_owner_moves(rows, path)
+
+        self.assertEqual(moves, {"legacy-source": "mdl-canonical"})
+
 
     def test_image_source_schema_allows_cross_model_reuse_but_blocks_same_gallery_duplicate(self) -> None:
         db = sqlite3.connect(":memory:")
@@ -1004,6 +1091,18 @@ class PublishD1Tests(unittest.TestCase):
 
             with self.assertRaisesRegex(RuntimeError, "modelo sem imagem publicável"):
                 load_models(path)
+
+
+    def test_repository_retirement_approvals_are_valid(self) -> None:
+        path = Path(__file__).resolve().parents[1] / "config" / "catalog-model-retirement-approvals.csv"
+        approvals = read_model_retirement_approvals(path)
+
+        self.assertIsInstance(approvals, dict)
+        for model_id, approval in approvals.items():
+            self.assertEqual(approval["model_id"], model_id)
+            self.assertTrue(approval["slug"])
+            self.assertTrue(approval["code"])
+            self.assertTrue(approval["reason"])
 
 
 if __name__ == "__main__":

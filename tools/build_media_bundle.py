@@ -28,6 +28,10 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
+from legacy_gallery_registry import (
+    DEFAULT_LEGACY_GALLERY_CONFIG,
+    load_legacy_gallery_registry,
+)
 from model_identity import (
     DEFAULT_IDENTITY_ALIAS_CONFIG,
     canonical_identity_key,
@@ -35,6 +39,12 @@ from model_identity import (
     validate_identity_comparison_collisions,
     validate_taxonomy_slug_mappings,
     stem_view_descriptor,
+)
+from production_model_contract import (
+    DEFAULT_PRODUCTION_MODEL_CONTRACT,
+    apply_production_model_contract,
+    load_production_model_contract,
+    production_contract_fingerprint_entry,
 )
 
 VARIANTS = {
@@ -59,7 +69,7 @@ def slugify(value: str) -> str:
 DEFAULT_TAXONOMY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-taxonomy.json"
 MEDIA_BUILD_STATE_VERSION = 1
 MEDIA_RENDERER_VERSION = 1
-MEDIA_METADATA_VERSION = 7
+MEDIA_METADATA_VERSION = 9
 MEDIA_CHECKPOINT_INTERVAL = 10
 MEDIA_STATE_REPLACE_ATTEMPTS = 10
 MEDIA_STATE_REPLACE_DELAY_SECONDS = 0.1
@@ -77,6 +87,8 @@ def model_variant_name(
     grouped_gallery: bool,
 ) -> str:
     raw = identity_label.strip()
+    if re.search(r"(?:^|[^a-z0-9])nsfw(?:$|[^a-z0-9])", raw.casefold()):
+        return "NSFW"
     if grouped_gallery:
         match = stem_view_descriptor(raw)
         if match:
@@ -103,6 +115,94 @@ def model_variant_name(
     if re.fullmatch(r"\d{1,6}", label):
         return f"Modelo {label}"
     return label[:160]
+
+
+def normalize_variant_label(value: str) -> str:
+    return re.sub(r"\s+", " ", value.strip()).casefold()
+
+
+def variant_source_hint(entry: dict) -> str:
+    identity = str(entry.get("sourceIdentityKey") or entry.get("identityKey") or "").strip()
+    leaf = identity.rsplit(" / ", 1)[-1].strip() if identity else ""
+    return humanize_stem(leaf)[:160] if leaf else ""
+
+
+def disambiguate_public_variants(entries: list[dict]) -> int:
+    """Make same-name products visibly distinct without product-specific rules.
+
+    Existing non-empty variant labels are preserved whenever possible. A base
+    product in a multi-product group receives ``Principal``. If two products
+    already expose the same variant label, the later stable entry falls back to
+    its full source identity leaf. Only if that source label is still ambiguous
+    do we add a deterministic ``Variante N`` suffix.
+    """
+    groups: dict[tuple[str, str, str, str], list[dict]] = defaultdict(list)
+    for entry in entries:
+        key = (
+            str(entry.get("categorySlug") or "").strip(),
+            str(entry.get("franchiseSlug") or "").strip(),
+            str(entry.get("folderPathKey") or "").strip(),
+            str(entry.get("displayName") or "").strip().casefold(),
+        )
+        groups[key].append(entry)
+
+    adjustments = 0
+    for members in groups.values():
+        if len(members) < 2:
+            continue
+        members.sort(key=lambda entry: (
+            str(entry.get("sourceIdentityKey") or "").casefold(),
+            str(entry.get("identityKey") or "").casefold(),
+            str(entry.get("id") or ""),
+        ))
+        protected = {
+            normalize_variant_label(str(entry.get("variantName") or ""))
+            for entry in members
+            if str(entry.get("variantName") or "").strip()
+        }
+        used: set[str] = set()
+
+        for entry in members:
+            original = str(entry.get("variantName") or "").strip()
+            candidate = original
+            normalized = normalize_variant_label(candidate)
+
+            if not normalized:
+                principal = "Principal"
+                if normalize_variant_label(principal) not in protected and normalize_variant_label(principal) not in used:
+                    candidate = principal
+                else:
+                    candidate = ""
+                normalized = normalize_variant_label(candidate)
+
+            if not normalized or normalized in used:
+                hint = variant_source_hint(entry)
+                hint_normalized = normalize_variant_label(hint)
+                if hint_normalized and hint_normalized not in protected and hint_normalized not in used:
+                    candidate = hint
+                    normalized = hint_normalized
+                else:
+                    base = hint or original or "Variante"
+                    index = 2
+                    while True:
+                        suffix = f" · Variante {index}"
+                        available = max(1, 160 - len(suffix))
+                        candidate = f"{base[:available].rstrip()}{suffix}"
+                        normalized = normalize_variant_label(candidate)
+                        if normalized not in protected and normalized not in used:
+                            break
+                        index += 1
+
+            used.add(normalized)
+            if candidate != original:
+                entry["variantName"] = candidate
+                search_text = str(entry.get("searchText") or "").strip()
+                searchable_variant = candidate.casefold()
+                if searchable_variant not in search_text.casefold():
+                    entry["searchText"] = f"{search_text} {searchable_variant}".strip()
+                adjustments += 1
+
+    return adjustments
 
 
 def model_display_name(hierarchy: list[str], public_collection_parts: list[str], source_stem: str, audited_public: bool) -> str:
@@ -297,6 +397,8 @@ def model_metadata(
     audited_public: bool = False,
     grouped_gallery: bool = False,
     stable_identity_key: str | None = None,
+    production_contract_by_id: dict[str, dict] | None = None,
+    allow_retired_contract: bool = False,
 ) -> dict:
     hierarchy = hierarchy_key.split(" / ")
     canonical_key = stable_identity_key or identity_key
@@ -313,10 +415,12 @@ def model_metadata(
     display_name = hierarchy[-1] if grouped_gallery and hierarchy else model_display_name(hierarchy, collection_parts, source_stem, audited_public)
     collection = " / ".join(collection_parts)
 
-    identity_label = public_identity_label(canonical_key, hierarchy_key_normalized, source_stem) if audited_public else source_stem
-    source_label = humanize_stem(identity_label)
-    variant_name = model_variant_name(identity_label, display_name, franchise_name, grouped_gallery)
-    slug_name = source_label if audited_public else display_name
+    canonical_identity_label = public_identity_label(canonical_key, hierarchy_key_normalized, source_stem) if audited_public else source_stem
+    source_identity_label = public_identity_label(identity_key, hierarchy_key_normalized, source_stem) if audited_public else source_stem
+    canonical_label = humanize_stem(canonical_identity_label)
+    source_label = humanize_stem(source_identity_label)
+    variant_name = model_variant_name(source_identity_label, display_name, franchise_name, grouped_gallery)
+    slug_name = canonical_label if audited_public else display_name
     clean_parts = [franchise_name, slug_name] if audited_public else [franchise_name, *collection_parts, display_name]
     base_slug = slugify(" ".join(clean_parts) or slug_name)
     model_slug = base_slug
@@ -325,9 +429,9 @@ def model_metadata(
 
     code_hash = hashlib.sha256(canonical_key.encode("utf-8")).hexdigest()[:12].upper()
     code = f"TS-{code_hash}"
-    search_text = " ".join(dict.fromkeys([*hierarchy, *collection_parts, display_name, variant_name, source_label, code])).casefold()
+    search_text = " ".join(dict.fromkeys([*hierarchy, *collection_parts, display_name, variant_name, canonical_label, source_label, code])).casefold()
 
-    return {
+    metadata = {
         "identityKey": canonical_key,
         "sourceIdentityKey": identity_key,
         "id": model_id,
@@ -345,6 +449,150 @@ def model_metadata(
         "folderPathKey": "/".join(slugify(part) for part in collection_parts),
         "searchText": search_text,
     }
+    if production_contract_by_id is not None:
+        metadata = apply_production_model_contract(
+            metadata,
+            production_contract_by_id,
+            allow_retired=allow_retired_contract,
+        )
+    return metadata
+
+
+def load_legacy_gallery_overrides(path: Path | None = None) -> dict:
+    return load_legacy_gallery_registry(path or DEFAULT_LEGACY_GALLERY_CONFIG)
+
+
+def preview_model_metadata(
+    by_model: dict[str, list[dict]],
+    stable_keys: dict[str, str],
+    taxonomy: dict,
+    production_contract_by_id: dict[str, dict] | None = None,
+) -> dict[str, dict]:
+    preliminary: dict[str, dict] = {}
+    no_collisions: Counter[str] = Counter()
+    for identity_key in sorted(by_model, key=str.casefold):
+        rows = by_model[identity_key]
+        row = rows[0]
+        preliminary[identity_key] = model_metadata(
+            identity_key,
+            str(row["model_key"]),
+            str(row["path"]),
+            no_collisions,
+            taxonomy,
+            bool(row.get("public_model_key")),
+            any(bool(member.get("audit_model_group")) for member in rows),
+            stable_keys[identity_key],
+            production_contract_by_id,
+            True,
+        )
+    collisions = Counter(item["slug"] for item in preliminary.values())
+    if all(count == 1 for count in collisions.values()):
+        return preliminary
+    resolved: dict[str, dict] = {}
+    for identity_key in sorted(by_model, key=str.casefold):
+        rows = by_model[identity_key]
+        row = rows[0]
+        resolved[identity_key] = model_metadata(
+            identity_key,
+            str(row["model_key"]),
+            str(row["path"]),
+            collisions,
+            taxonomy,
+            bool(row.get("public_model_key")),
+            any(bool(member.get("audit_model_group")) for member in rows),
+            stable_keys[identity_key],
+            production_contract_by_id,
+            True,
+        )
+    return resolved
+
+
+def apply_legacy_gallery_overrides(
+    by_model: dict[str, list[dict]],
+    stable_keys: dict[str, str],
+    taxonomy: dict,
+    config: dict,
+    approved_identity_moves: dict[str, str] | None = None,
+    production_contract_by_id: dict[str, dict] | None = None,
+) -> dict[str, int]:
+    metadata = preview_model_metadata(
+        by_model, stable_keys, taxonomy, production_contract_by_id
+    )
+    by_public_key: dict[tuple[str, str, str, str], str] = {}
+    for identity_key, entry in metadata.items():
+        key = (
+            str(entry["categorySlug"]),
+            str(entry["franchiseSlug"]),
+            str(entry["folderPathKey"]),
+            str(entry["slug"]),
+        )
+        previous = by_public_key.get(key)
+        if previous is not None and previous != identity_key:
+            raise RuntimeError(f"slug público ambíguo ao consolidar galeria: {'/'.join(key)}")
+        by_public_key[key] = identity_key
+
+    applied_groups = 0
+    merged_sources = 0
+    claimed_sources: set[str] = set()
+    for group in config.get("groups", []):
+        scope = (
+            str(group["categorySlug"]).strip(),
+            str(group["franchiseSlug"]).strip(),
+            str(group["folderPathKey"]).strip(),
+        )
+        canonical_slug = str(group["canonicalSlug"]).strip()
+        canonical_identity = by_public_key.get((*scope, canonical_slug))
+        present = [
+            (slug, by_public_key[(*scope, slug)])
+            for slug in group["memberSlugs"]
+            if (*scope, slug) in by_public_key
+        ]
+        if not present:
+            continue
+        noncanonical = [(slug, identity) for slug, identity in present if identity != canonical_identity]
+        if noncanonical and canonical_identity is None:
+            raise RuntimeError(
+                f"consolidação de galeria sem canônico presente: {group['family']} -> {canonical_slug}"
+            )
+        if not noncanonical:
+            continue
+        assert canonical_identity is not None
+        canonical_rows = by_model[canonical_identity]
+        canonical_model_key = str(canonical_rows[0]["model_key"])
+        canonical_public_model_key = str(canonical_rows[0].get("public_model_key") or "").strip()
+        by_model[canonical_identity] = [
+            {**row, "legacy_gallery_canonical": True, "legacy_gallery_family": str(group["family"])}
+            for row in canonical_rows
+        ]
+        for slug, source_identity in noncanonical:
+            if source_identity in claimed_sources:
+                raise RuntimeError(f"fonte de galeria consolidada mais de uma vez: {slug}")
+            claimed_sources.add(source_identity)
+            if approved_identity_moves is not None:
+                source_stable = stable_keys[source_identity]
+                canonical_stable = stable_keys[canonical_identity]
+                previous_destination = approved_identity_moves.get(source_stable)
+                if previous_destination is not None and previous_destination != canonical_stable:
+                    raise RuntimeError(
+                        "fonte histórica de galeria aponta para canônicos conflitantes: "
+                        f"{source_stable}: {previous_destination} | {canonical_stable}"
+                    )
+                approved_identity_moves[source_stable] = canonical_stable
+            source_rows = by_model.pop(source_identity)
+            for row in source_rows:
+                merged = dict(row)
+                merged["legacy_gallery_source_model_key"] = str(row.get("model_key") or "")
+                merged["legacy_gallery_canonical"] = False
+                merged["legacy_gallery_family"] = str(group["family"])
+                merged["model_key"] = canonical_model_key
+                if canonical_public_model_key:
+                    merged["public_model_key"] = canonical_public_model_key
+                else:
+                    merged.pop("public_model_key", None)
+                by_model[canonical_identity].append(merged)
+            merged_sources += 1
+        applied_groups += 1
+    return {"groupsApplied": applied_groups, "sourcesMerged": merged_sources}
 
 
 def validate_model_group(identity_key: str, rows: list[dict]) -> None:
@@ -371,11 +619,13 @@ def build_model_bundle(
     taxonomy: dict,
     include_original: bool,
     stable_identity_key: str | None = None,
+    production_contract_by_id: dict[str, dict] | None = None,
 ) -> tuple[dict, int, int]:
     validate_model_group(identity_key, rows)
     rows = sorted(
         rows,
         key=lambda row: (
+            1 if row.get("legacy_gallery_canonical") else 0,
             float(row.get("quality_score") or 0),
             int(row.get("width") or 0),
             int(row.get("height") or 0),
@@ -392,6 +642,8 @@ def build_model_bundle(
         bool(rows[0].get("public_model_key")),
         grouped_gallery,
         stable_identity_key,
+        production_contract_by_id,
+        False,
     )
     model_id = metadata["id"]
     gallery_images = []
@@ -524,6 +776,7 @@ def model_build_fingerprint(
     include_original: bool,
     taxonomy: dict,
     stable_identity_key: str | None = None,
+    production_contract_entry: dict | None = None,
 ) -> str:
     hierarchy = str(rows[0]["model_key"]).split(" / ")
     franchise_pos = franchise_index(hierarchy, taxonomy)
@@ -542,6 +795,9 @@ def model_build_fingerprint(
             "model_key": str(row.get("model_key") or ""),
             "public_model_key": str(row.get("public_model_key") or ""),
             "audit_model_group": str(row.get("audit_model_group") or ""),
+            "legacy_gallery_source_model_key": str(row.get("legacy_gallery_source_model_key") or ""),
+            "legacy_gallery_canonical": bool(row.get("legacy_gallery_canonical")),
+            "legacy_gallery_family": str(row.get("legacy_gallery_family") or ""),
             "identification": str(row.get("identification") or ""),
         }
         for row in sorted(rows, key=lambda item: str(item.get("path") or "").casefold())
@@ -555,6 +811,7 @@ def model_build_fingerprint(
         "includeOriginal": include_original,
         "variants": VARIANTS,
         "taxonomyRule": relevant_rule,
+        "productionContract": production_contract_entry,
         "rows": normalized_rows,
     }
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -625,7 +882,9 @@ def validate_identity_continuity(
     by_model: dict[str, list[dict]],
     stable_keys: dict[str, str],
     history: dict[str, str],
+    approved_identity_moves: dict[str, str] | None = None,
 ) -> None:
+    approved_identity_moves = approved_identity_moves or {}
     for identity_key, rows in by_model.items():
         stable_identity = stable_keys[identity_key]
         for row in rows:
@@ -634,9 +893,12 @@ def validate_identity_continuity(
                 raise RuntimeError(f"SHA-256 inválido ao validar continuidade: {identity_key}")
             previous = history.get(sha)
             if previous is not None and previous != stable_identity:
+                if approved_identity_moves.get(previous) == stable_identity:
+                    continue
                 raise RuntimeError(
                     "identity drift detectado: imagem histórica reapareceu sob outro produto; "
-                    "registre o renome em config/catalog-model-identity-aliases.json antes de publicar: "
+                    "registre o renome em config/catalog-model-identity-aliases.json ou uma consolidação "
+                    "legacy_gallery explícita antes de publicar: "
                     f"{sha}: histórico={previous!r}, atual={identity_key!r}"
                 )
 
@@ -645,9 +907,10 @@ def update_identity_history(
     history: dict[str, str],
     by_model: dict[str, list[dict]],
     stable_keys: dict[str, str],
+    approved_identity_moves: dict[str, str] | None = None,
 ) -> dict[str, str]:
     updated = dict(history)
-    validate_identity_continuity(by_model, stable_keys, updated)
+    validate_identity_continuity(by_model, stable_keys, updated, approved_identity_moves)
     for identity_key, rows in by_model.items():
         stable_identity = stable_keys[identity_key]
         for row in rows:
@@ -777,16 +1040,49 @@ def build_bundle(
     include_original: bool,
     taxonomy_config: Path | None = None,
     identity_alias_config: Path | None = None,
+    legacy_gallery_config: Path | None = None,
+    production_contract_config: Path | None = None,
     workers: int = 4,
     resume: bool = True,
 ) -> dict:
     taxonomy = load_taxonomy_config(taxonomy_config)
     identity_aliases = load_identity_aliases(identity_alias_config)
+    if production_contract_config is None:
+        production_contract = {"source": {"publishedModels": 0}, "byId": {}}
+    else:
+        production_contract = load_production_model_contract(production_contract_config)
+    production_contract_by_id = production_contract["byId"]
     records = [row for row in read_manifest(manifest_path) if row.get("status") == "OK" and row.get("canonical") is True]
     by_model: dict[str, list[dict]] = defaultdict(list)
     for row in records:
         identity_key = str(row.get("public_model_key") or row["model_key"])
         by_model[identity_key].append(row)
+
+    initial_model_keys = sorted(by_model, key=str.casefold)
+    validate_identity_comparison_collisions(initial_model_keys)
+    initial_stable_keys = {
+        identity_key: canonical_identity_key(identity_key, identity_aliases)
+        for identity_key in initial_model_keys
+    }
+    initial_stable_owners: dict[str, str] = {}
+    for identity_key, stable_key in initial_stable_keys.items():
+        previous = initial_stable_owners.get(stable_key)
+        if previous is not None and previous != identity_key:
+            raise RuntimeError(
+                "duas identidades atuais apontam para o mesmo produto canônico: "
+                f"{stable_key}: {previous} | {identity_key}"
+            )
+        initial_stable_owners[stable_key] = identity_key
+    legacy_gallery = load_legacy_gallery_overrides(legacy_gallery_config)
+    approved_identity_moves: dict[str, str] = {}
+    legacy_gallery_summary = apply_legacy_gallery_overrides(
+        by_model,
+        initial_stable_keys,
+        taxonomy,
+        legacy_gallery,
+        approved_identity_moves,
+        production_contract_by_id,
+    )
 
     model_keys = sorted(by_model, key=str.casefold)
     validate_identity_comparison_collisions(model_keys)
@@ -803,8 +1099,17 @@ def build_bundle(
                 f"{stable_key}: {previous} | {identity_key}"
             )
         stable_owners[stable_key] = identity_key
-    base_slugs = []
+    candidate_model_ids = {
+        identity_key: stable_id("mdl", stable_keys[identity_key])
+        for identity_key in model_keys
+    }
+    base_slugs: list[str] = []
     for identity_key in model_keys:
+        model_id = candidate_model_ids[identity_key]
+        contract_entry = production_contract_by_id.get(model_id)
+        if contract_entry is not None:
+            base_slugs.append(str(contract_entry["slug"]))
+            continue
         row = by_model[identity_key][0]
         hierarchy = str(row["model_key"]).split(" / ")
         franchise_pos = franchise_index(hierarchy, taxonomy)
@@ -818,10 +1123,17 @@ def build_bundle(
         source_stem = Path(str(row["path"])).stem
         grouped_gallery = any(bool(member.get("audit_model_group")) for member in by_model[identity_key])
         display_name = hierarchy[-1] if grouped_gallery and hierarchy else model_display_name(hierarchy, collection_parts, source_stem, audited_public)
-        identity_label = public_identity_label(identity_key, str(row["model_key"]), source_stem) if audited_public else source_stem
+        stable_identity = stable_keys[identity_key]
+        identity_label = public_identity_label(stable_identity, str(row["model_key"]), source_stem) if audited_public else source_stem
         slug_name = humanize_stem(identity_label) if audited_public else display_name
         slug_parts = [franchise_name, slug_name] if audited_public else [franchise_name, *collection_parts, display_name]
         base_slugs.append(slugify(" ".join(slug_parts)))
+    candidate_id_set = set(candidate_model_ids.values())
+    base_slugs.extend(
+        str(entry["slug"])
+        for model_id, entry in production_contract_by_id.items()
+        if model_id not in candidate_id_set
+    )
     slug_collisions = Counter(base_slugs)
 
     if workers < 1 or workers > 16:
@@ -837,7 +1149,12 @@ def build_bundle(
         "identityHistory": {},
     }
     identity_history = checkpoint_identity_history(state, r2_root)
-    validate_identity_continuity(by_model, stable_keys, identity_history)
+    validate_identity_continuity(
+        by_model,
+        stable_keys,
+        identity_history,
+        approved_identity_moves,
+    )
     fingerprints = {
         identity_key: model_build_fingerprint(
             identity_key,
@@ -845,6 +1162,9 @@ def build_bundle(
             include_original,
             taxonomy,
             stable_keys[identity_key],
+            production_contract_fingerprint_entry(
+                production_contract_by_id, candidate_model_ids[identity_key]
+            ),
         )
         for identity_key in model_keys
     }
@@ -879,6 +1199,7 @@ def build_bundle(
             taxonomy=taxonomy,
             include_original=include_original,
             stable_identity_key=stable_keys[identity_key],
+            production_contract_by_id=production_contract_by_id,
         )
 
     built_models = 0
@@ -913,13 +1234,20 @@ def build_bundle(
         stable_keys[identity_key]: state["models"][stable_keys[identity_key]]
         for identity_key in model_keys
     }
-    state["identityHistory"] = update_identity_history(identity_history, by_model, stable_keys)
+    state["identityHistory"] = update_identity_history(
+        identity_history,
+        by_model,
+        stable_keys,
+        approved_identity_moves,
+    )
     save_media_build_state(state_path, state)
 
     built_entries = [results[identity_key][0] for identity_key in model_keys]
+    variant_adjustments = disambiguate_public_variants(built_entries)
     validate_built_model_identifiers(built_entries)
     validate_built_taxonomy_identifiers(built_entries)
     validate_variant_disambiguation(built_entries)
+    save_media_build_state(state_path, state)
 
     temporary_index = model_index.with_suffix(model_index.suffix + ".tmp")
     published_images = 0
@@ -944,6 +1272,11 @@ def build_bundle(
         "mediaBuildState": str(state_path),
         "identityAliasesApplied": sum(1 for key in model_keys if stable_keys[key] != key),
         "identityHistoryEntries": len(state["identityHistory"]),
+        "variantLabelsAdjusted": variant_adjustments,
+        "legacyGalleryGroupsApplied": legacy_gallery_summary["groupsApplied"],
+        "legacyGallerySourcesMerged": legacy_gallery_summary["sourcesMerged"],
+        "productionContractModels": len(production_contract_by_id),
+        "productionContractPublishedModels": production_contract["source"]["publishedModels"],
     }
     (output / "publish-summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
@@ -965,6 +1298,18 @@ def main() -> int:
         default=DEFAULT_IDENTITY_ALIAS_CONFIG,
         help="registro explícito de renomes de identidade que preservam mdl/code históricos",
     )
+    parser.add_argument(
+        "--legacy-gallery-config",
+        type=Path,
+        default=DEFAULT_LEGACY_GALLERY_CONFIG,
+        help="SSOT de consolidações históricas de vistas em galerias canônicas",
+    )
+    parser.add_argument(
+        "--production-contract-config",
+        type=Path,
+        default=DEFAULT_PRODUCTION_MODEL_CONTRACT,
+        help="snapshot versionado das identidades já existentes no D1",
+    )
     parser.add_argument("--workers", type=int, default=4, help="modelos processados em paralelo; padrão: 4")
     parser.add_argument("--no-resume", action="store_true", help="ignora o checkpoint de mídia e recompõe todos os modelos")
     args = parser.parse_args()
@@ -981,6 +1326,8 @@ def main() -> int:
         include_original=args.include_original,
         taxonomy_config=args.taxonomy_config.resolve(),
         identity_alias_config=args.identity_alias_config.resolve(),
+        legacy_gallery_config=args.legacy_gallery_config.resolve(),
+        production_contract_config=args.production_contract_config.resolve(),
         workers=args.workers,
         resume=not args.no_resume,
     )

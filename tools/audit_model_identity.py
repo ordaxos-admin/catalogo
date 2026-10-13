@@ -10,7 +10,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any
 
-from model_identity import candidate_confidence, slug_view_descriptor
+from model_identity import candidate_confidence, slug_view_descriptor, taxonomy_name_comparison_key
 
 DEFAULT_NUMBERED_REVIEW_CONFIG = (
     Path(__file__).resolve().parents[1] / "config" / "catalog-numbered-sibling-review.json"
@@ -51,7 +51,7 @@ def split_view_candidates(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
             str(row.get("categorySlug") or "").strip(),
             str(row.get("franchiseSlug") or "").strip(),
             str(row.get("folderPathKey") or "").strip(),
-            str(row.get("displayName") or "").strip().casefold(),
+            taxonomy_name_comparison_key(str(row.get("displayName") or "")),
             family,
         )
         groups[key].append({
@@ -115,7 +115,7 @@ def sibling_suffix_candidates(rows: list[dict[str, Any]]) -> list[dict[str, Any]
             str(row.get("categorySlug") or "").strip(),
             str(row.get("franchiseSlug") or "").strip(),
             str(row.get("folderPathKey") or "").strip(),
-            str(row.get("displayName") or "").strip().casefold(),
+            taxonomy_name_comparison_key(str(row.get("displayName") or "")),
         )
         scopes[key][slug] = row
 
@@ -220,7 +220,7 @@ def load_numbered_sibling_review_registry(
             or base_slug in normalized_siblings
         ):
             raise RuntimeError(f"slugs inválidos na fila numerada: {base_slug}")
-        key = (category, franchise, folder, display_name.casefold(), base_slug)
+        key = (category, franchise, folder, taxonomy_name_comparison_key(display_name), base_slug)
         if key in registry:
             raise RuntimeError(f"grupo duplicado na fila numerada: {base_slug}")
         sibling_rows += len(normalized_siblings)

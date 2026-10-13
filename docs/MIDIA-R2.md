@@ -208,6 +208,28 @@ python tools/publish_d1.py ".publish-bundle/models.jsonl" --apply
 
 Os statements são enviados em batches transacionais. O publicador não executa `DELETE`, não despublica itens ausentes e não tenta reconciliar remoções automaticamente; qualquer política destrutiva futura deverá ter fluxo e revisão próprios.
 
+### Aposentadoria explícita de modelos ausentes — fail-closed
+
+Modelos publicados que deixaram de existir no SSOT físico só podem ser despublicados por aprovação explícita. O registro canônico do repositório é `config/catalog-model-retirement-approvals.csv`, com `model_id`, `slug`, `code` e `reason` do estado real de produção.
+
+NSFW é uma variante de conteúdo do mesmo personagem/modelo, não uma categoria paralela. Versões Normal e NSFW podem coexistir na mesma categoria, franquia e coleção; ausência temporária da fonte NSFW não autoriza aposentadoria automática se a intenção de produto for preservá-la. Nesses casos, o release permanece bloqueado até recuperar a fonte ou registrar uma decisão explícita de retirada.
+
+O preflight deve validar o snapshot e as aprovações contra o D1 atual:
+
+```bash
+python tools/publish_d1.py ".publish-bundle/models.jsonl" --check-production \
+  --retire-absent-approvals "config/catalog-model-retirement-approvals.csv"
+```
+
+Na aplicação, use o mesmo arquivo:
+
+```bash
+python tools/publish_d1.py ".publish-bundle/models.jsonl" --apply \
+  --retire-absent-approvals "config/catalog-model-retirement-approvals.csv"
+```
+
+A aprovação é vinculada ao `id/slug/code` atual e falha se o estado de produção mudar. A aposentadoria altera apenas `published=0`; as mídias no R2 não são apagadas e continuam disponíveis para recuperação. Reparos de galeria que absorvem fichas-fonte devem ser aplicados antes desse gate, para que apenas ausências realmente intencionais sejam aprovadas.
+
 ## Segurança e exclusões
 
 - O publicador **não apaga objetos do R2**.

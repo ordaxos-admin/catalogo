@@ -101,7 +101,12 @@ def save_state(path: Path, state: dict[str, Any]) -> None:
 def discover(bundle_root: Path, state: dict[str, Any]) -> list[Candidate]:
     candidates: list[Candidate] = []
     objects = state["objects"]
-    paths = (item for item in bundle_root.rglob("*") if item.is_file())
+    paths: list[Path] = []
+    for directory, dirnames, filenames in os.walk(bundle_root, topdown=True, followlinks=False):
+        dirnames.sort(key=str.casefold)
+        filenames.sort(key=str.casefold)
+        base = Path(directory)
+        paths.extend(base / filename for filename in filenames)
     for path in sorted(
         paths,
         key=lambda item: (

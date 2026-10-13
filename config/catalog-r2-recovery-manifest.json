@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "bucket": "tonecos-catalogo-media",
+  "provenance": "RECOVERED_FROM_R2_DETAIL",
+  "entries": [
+    {
+      "modelId": "mdl_4178950210474bea1aa9",
+      "r2Key": "media/mdl_4178950210474bea1aa9/img_ae9129b021756df4eb14/detail.webp",
+      "expectedSize": 345868,
+      "sha256": "a9fd2c092a3edae7a0e4f665efc42368aef66d63668da7d70d973e25ba02e104"
+    },
+    {
+      "modelId": "mdl_dc75a8c0af5b0d852743",
+      "r2Key": "media/mdl_dc75a8c0af5b0d852743/img_79a5b334fa9235bdc79f/detail.webp",
+      "expectedSize": 158950,
+      "sha256": "e1fec873b4d42bc72b84e77b893c3ffc2795467d75e155fbcf3834eff93981c2"
+    },
+    {
+      "modelId": "mdl_ebb783318941d6abc94e",
+      "r2Key": "media/mdl_ebb783318941d6abc94e/img_4162595d15c5c5494eba/detail.webp",
+      "expectedSize": 198702,
+      "sha256": "04d90d0ab4fc14ca11d50eaf2418ac6c7a07210d5b0eafafd78b5362281c58a9"
+    }
+  ]
+}

@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import tempfile
 import unittest
@@ -9,16 +10,20 @@ from unittest.mock import patch
 from PIL import Image
 
 from build_media_bundle import (
+    apply_legacy_gallery_overrides,
     build_bundle,
+    disambiguate_public_variants,
     franchise_index,
     load_taxonomy_config,
     media_build_output_lock,
     model_display_name,
     model_variant_name,
-    model_variant_name,
     save_media_build_state,
+    stable_id,
+    update_identity_history,
     validate_built_model_identifiers,
     validate_built_taxonomy_identifiers,
+    validate_identity_continuity,
     validate_variant_disambiguation,
 )
 
@@ -37,6 +42,126 @@ class MediaBundleTests(unittest.TestCase):
             model_variant_name("Cammy", "Cammy", "Street Fighter", False),
             "",
         )
+
+    def test_variant_name_marks_nsfw_without_changing_taxonomy(self) -> None:
+        self.assertEqual(
+            model_variant_name(
+                "Street-Fighter-Cammy-STL-5-Street-Wear-Bust-NSFW",
+                "Cammy",
+                "Street Fighter",
+                False,
+            ),
+            "NSFW",
+        )
+        self.assertEqual(
+            model_variant_name(
+                "Resident-Evil-Ada-Wong-STL-4-NSFW",
+                "Ada Wong",
+                "Resident Evil",
+                False,
+            ),
+            "NSFW",
+        )
+
+    def test_disambiguate_public_variants_labels_base_model_as_principal(self) -> None:
+        entries = [
+            {
+                "id": "mdl-a",
+                "identityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo",
+                "sourceIdentityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo",
+                "categorySlug": "animes",
+                "franchiseSlug": "dragon-ball",
+                "folderPathKey": "dioramas/goku-e-piccolo",
+                "displayName": "Goku e Piccolo",
+                "variantName": "",
+                "searchText": "goku e piccolo",
+            },
+            {
+                "id": "mdl-b",
+                "identityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo-2",
+                "sourceIdentityKey": "Animes / Dragon Ball / Goku e Piccolo / goku-e-piccolo-2",
+                "categorySlug": "animes",
+                "franchiseSlug": "dragon-ball",
+                "folderPathKey": "dioramas/goku-e-piccolo",
+                "displayName": "Goku e Piccolo",
+                "variantName": "Modelo 2",
+                "searchText": "goku e piccolo modelo 2",
+            },
+        ]
+
+        adjusted = disambiguate_public_variants(entries)
+
+        self.assertEqual(adjusted, 1)
+        self.assertEqual(entries[0]["variantName"], "Principal")
+        self.assertEqual(entries[1]["variantName"], "Modelo 2")
+        self.assertIn("principal", entries[0]["searchText"])
+        validate_variant_disambiguation(entries)
+
+    def test_disambiguate_public_variants_uses_source_label_for_duplicate_variant(self) -> None:
+        entries = [
+            {
+                "id": "mdl-a",
+                "identityKey": "Games / Street Fighter / Ryu / Ryu 02",
+                "sourceIdentityKey": "Games / Street Fighter / Ryu / Ryu 02",
+                "categorySlug": "games",
+                "franchiseSlug": "street-fighter",
+                "folderPathKey": "ryu",
+                "displayName": "Ryu",
+                "variantName": "Modelo 02",
+                "searchText": "ryu modelo 02",
+            },
+            {
+                "id": "mdl-b",
+                "identityKey": "Games / Street Fighter / Ryu / ryu",
+                "sourceIdentityKey": "Games / Street Fighter / Ryu / ryu-modelo-02",
+                "categorySlug": "games",
+                "franchiseSlug": "street-fighter",
+                "folderPathKey": "ryu",
+                "displayName": "Ryu",
+                "variantName": "Modelo 02",
+                "searchText": "ryu modelo 02",
+            },
+        ]
+
+        adjusted = disambiguate_public_variants(entries)
+
+        self.assertEqual(adjusted, 1)
+        self.assertEqual(entries[0]["variantName"], "Modelo 02")
+        self.assertEqual(entries[1]["variantName"], "Ryu modelo 02")
+        validate_variant_disambiguation(entries)
+
+    def test_disambiguate_public_variants_has_deterministic_last_resort_suffix(self) -> None:
+        entries = [
+            {
+                "id": "mdl-a",
+                "identityKey": "Games / Resident Evil / Ada Wong / Ada-Wong-2",
+                "sourceIdentityKey": "Games / Resident Evil / Ada Wong / Ada-Wong-2",
+                "categorySlug": "games",
+                "franchiseSlug": "resident-evil",
+                "folderPathKey": "ada-wong",
+                "displayName": "Ada Wong",
+                "variantName": "Ada wong 2",
+                "searchText": "ada wong 2",
+            },
+            {
+                "id": "mdl-b",
+                "identityKey": "Games / Resident Evil / Ada Wong / ada_wong_2",
+                "sourceIdentityKey": "Games / Resident Evil / Ada Wong / ada_wong_2",
+                "categorySlug": "games",
+                "franchiseSlug": "resident-evil",
+                "folderPathKey": "ada-wong",
+                "displayName": "Ada Wong",
+                "variantName": "Ada wong 2",
+                "searchText": "ada wong 2",
+            },
+        ]
+
+        adjusted = disambiguate_public_variants(entries)
+
+        self.assertEqual(adjusted, 1)
+        self.assertEqual(entries[0]["variantName"], "Ada wong 2")
+        self.assertEqual(entries[1]["variantName"], "Ada wong 2 · Variante 2")
+        validate_variant_disambiguation(entries)
 
     def test_public_display_name_uses_character_leaf_but_not_generic_group(self) -> None:
         self.assertEqual(
@@ -657,6 +782,96 @@ class MediaBundleTests(unittest.TestCase):
             state = json.loads((output / "media-build-state.json").read_text(encoding="utf-8"))
             self.assertEqual(state["identityHistory"]["2" * 64], old_identity)
 
+
+    def test_aliases_preserve_case_distinct_historical_ids_codes_and_slugs(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            source = root / "catalog"
+            model_dir = source / "Games" / "00 - Fliperama" / "Street Fighter" / "Ryu"
+            model_dir.mkdir(parents=True)
+            first = model_dir / "Ryu.png"
+            second = model_dir / "ryu.webp"
+            Image.new("RGB", (640, 960), "#334455").save(first)
+            Image.new("RGB", (720, 1080), "#556677").save(second, "WEBP")
+
+            hierarchy = "Games / 00 - Fliperama / Street Fighter / Ryu"
+            historical = [
+                f"{hierarchy} / Ryu",
+                f"{hierarchy} / ryu",
+            ]
+            current = [
+                f"{hierarchy} / ryu-modelo-01",
+                f"{hierarchy} / ryu-modelo-02",
+            ]
+            rows = []
+            for index, (path, identity) in enumerate(zip((first, second), current), 1):
+                rows.append({
+                    "path": str(path.relative_to(source)),
+                    "size": path.stat().st_size,
+                    "status": "OK",
+                    "canonical": True,
+                    "sha256": str(index) * 64,
+                    "width": 640 if index == 1 else 720,
+                    "height": 960 if index == 1 else 1080,
+                    "quality_score": 80.0 + index,
+                    "model_key": hierarchy,
+                    "public_model_key": identity,
+                    "audit_model_group": identity.rsplit(" / ", 1)[-1],
+                })
+
+            manifest = root / "manifest.jsonl"
+            manifest.write_text(
+                "".join(json.dumps(row) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            aliases = root / "identity-aliases.json"
+            aliases.write_text(json.dumps({
+                "version": 1,
+                "aliases": [
+                    {
+                        "canonicalIdentityKey": historical_key,
+                        "aliases": [current_key],
+                        "reason": "continuidade de produto historicamente publicado",
+                    }
+                    for historical_key, current_key in zip(historical, current)
+                ],
+            }), encoding="utf-8")
+
+            output = root / "bundle"
+            summary = build_bundle(
+                source,
+                manifest,
+                output,
+                include_original=False,
+                identity_alias_config=aliases,
+            )
+            models = [
+                json.loads(line)
+                for line in (output / "models.jsonl").read_text(encoding="utf-8").splitlines()
+            ]
+            by_source = {model["sourceIdentityKey"]: model for model in models}
+
+            self.assertEqual(summary["identityAliasesApplied"], 2)
+            self.assertEqual(len(models), 2)
+            self.assertEqual(len({model["slug"] for model in models}), 2)
+
+            for historical_key, current_key in zip(historical, current):
+                model = by_source[current_key]
+                expected_id = stable_id("mdl", historical_key)
+                expected_code = "TS-" + hashlib.sha256(
+                    historical_key.encode("utf-8")
+                ).hexdigest()[:12].upper()
+                expected_slug = (
+                    "street-fighter-ryu-"
+                    + expected_id.split("_", 1)[1][:10]
+                )
+                expected_variant = f"Modelo {current_key.rsplit('-', 1)[-1]}"
+                self.assertEqual(model["identityKey"], historical_key)
+                self.assertEqual(model["id"], expected_id)
+                self.assertEqual(model["code"], expected_code)
+                self.assertEqual(model["slug"], expected_slug)
+                self.assertEqual(model["variantName"], expected_variant)
+
     def test_two_current_identities_cannot_share_one_canonical_identity(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -1121,6 +1336,88 @@ class MediaBundleTests(unittest.TestCase):
             self.assertEqual(resumed["builtModels"], 1)
             self.assertEqual(resumed["resumedModels"], 0)
             self.assertTrue(cover.is_file())
+
+
+    def test_legacy_gallery_override_merges_current_source_into_canonical_group(self) -> None:
+        hierarchy = "Games / League of Legends / Jinx"
+        canonical = f"{hierarchy} / jinx-02"
+        source = f"{hierarchy} / jinx-03"
+        by_model = {
+            canonical: [{"model_key": hierarchy, "public_model_key": canonical, "path": "Jinx/jinx-02.webp"}],
+            source: [{"model_key": hierarchy, "public_model_key": source, "path": "Jinx/jinx-03.webp"}],
+        }
+        config = {"groups": [{
+            "categorySlug": "games",
+            "franchiseSlug": "league-of-legends",
+            "folderPathKey": "jinx",
+            "family": "league-of-legends-jinx-nomnom-modelo",
+            "canonicalSlug": "league-of-legends-jinx-02",
+            "memberSlugs": ["league-of-legends-jinx-02", "league-of-legends-jinx-03"],
+        }]}
+        approved_identity_moves: dict[str, str] = {}
+        summary = apply_legacy_gallery_overrides(
+            by_model,
+            {canonical: canonical, source: source},
+            load_taxonomy_config(),
+            config,
+            approved_identity_moves,
+        )
+        self.assertEqual(summary, {"groupsApplied": 1, "sourcesMerged": 1})
+        self.assertEqual(approved_identity_moves, {source: canonical})
+        self.assertEqual(list(by_model), [canonical])
+        self.assertEqual(len(by_model[canonical]), 2)
+        self.assertTrue(by_model[canonical][0]["legacy_gallery_canonical"])
+        self.assertFalse(by_model[canonical][1]["legacy_gallery_canonical"])
+        self.assertEqual(by_model[canonical][1]["model_key"], hierarchy)
+        self.assertEqual(by_model[canonical][1]["public_model_key"], canonical)
+
+    def test_identity_continuity_allows_only_explicit_legacy_gallery_move(self) -> None:
+        source = "Animes & Desenhos / Clássicos / Digimon / Kari e Tailmon / kari-e-tailmon-02"
+        canonical = "Animes & Desenhos / Clássicos / Digimon / Kari e Tailmon / kari-e-tailmon"
+        sha = "7b" * 32
+        by_model = {canonical: [{"sha256": sha}]}
+        stable_keys = {canonical: canonical}
+        history = {sha: source}
+
+        with self.assertRaisesRegex(RuntimeError, "identity drift detectado"):
+            validate_identity_continuity(by_model, stable_keys, history)
+
+        approved_identity_moves = {source: canonical}
+        validate_identity_continuity(
+            by_model,
+            stable_keys,
+            history,
+            approved_identity_moves,
+        )
+        updated = update_identity_history(
+            history,
+            by_model,
+            stable_keys,
+            approved_identity_moves,
+        )
+        self.assertEqual(updated[sha], canonical)
+
+    def test_legacy_gallery_override_fails_closed_when_source_exists_without_canonical(self) -> None:
+        hierarchy = "Games / League of Legends / Jinx"
+        source = f"{hierarchy} / jinx-03"
+        by_model = {
+            source: [{"model_key": hierarchy, "public_model_key": source, "path": "Jinx/jinx-03.webp"}],
+        }
+        config = {"groups": [{
+            "categorySlug": "games",
+            "franchiseSlug": "league-of-legends",
+            "folderPathKey": "jinx",
+            "family": "league-of-legends-jinx-nomnom-modelo",
+            "canonicalSlug": "league-of-legends-jinx-02",
+            "memberSlugs": ["league-of-legends-jinx-02", "league-of-legends-jinx-03"],
+        }]}
+        with self.assertRaisesRegex(RuntimeError, "sem canônico presente"):
+            apply_legacy_gallery_overrides(
+                by_model,
+                {source: source},
+                load_taxonomy_config(),
+                config,
+            )
 
 
 if __name__ == "__main__":

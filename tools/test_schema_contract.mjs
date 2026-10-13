@@ -79,7 +79,7 @@ test('schema contract exactly matches versioned migration files', () => {
   assert.deepEqual(contract.requiredMigrations, files)
   assert.equal(contract.latestMigration, files.at(-1))
   assert.equal(new Set(contract.requiredMigrations).size, contract.requiredMigrations.length)
-  assert.equal(contract.version, 3)
+  assert.equal(contract.version, 4)
   assert.equal(new Set(structureKeys()).size, structureKeys().length)
 })
 

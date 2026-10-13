@@ -23,6 +23,7 @@ from audit_model_identity import (
     split_view_candidates,
     validate_numbered_sibling_review,
 )
+from legacy_gallery_registry import DEFAULT_LEGACY_GALLERY_CONFIG, load_legacy_gallery_registry
 from model_identity import validate_identity_comparison_collisions, validate_taxonomy_slug_mappings
 
 CATEGORY_ORDER = {
@@ -387,7 +388,8 @@ def production_sha_lookup_statements(
         statements.append({
             "sql": f"""SELECT
 s.source_sha256,
-COALESCE(member.canonical_model_id,s.model_id) AS effective_model_id
+COALESCE(member.canonical_model_id,s.model_id) AS effective_model_id,
+effective.slug AS effective_model_slug
 FROM model_image_sources s
 JOIN models source
   ON source.id=s.model_id
@@ -402,33 +404,66 @@ ORDER BY s.source_sha256,effective_model_id""",
     return statements
 
 
+def legacy_gallery_owner_moves(
+    rows: list[dict[str, Any]],
+    config_path: Path | None = None,
+) -> dict[str, str]:
+    registry = load_legacy_gallery_registry(config_path or DEFAULT_LEGACY_GALLERY_CONFIG)
+    candidate_by_slug = {str(row["slug"]): str(row["id"]) for row in rows}
+    approved: dict[str, str] = {}
+    for group in registry["groups"]:
+        canonical_slug = str(group["canonicalSlug"])
+        canonical_id = candidate_by_slug.get(canonical_slug)
+        if canonical_id is None:
+            continue
+        for source_slug in group["memberSlugs"]:
+            source_slug = str(source_slug)
+            if source_slug == canonical_slug:
+                continue
+            previous = approved.get(source_slug)
+            if previous is not None and previous != canonical_id:
+                raise RuntimeError(
+                    "fonte legada possui destinos canônicos conflitantes: "
+                    f"{source_slug}: {previous} | {canonical_id}"
+                )
+            approved[source_slug] = canonical_id
+    return approved
+
+
 def validate_production_image_identity(
     sources: list[dict[str, Any]],
     production_rows: list[dict[str, Any]],
+    approved_owner_moves: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     candidate_owner = {
         str(source["source_sha256"]): str(source["model_id"])
         for source in sources
     }
+    approved_owner_moves = approved_owner_moves or {}
     matches = 0
+    approved_moves = 0
     for row in production_rows:
         sha = str(row.get("source_sha256") or "").strip().lower()
         effective_model_id = str(row.get("effective_model_id") or "").strip()
-        if not sha or not effective_model_id:
+        effective_model_slug = str(row.get("effective_model_slug") or "").strip()
+        if not sha or not effective_model_id or not effective_model_slug:
             raise RuntimeError(f"linha inválida no baseline SHA D1: {row!r}")
         expected_owner = candidate_owner.get(sha)
         if expected_owner is None:
             raise RuntimeError(f"baseline SHA retornou hash não solicitado: {sha}")
         if effective_model_id != expected_owner:
-            raise RuntimeError(
-                "identity drift de produção: imagem histórica pertence a outro produto efetivo; "
-                f"{sha}: produção={effective_model_id}, candidato={expected_owner}"
-            )
+            if approved_owner_moves.get(effective_model_slug) != expected_owner:
+                raise RuntimeError(
+                    "identity drift de produção: imagem histórica pertence a outro produto efetivo; "
+                    f"{sha}: produção={effective_model_id}, candidato={expected_owner}"
+                )
+            approved_moves += 1
         matches += 1
     return {
         "ready": True,
         "candidateImages": len(sources),
         "historicalMatches": matches,
+        "approvedLegacyGalleryMoves": approved_moves,
         "identityDrift": 0,
     }
 
@@ -1081,6 +1116,12 @@ def main() -> int:
         help="consulta o D1 em modo somente leitura e valida identidade antes de qualquer upload/publicação",
     )
     parser.add_argument(
+        "--legacy-gallery-config",
+        type=Path,
+        default=DEFAULT_LEGACY_GALLERY_CONFIG,
+        help="SSOT auditado de consolidações legadas permitido no gate de identidade",
+    )
+    parser.add_argument(
         "--gallery-shrink-approvals",
         type=Path,
         help="CSV de aprovações explícitas para reduções de imageCount em modelos já publicados",
@@ -1140,6 +1181,7 @@ def main() -> int:
         summary["imageIdentityContinuity"] = validate_production_image_identity(
             candidate_sources,
             production_sha_rows,
+            legacy_gallery_owner_moves(rows, args.legacy_gallery_config),
         )
 
         retirement_statements: list[dict[str, Any]] = []
