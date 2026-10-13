@@ -128,17 +128,20 @@ Esse gate é proposital: mídia externa `watermarked` nunca é promovida, e `unk
 
 ## 4. Reconciliar com o catálogo atual
 
-Antes de criar qualquer mapa de identidade, gere um relatório **somente de candidatos** usando o índice público do bundle e os dois manifests de imagem:
+Antes de criar qualquer mapa de identidade, gere um relatório **somente de candidatos** usando o índice público do bundle, as galerias canônicas do bundle e os dois manifests de imagem:
 
 ```bash
 python tools/propose_external_identity_matches.py \
   ".catalog-bundle/models.jsonl" \
   ".catalog-ingest/manifest.jsonl" \
   ".external-ingest/manifest.jsonl" \
+  --existing-r2-root ".catalog-bundle/r2" \
   --output ".external-ingest/identity-candidates.json"
 ```
 
-Esse auditor exige o mesmo escopo de categoria + franquia para formar candidato e combina evidência de nome, SHA-256 e dHash. O resultado é sempre `reviewOnly=true` e `automaticMappings=0`: nome exato, similaridade visual e até SHA idêntico **não autorizam merge**, porque variantes distintas ou modelos que compartilham uma imagem podem coexistir. SHA igual encontrado fora da taxonomia esperada vira `scopeConflict`, não candidato silencioso.
+A propriedade de cada SHA existente vem de `models.jsonl -> galleryManifestKey -> sourceSha256`, ou seja, da galeria lógica canônica já construída. O manifesto de ingest atual fornece o dHash correspondente aos mesmos bytes. O auditor **não** tenta reconstruir propriedade pela identidade bruta pré-consolidação; isso preserva corretamente casos históricos em que uma antiga ficha foi absorvida por uma galeria canônica.
+
+O auditor exige o mesmo escopo de categoria + franquia para formar candidato e combina evidência de nome, SHA-256 e dHash. O resultado é sempre `reviewOnly=true` e `automaticMappings=0`: nome exato, similaridade visual e até SHA idêntico **não autorizam merge**, porque variantes distintas ou modelos que compartilham uma imagem podem coexistir. SHA igual encontrado fora da taxonomia esperada vira `scopeConflict`, não candidato silencioso.
 
 Registre uma decisão explícita para **cada** identidade de entrada em `identity-decisions.csv`:
 

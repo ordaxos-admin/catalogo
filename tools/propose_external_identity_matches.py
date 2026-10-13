@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 """Propose review-only identity matches for materialized external catalog media.
 
-The tool never creates or applies an identity mapping. It combines resolved
-category/franchise scope, exact display-name evidence and image evidence
-(SHA-256/dHash) to order candidates for an operator review. Even exact SHA
-matches remain review-only because one source image may legitimately belong to
-multiple public models.
+The tool never creates or applies an identity mapping. Existing image ownership
+comes from the canonical bundle gallery manifests, while the ingestion manifest
+supplies perceptual hashes for those exact source SHA-256 values. This avoids
+re-inferring ownership from legacy pre-consolidation identities.
 """
 from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from collections import defaultdict
 from pathlib import Path
@@ -28,6 +28,7 @@ from plan_gallery_merge import (
 )
 
 EXTERNAL_PROVENANCE = "AUTHORIZED_EXTERNAL_MEDIA"
+SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 
 
 def required_text(row: dict[str, Any], field: str, label: str) -> str:
@@ -52,9 +53,8 @@ def model_name_keys(model: dict[str, Any]) -> set[str]:
 
 def index_existing_models(
     rows: list[dict[str, Any]],
-) -> tuple[dict[str, dict[str, Any]], dict[str, str], dict[tuple[str, str], list[str]]]:
+) -> tuple[dict[str, dict[str, Any]], dict[tuple[str, str], list[str]]]:
     models: dict[str, dict[str, Any]] = {}
-    aliases: dict[str, str] = {}
     by_scope: dict[tuple[str, str], list[str]] = defaultdict(list)
     ids: dict[str, str] = {}
 
@@ -75,17 +75,6 @@ def index_existing_models(
             )
         ids[model_id] = identity
         models[identity] = row
-
-        source_identity = str(row.get("sourceIdentityKey") or "").strip()
-        for alias in {identity, source_identity} - {""}:
-            previous = aliases.get(alias)
-            if previous and previous != identity:
-                raise RuntimeError(
-                    f"identidade/alias aponta para múltiplos modelos: {alias}: "
-                    f"{previous!r} | {identity!r}"
-                )
-            aliases[alias] = identity
-
         scope = (name_key(category), name_key(franchise))
         by_scope[scope].append(identity)
 
@@ -93,36 +82,99 @@ def index_existing_models(
         raise RuntimeError("models.jsonl existente está vazio")
     for identities in by_scope.values():
         identities.sort(key=str.casefold)
-    return models, aliases, by_scope
+    return models, by_scope
 
 
-def index_existing_images(
-    rows: list[dict[str, Any]],
-    aliases: dict[str, str],
-) -> tuple[dict[str, list[dict[str, Any]]], dict[str, set[str]]]:
-    by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    sha_owners: dict[str, set[str]] = defaultdict(set)
-    unresolved: set[str] = set()
+def safe_bundle_path(root: Path, key: str) -> Path:
+    normalized = key.replace("\\", "/").strip()
+    if (
+        not normalized
+        or normalized.startswith("/")
+        or re.match(r"^[A-Za-z]:", normalized)
+        or any(part in {"", ".", ".."} for part in normalized.split("/"))
+    ):
+        raise RuntimeError(f"galleryManifestKey insegura: {key!r}")
+    return root.joinpath(*normalized.split("/"))
 
+
+def index_manifest_images_by_sha(rows: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
+    indexed: dict[str, dict[str, Any]] = {}
     for row in rows:
-        if not public_candidate(row):
-            continue
-        source_identity = model_identity(row)
-        target_identity = aliases.get(source_identity)
-        if target_identity is None:
-            unresolved.add(source_identity)
+        if row.get("status") != "OK":
             continue
         digest = image_sha(row)
-        image_dhash(row)
-        by_model[target_identity].append(row)
-        sha_owners[digest].add(target_identity)
+        perceptual = image_dhash(row)
+        if not perceptual:
+            raise RuntimeError(
+                f"imagem OK sem dHash no manifesto atual: {row.get('path', '<sem caminho>')}"
+            )
+        previous = indexed.get(digest)
+        if previous is not None and image_dhash(previous) != perceptual:
+            raise RuntimeError(f"mesmo SHA-256 possui dHash divergente no manifesto atual: {digest}")
+        indexed.setdefault(digest, row)
+    if not indexed:
+        raise RuntimeError("manifesto atual não contém imagens OK indexáveis")
+    return indexed
 
-    if unresolved:
-        sample = sorted(unresolved, key=str.casefold)[:5]
-        raise RuntimeError(
-            "manifesto existente referencia identidades ausentes de models.jsonl: "
-            f"{sample}"
-        )
+
+def index_existing_images_from_bundle(
+    models: dict[str, dict[str, Any]],
+    existing_rows: list[dict[str, Any]],
+    r2_root: Path,
+) -> tuple[dict[str, list[dict[str, Any]]], dict[str, set[str]]]:
+    root = r2_root.resolve()
+    if not root.is_dir():
+        raise RuntimeError(f"raiz r2 do bundle não encontrada: {root}")
+
+    raw_by_sha = index_manifest_images_by_sha(existing_rows)
+    by_model: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    sha_owners: dict[str, set[str]] = defaultdict(set)
+
+    for identity in sorted(models, key=str.casefold):
+        model = models[identity]
+        model_id = required_text(model, "id", f"modelo {identity}")
+        manifest_key = required_text(model, "galleryManifestKey", f"modelo {identity}")
+        manifest_path = safe_bundle_path(root, manifest_key)
+        if not manifest_path.is_file():
+            raise RuntimeError(
+                f"manifesto de galeria canônico ausente para {identity}: {manifest_key}"
+            )
+        try:
+            gallery = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as exc:
+            raise RuntimeError(
+                f"manifesto de galeria inválido para {identity}: {manifest_path}: {exc}"
+            ) from exc
+        if not isinstance(gallery, dict) or str(gallery.get("modelId") or "") != model_id:
+            raise RuntimeError(f"manifesto de galeria pertence a outro modelo: {identity}")
+        images = gallery.get("images")
+        if not isinstance(images, list) or not images:
+            raise RuntimeError(f"manifesto de galeria sem imagens: {identity}")
+        expected_count = model.get("imageCount")
+        if isinstance(expected_count, int) and expected_count != len(images):
+            raise RuntimeError(
+                f"imageCount diverge do manifesto de galeria: {identity}: "
+                f"models={expected_count} gallery={len(images)}"
+            )
+
+        seen_model_shas: set[str] = set()
+        for image in images:
+            if not isinstance(image, dict):
+                raise RuntimeError(f"imagem inválida no manifesto de galeria: {identity}")
+            digest = str(image.get("sourceSha256") or "").strip().lower()
+            if not SHA256_RE.fullmatch(digest):
+                raise RuntimeError(f"sourceSha256 inválido no bundle: {identity}: {digest!r}")
+            if digest in seen_model_shas:
+                raise RuntimeError(f"SHA repetido na mesma galeria canônica: {identity}: {digest}")
+            seen_model_shas.add(digest)
+            raw = raw_by_sha.get(digest)
+            if raw is None:
+                raise RuntimeError(
+                    f"SHA do bundle ausente do manifesto de ingest atual: {identity}: {digest}"
+                )
+            by_model[identity].append(raw)
+            sha_owners[digest].add(identity)
+
     return by_model, sha_owners
 
 
@@ -246,13 +298,16 @@ def propose_identity_matches(
     existing_images: list[dict[str, Any]],
     incoming_images: list[dict[str, Any]],
     *,
+    existing_r2_root: Path,
     visual_threshold: int = DEFAULT_VISUAL_THRESHOLD,
 ) -> dict[str, Any]:
     if not 0 <= visual_threshold <= 16:
         raise ValueError("visual_threshold deve ficar entre 0 e 16")
 
-    models, aliases, by_scope = index_existing_models(existing_models)
-    images_by_model, sha_owners = index_existing_images(existing_images, aliases)
+    models, by_scope = index_existing_models(existing_models)
+    images_by_model, sha_owners = index_existing_images_from_bundle(
+        models, existing_images, existing_r2_root
+    )
     incoming_groups = group_external_images(incoming_images)
 
     products: list[dict[str, Any]] = []
@@ -358,6 +413,7 @@ def propose_identity_matches(
         "policy": {
             "reviewOnly": True,
             "automaticMappings": 0,
+            "existingImageOwnership": "canonical_bundle_gallery_manifest",
             "sameCategoryAndFranchiseRequiredForCandidate": True,
             "exactNameDoesNotAuthorizeMerge": True,
             "perceptualSimilarityDoesNotAuthorizeMerge": True,
@@ -384,8 +440,14 @@ def main() -> int:
         )
     )
     parser.add_argument("existing_models", type=Path, help="models.jsonl do bundle atual")
-    parser.add_argument("existing_manifest", type=Path, help="manifest.jsonl do catálogo atual")
+    parser.add_argument("existing_manifest", type=Path, help="manifest.jsonl do ingest atual")
     parser.add_argument("incoming_manifest", type=Path, help="manifest externo materializado")
+    parser.add_argument(
+        "--existing-r2-root",
+        type=Path,
+        required=True,
+        help="raiz r2 do bundle atual; define a propriedade canônica dos sourceSha256",
+    )
     parser.add_argument("--visual-threshold", type=int, default=DEFAULT_VISUAL_THRESHOLD)
     parser.add_argument("--output", type=Path, help="JSON de candidatos; stdout quando omitido")
     args = parser.parse_args()
@@ -395,6 +457,7 @@ def main() -> int:
             read_jsonl(args.existing_models),
             read_jsonl(args.existing_manifest),
             read_jsonl(args.incoming_manifest),
+            existing_r2_root=args.existing_r2_root,
             visual_threshold=args.visual_threshold,
         )
     except (RuntimeError, ValueError) as exc:
