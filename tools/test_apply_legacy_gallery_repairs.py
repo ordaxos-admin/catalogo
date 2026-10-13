@@ -70,7 +70,7 @@ class LegacyGalleryRepairTests(unittest.TestCase):
             bad_mode = json.loads(json.dumps(payload))
             bad_mode["groups"][0]["matchMode"] = "numeric-heuristic"
             path.write_text(json.dumps(bad_mode), encoding="utf-8")
-            with self.assertRaisesRegex(RuntimeError, "matchMode inválido"):
+            with self.assertRaisesRegex(RuntimeError, "matchMode"):
                 load_config(path)
 
             bad_summary = json.loads(json.dumps(payload))
@@ -116,6 +116,66 @@ class LegacyGalleryRepairTests(unittest.TestCase):
             [1, 2],
         )
 
+    def test_cross_name_group_plans_explicit_approval_before_relation(self) -> None:
+        config = [group()]
+        canonical, side, back = config[0]["memberSlugs"]
+        rows = [row(canonical), row(side), row(back)]
+        rows[1]["name"] = "Androide 18 vista lateral"
+
+        plan = plan_repairs(config, rows, [], [])
+
+        self.assertEqual(plan["pendingApprovals"], 1)
+        self.assertEqual(plan["pendingRelations"], 2)
+        self.assertEqual(len(plan["statements"]), 3)
+        self.assertIn("model_gallery_member_approvals", plan["statements"][0]["sql"])
+        self.assertEqual(
+            plan["statements"][0]["params"],
+            [config[0]["family"], config[0]["reason"], side, canonical],
+        )
+        self.assertEqual(plan["statements"][1]["params"], [1, side, canonical])
+
+    def test_cross_name_group_reuses_exact_existing_approval(self) -> None:
+        config = [group()]
+        canonical, side, back = config[0]["memberSlugs"]
+        rows = [row(canonical), row(side), row(back)]
+        rows[1]["name"] = "Androide 18 vista lateral"
+        approvals = [{
+            "canonical_slug": canonical,
+            "source_slug": side,
+            "registry_family": config[0]["family"],
+            "reason": config[0]["reason"],
+        }]
+
+        plan = plan_repairs(config, rows, [], approvals)
+
+        self.assertEqual(plan["existingApprovals"], 1)
+        self.assertEqual(plan["pendingApprovals"], 0)
+        self.assertEqual(len(plan["statements"]), 2)
+        self.assertEqual(plan["statements"][0]["params"], [1, side, canonical])
+
+    def test_cross_name_existing_relation_requires_matching_approval(self) -> None:
+        config = [group()]
+        canonical, side, back = config[0]["memberSlugs"]
+        rows = [row(canonical), row(side, published=0), row(back)]
+        rows[1]["name"] = "Androide 18 vista lateral"
+        relations = [{
+            "canonical_slug": canonical,
+            "source_slug": side,
+            "position": 1,
+        }]
+
+        with self.assertRaisesRegex(RuntimeError, "possui"):
+            plan_repairs(config, rows, relations, [])
+
+        bad = [{
+            "canonical_slug": canonical,
+            "source_slug": side,
+            "registry_family": "outra-family",
+            "reason": config[0]["reason"],
+        }]
+        with self.assertRaisesRegex(RuntimeError, "auditada"):
+            plan_repairs(config, rows, relations, bad)
+
     def test_partial_progress_is_idempotent_and_only_plans_missing_relation(self) -> None:
         config = [group()]
         canonical, side, back = config[0]["memberSlugs"]
@@ -138,7 +198,7 @@ class LegacyGalleryRepairTests(unittest.TestCase):
         canonical, side, back = config[0]["memberSlugs"]
         rows = [row(canonical), row(side, published=0), row(back)]
 
-        with self.assertRaisesRegex(RuntimeError, "não publicada sem relação"):
+        with self.assertRaisesRegex(RuntimeError, "publicada sem"):
             plan_repairs(config, rows, [])
 
     def test_source_attached_to_wrong_canonical_fails_closed(self) -> None:
@@ -151,7 +211,7 @@ class LegacyGalleryRepairTests(unittest.TestCase):
             "position": 1,
         }]
 
-        with self.assertRaisesRegex(RuntimeError, "outro canônico"):
+        with self.assertRaisesRegex(RuntimeError, "outro"):
             plan_repairs(config, rows, relations)
 
     def test_scope_mismatch_fails_closed(self) -> None:

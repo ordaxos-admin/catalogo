@@ -28,6 +28,10 @@ from pathlib import Path
 
 from PIL import Image, ImageOps
 
+from legacy_gallery_registry import (
+    DEFAULT_LEGACY_GALLERY_CONFIG,
+    load_legacy_gallery_registry,
+)
 from model_identity import (
     DEFAULT_IDENTITY_ALIAS_CONFIG,
     canonical_identity_key,
@@ -63,7 +67,6 @@ def slugify(value: str) -> str:
 
 
 DEFAULT_TAXONOMY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-taxonomy.json"
-DEFAULT_LEGACY_GALLERY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-legacy-gallery-overrides.json"
 MEDIA_BUILD_STATE_VERSION = 1
 MEDIA_RENDERER_VERSION = 1
 MEDIA_METADATA_VERSION = 9
@@ -456,40 +459,7 @@ def model_metadata(
 
 
 def load_legacy_gallery_overrides(path: Path | None = None) -> dict:
-    config_path = path or DEFAULT_LEGACY_GALLERY_CONFIG
-    try:
-        data = json.loads(config_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError) as exc:
-        raise RuntimeError(f"registro de consolidação de galeria inválido: {config_path}: {exc}") from exc
-    groups = data.get("groups")
-    if not isinstance(groups, list):
-        raise RuntimeError(f"groups inválido em {config_path}")
-    claimed: set[tuple[str, str, str, str]] = set()
-    for index, group in enumerate(groups, 1):
-        if not isinstance(group, dict):
-            raise RuntimeError(f"grupo {index} inválido em {config_path}")
-        scope = []
-        for field in ("categorySlug", "franchiseSlug", "folderPathKey", "family", "canonicalSlug"):
-            value = str(group.get(field) or "").strip()
-            if not value:
-                raise RuntimeError(f"{field} vazio no grupo {index} de {config_path}")
-            if field in {"categorySlug", "franchiseSlug", "folderPathKey"}:
-                scope.append(value)
-        members = group.get("memberSlugs")
-        if not isinstance(members, list) or len(members) < 2 or not all(isinstance(item, str) and item.strip() for item in members):
-            raise RuntimeError(f"memberSlugs inválido no grupo {index} de {config_path}")
-        normalized_members = [item.strip() for item in members]
-        if len(set(normalized_members)) != len(normalized_members):
-            raise RuntimeError(f"memberSlugs duplicado no grupo {index} de {config_path}")
-        canonical_slug = str(group["canonicalSlug"]).strip()
-        if canonical_slug not in normalized_members:
-            raise RuntimeError(f"canonicalSlug fora de memberSlugs no grupo {index} de {config_path}")
-        for slug in normalized_members:
-            key = (*scope, slug)
-            if key in claimed:
-                raise RuntimeError(f"membro de galeria declarado em mais de um grupo: {'/'.join(key)}")
-            claimed.add(key)
-    return data
+    return load_legacy_gallery_registry(path or DEFAULT_LEGACY_GALLERY_CONFIG)
 
 
 def preview_model_metadata(

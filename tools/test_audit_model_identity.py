@@ -220,6 +220,48 @@ class AuditModelIdentityTests(unittest.TestCase):
             ],
         )
 
+    def test_numeric_siblings_normalize_typographic_display_name_variants(self) -> None:
+        rows = [
+            model("base", "dragon-ball-sub-zero", name="Sub Zero"),
+            model("sibling", "dragon-ball-sub-zero-02", name="Sub-Zero"),
+        ]
+
+        candidates = sibling_suffix_candidates(rows)
+
+        self.assertEqual(len(candidates), 1)
+        self.assertEqual(candidates[0]["displayNameKey"], "sub zero")
+        self.assertEqual(candidates[0]["baseSlug"], "dragon-ball-sub-zero")
+
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "numbered-review.json"
+            path.write_text(json.dumps({
+                "version": 1,
+                "auditedAt": "2026-10-13",
+                "baselinePublishedModels": 2,
+                "baselineGroups": 1,
+                "baselineSiblingRows": 1,
+                "policy": {},
+                "groups": [{
+                    "categorySlug": "animes-desenhos",
+                    "franchiseSlug": "dragon-ball",
+                    "folderPathKey": "androides/androide-18",
+                    "displayName": "Sub-Zero",
+                    "baseId": "base",
+                    "baseSlug": "dragon-ball-sub-zero",
+                    "siblingSlugs": ["dragon-ball-sub-zero-02"],
+                    "status": "distinct",
+                    "reason": "nomes tipograficamente equivalentes; produtos revisados como distintos",
+                }],
+            }), encoding="utf-8")
+            registry = load_numbered_sibling_review_registry(path)
+
+        summary = validate_numbered_sibling_review(
+            rows, registry, require_complete_registry=True
+        )
+        self.assertTrue(summary["ready"])
+        self.assertEqual(summary["candidateGroups"], 1)
+        self.assertEqual(summary["candidateSiblingRows"], 1)
+
     def test_numeric_sibling_never_crosses_folder_scope(self) -> None:
         rows = [
             model("a", "dragon-ball-estatua", folder="grupo-a"),

@@ -16,6 +16,7 @@ PENDING_TRIGGER_MIGRATIONS = tuple(
         "0017_gallery_lifecycle_integrity.sql",
         "0018_gallery_alias_immutability.sql",
         "0019_model_variant_name.sql",
+        "0020_gallery_member_explicit_approvals.sql",
     )
 )
 

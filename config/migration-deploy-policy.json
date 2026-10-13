@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "deploymentStrategy": "migrate-before-worker",
   "baselineThrough": "0010_recent_models_index.sql",
   "migrations": {
@@ -21,6 +21,16 @@
     "0016_public_gallery_revision.sql": "expand",
     "0017_gallery_lifecycle_integrity.sql": "expand",
     "0018_gallery_alias_immutability.sql": "expand",
-    "0019_model_variant_name.sql": "expand"
+    "0019_model_variant_name.sql": "expand",
+    "0020_gallery_member_explicit_approvals.sql": "expand"
+  },
+  "approvedTriggerReplacements": {
+    "0020_gallery_member_explicit_approvals.sql": {
+      "triggers": [
+        "trg_gallery_members_validate_insert",
+        "trg_gallery_members_validate_update"
+      ],
+      "reason": "Recria somente os guards de escopo para aceitar pares canônico-fonte explicitamente auditados, preservando todos os demais bloqueios."
+    }
   }
 }

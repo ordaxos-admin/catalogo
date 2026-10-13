@@ -40,6 +40,12 @@ _UNSAFE_SQL = (
 )
 
 
+_DROP_OBJECT_CAPTURE = re.compile(
+    r"\bDROP\s+(TABLE|VIEW|INDEX|TRIGGER)\s+(?:IF\s+EXISTS\s+)?([A-Za-z_][A-Za-z0-9_]*)",
+    re.IGNORECASE,
+)
+
+
 def _scrub_sql(sql: str) -> str:
     """Remove comments and string literals before scanning SQL keywords."""
     sql = re.sub(r"/\*.*?\*/", " ", sql, flags=re.DOTALL)
@@ -50,6 +56,32 @@ def _scrub_sql(sql: str) -> str:
 def unsafe_operations(sql: str) -> list[str]:
     scrubbed = _scrub_sql(sql)
     return [name for name, pattern in _UNSAFE_SQL if pattern.search(scrubbed)]
+
+
+def trigger_replacement_approval_errors(
+    sql: str, approved_triggers: list[str]
+) -> list[str]:
+    approved = [str(name).strip() for name in approved_triggers]
+    if not approved or any(not name for name in approved) or len(set(approved)) != len(approved):
+        return ["approved trigger replacement list must be non-empty and unique"]
+    dropped = [
+        (kind.upper(), name)
+        for kind, name in _DROP_OBJECT_CAPTURE.findall(_scrub_sql(sql))
+    ]
+    if not dropped:
+        return ["approved trigger replacement has no DROP object"]
+    errors: list[str] = []
+    non_trigger = [f"{kind}:{name}" for kind, name in dropped if kind != "TRIGGER"]
+    if non_trigger:
+        errors.append("approval cannot authorize non-trigger DROP: " + ", ".join(non_trigger))
+    actual = [name for kind, name in dropped if kind == "TRIGGER"]
+    unexpected = sorted(set(actual).difference(approved))
+    missing = sorted(set(approved).difference(actual))
+    if unexpected:
+        errors.append("unapproved trigger DROP: " + ", ".join(unexpected))
+    if missing:
+        errors.append("approved trigger replacement not present in migration: " + ", ".join(missing))
+    return errors
 
 
 def validate_repository(root: Path = ROOT) -> list[str]:
@@ -66,6 +98,7 @@ def validate_repository(root: Path = ROOT) -> list[str]:
     strategy = policy.get("deploymentStrategy")
     baseline = policy.get("baselineThrough")
     classifications = policy.get("migrations")
+    approved_trigger_replacements = policy.get("approvedTriggerReplacements", {})
 
     if not isinstance(required, list) or not required:
         return ["catalog schema contract must declare non-empty requiredMigrations"]
@@ -75,6 +108,8 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         errors.append("migration policy must explicitly use migrate-before-worker")
     if not isinstance(classifications, dict):
         return errors + ["migration policy must declare a migrations object"]
+    if not isinstance(approved_trigger_replacements, dict):
+        return errors + ["approvedTriggerReplacements must be an object"]
     if baseline not in required:
         errors.append("baselineThrough must be one of requiredMigrations")
         baseline_index = -1
@@ -89,6 +124,13 @@ def validate_repository(root: Path = ROOT) -> list[str]:
         errors.append("unclassified required migrations: " + ", ".join(missing))
     if extra:
         errors.append("policy contains non-required migrations: " + ", ".join(extra))
+
+    approval_extra = sorted(set(approved_trigger_replacements).difference(required_set))
+    if approval_extra:
+        errors.append(
+            "trigger replacement approval references non-required migrations: "
+            + ", ".join(approval_extra)
+        )
 
     for index, name in enumerate(required):
         migration_path = migrations_dir / name
@@ -105,7 +147,27 @@ def validate_repository(root: Path = ROOT) -> list[str]:
             continue
 
         if classification == "expand":
-            hazards = unsafe_operations(migration_path.read_text(encoding="utf-8"))
+            sql = migration_path.read_text(encoding="utf-8")
+            hazards = unsafe_operations(sql)
+            approval = approved_trigger_replacements.get(name)
+            if approval is not None:
+                if not isinstance(approval, dict):
+                    errors.append(f"{name}: trigger replacement approval must be an object")
+                else:
+                    triggers = approval.get("triggers")
+                    reason = str(approval.get("reason") or "").strip()
+                    if not isinstance(triggers, list):
+                        errors.append(f"{name}: trigger replacement approval requires triggers list")
+                    elif not reason:
+                        errors.append(f"{name}: trigger replacement approval requires reason")
+                    elif "drop-object" not in hazards:
+                        errors.append(f"{name}: trigger replacement approval is stale; no DROP object")
+                    else:
+                        approval_errors = trigger_replacement_approval_errors(sql, triggers)
+                        if approval_errors:
+                            errors.extend(f"{name}: {error}" for error in approval_errors)
+                        else:
+                            hazards = [hazard for hazard in hazards if hazard != "drop-object"]
             if hazards:
                 errors.append(f"{name}: expand migration contains {', '.join(hazards)}")
 

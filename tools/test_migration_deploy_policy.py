@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from check_migration_deploy_policy import unsafe_operations, validate_repository
+from check_migration_deploy_policy import (
+    trigger_replacement_approval_errors,
+    unsafe_operations,
+    validate_repository,
+)
 
 
 class MigrationDeployPolicyTests(unittest.TestCase):
@@ -23,6 +27,26 @@ class MigrationDeployPolicyTests(unittest.TestCase):
         for sql, expected in cases.items():
             with self.subTest(sql=sql):
                 self.assertIn(expected, unsafe_operations(sql))
+
+
+    def test_trigger_replacement_approval_is_exact_and_cannot_mask_other_drops(self) -> None:
+        approved = ["trg_a", "trg_b"]
+        safe = """
+        DROP TRIGGER IF EXISTS trg_a;
+        DROP TRIGGER IF EXISTS trg_b;
+        CREATE TRIGGER trg_a AFTER INSERT ON models BEGIN SELECT 1; END;
+        CREATE TRIGGER trg_b AFTER INSERT ON models BEGIN SELECT 1; END;
+        """
+        self.assertEqual([], trigger_replacement_approval_errors(safe, approved))
+
+        unsafe = safe + "\nDROP TABLE models;\n"
+        errors = trigger_replacement_approval_errors(unsafe, approved)
+        self.assertTrue(any("non-trigger DROP" in error for error in errors))
+
+        wrong = safe.replace("trg_b", "trg_c")
+        errors = trigger_replacement_approval_errors(wrong, approved)
+        self.assertTrue(any("unapproved trigger DROP" in error for error in errors))
+        self.assertTrue(any("not present" in error for error in errors))
 
     def test_trigger_delete_events_and_foreign_keys_are_not_false_positives(self) -> None:
         sql = """

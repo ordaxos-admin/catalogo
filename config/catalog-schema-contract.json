@@ -1,6 +1,6 @@
 {
-  "version": 3,
-  "latestMigration": "0019_model_variant_name.sql",
+  "version": 4,
+  "latestMigration": "0020_gallery_member_explicit_approvals.sql",
   "requiredMigrations": [
     "0001_catalog.sql",
     "0002_keyset_pagination.sql",
@@ -20,19 +20,22 @@
     "0016_public_gallery_revision.sql",
     "0017_gallery_lifecycle_integrity.sql",
     "0018_gallery_alias_immutability.sql",
-    "0019_model_variant_name.sql"
+    "0019_model_variant_name.sql",
+    "0020_gallery_member_explicit_approvals.sql"
   ],
   "requiredObjects": {
     "tables": [
       "model_gallery_members",
-      "model_image_sources"
+      "model_image_sources",
+      "model_gallery_member_approvals"
     ],
     "indexes": [
       "idx_models_folder_published",
       "idx_models_franchise_published_image_name",
       "idx_model_gallery_members_canonical",
       "idx_model_image_sources_sha",
-      "idx_model_image_sources_model_version"
+      "idx_model_image_sources_model_version",
+      "idx_model_gallery_member_approvals_canonical"
     ],
     "triggers": [
       "trg_folder_counts_after_model_insert",
@@ -53,7 +56,10 @@
       "trg_gallery_member_scope_immutable",
       "trg_gallery_member_model_delete_protected",
       "trg_gallery_member_public_identity_immutable",
-      "trg_gallery_relation_delete_protected"
+      "trg_gallery_relation_delete_protected",
+      "trg_gallery_member_approval_validate_insert",
+      "trg_gallery_member_approval_immutable_update",
+      "trg_gallery_member_approval_delete_protected"
     ],
     "columns": {
       "catalog_folders": [
@@ -63,6 +69,13 @@
       "models": [
         "public_gallery_version",
         "variant_name"
+      ],
+      "model_gallery_member_approvals": [
+        "source_model_id",
+        "canonical_model_id",
+        "registry_family",
+        "reason",
+        "approved_at"
       ]
     }
   }

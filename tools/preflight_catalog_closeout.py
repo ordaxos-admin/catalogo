@@ -269,9 +269,15 @@ def closeout(
     if int(repair_plan.get("destructiveDeletes") or 0) != 0:
         raise CloseoutError(f"plano de reparos legados contém DELETE destrutivo: {repair_plan}")
     pending_relations = int(repair_plan.get("pendingRelations") or 0)
+    pending_approvals = int(repair_plan.get("pendingApprovals") or 0)
     sources_to_retire = int(repair_plan.get("sourcesToRetire") or 0)
-    if pending_relations < 0 or sources_to_retire < 0:
+    if pending_relations < 0 or pending_approvals < 0 or sources_to_retire < 0:
         raise CloseoutError(f"plano de reparos legados contém contagens inválidas: {repair_plan}")
+    if pending_approvals > pending_relations:
+        raise CloseoutError(
+            "plano de reparos legados possui mais aprovações pendentes do que relações: "
+            f"pendingApprovals={pending_approvals} pendingRelations={pending_relations}"
+        )
     if pending_relations != sources_to_retire:
         raise CloseoutError(
             "plano de reparos legados não é monotônico 1:1: "
@@ -280,6 +286,7 @@ def closeout(
     if pending_relations:
         report["status"] = "repairs_required"
         report["pendingLegacyGalleryRelations"] = pending_relations
+        report["pendingLegacyGalleryApprovals"] = pending_approvals
         report["sourcesToRetire"] = sources_to_retire
         report["productionWrites"] = 0
         report["nextAction"] = (

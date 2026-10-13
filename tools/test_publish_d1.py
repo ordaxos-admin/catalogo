@@ -13,6 +13,7 @@ from publish_d1 import (
     candidate_image_sources,
     exact_cross_model_sha_query,
     load_models,
+    legacy_gallery_owner_moves,
     production_inventory_statement,
     production_lookup_statements,
     production_sha_lookup_statements,
@@ -939,6 +940,7 @@ class PublishD1Tests(unittest.TestCase):
 
         self.assertEqual(len(statements), 2)
         self.assertIn("COALESCE(member.canonical_model_id,s.model_id)", statements[0]["sql"])
+        self.assertIn("effective.slug AS effective_model_slug", statements[0]["sql"])
         self.assertIn("source.gallery_version=s.gallery_version", statements[0]["sql"])
         self.assertIn("effective.published=1", statements[0]["sql"])
         self.assertEqual(statements[0]["params"], ["a" * 64])
@@ -958,16 +960,82 @@ class PublishD1Tests(unittest.TestCase):
 
         ready = validate_production_image_identity(
             sources,
-            [{"source_sha256": "f" * 64, "effective_model_id": "mdl-current"}],
+            [{
+                "source_sha256": "f" * 64,
+                "effective_model_id": "mdl-current",
+                "effective_model_slug": "current",
+            }],
         )
         self.assertTrue(ready["ready"])
         self.assertEqual(ready["historicalMatches"], 1)
+        self.assertEqual(ready["approvedLegacyGalleryMoves"], 0)
 
-        with self.assertRaisesRegex(RuntimeError, "identity drift de produção"):
+        with self.assertRaisesRegex(RuntimeError, "identity drift"):
             validate_production_image_identity(
                 sources,
-                [{"source_sha256": "f" * 64, "effective_model_id": "mdl-historical"}],
+                [{
+                    "source_sha256": "f" * 64,
+                    "effective_model_id": "mdl-historical",
+                    "effective_model_slug": "historical",
+                }],
             )
+
+    def test_production_image_identity_allows_only_explicit_legacy_gallery_move(self) -> None:
+        sources = [{
+            "model_id": "mdl-canonical",
+            "image_id": "img-1",
+            "position": 1,
+            "role": "gallery",
+            "source_sha256": "e" * 64,
+            "gallery_version": 2,
+        }]
+        production = [{
+            "source_sha256": "e" * 64,
+            "effective_model_id": "mdl-source",
+            "effective_model_slug": "legacy-source",
+        }]
+
+        ready = validate_production_image_identity(
+            sources, production, {"legacy-source": "mdl-canonical"}
+        )
+        self.assertTrue(ready["ready"])
+        self.assertEqual(ready["approvedLegacyGalleryMoves"], 1)
+
+        with self.assertRaisesRegex(RuntimeError, "identity drift"):
+            validate_production_image_identity(
+                sources, production, {"different-source": "mdl-canonical"}
+            )
+        with self.assertRaisesRegex(RuntimeError, "identity drift"):
+            validate_production_image_identity(
+                sources, production, {"legacy-source": "mdl-other"}
+            )
+
+    def test_legacy_gallery_owner_moves_resolve_slugs_to_candidate_ids(self) -> None:
+        rows = [
+            model("mdl-canonical", "canonical", "TS-C", variant="Canonical"),
+        ]
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "legacy-gallery.json"
+            path.write_text(json.dumps({
+                "version": 2,
+                "auditedAt": "2026-10-13",
+                "auditedGroups": 1,
+                "auditedMemberCards": 2,
+                "auditedExtraCards": 1,
+                "groups": [{
+                    "categorySlug": "animes-desenhos",
+                    "franchiseSlug": "dragon-ball",
+                    "folderPathKey": "grupo",
+                    "family": "family",
+                    "canonicalSlug": "canonical",
+                    "memberSlugs": ["canonical", "legacy-source"],
+                    "reason": "revisão visual explícita",
+                }],
+            }), encoding="utf-8")
+            moves = legacy_gallery_owner_moves(rows, path)
+
+        self.assertEqual(moves, {"legacy-source": "mdl-canonical"})
+
 
     def test_image_source_schema_allows_cross_model_reuse_but_blocks_same_gallery_duplicate(self) -> None:
         db = sqlite3.connect(":memory:")
