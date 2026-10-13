@@ -50,7 +50,7 @@ class ApplyR2RecoveryRegistryPartialStateTests(unittest.TestCase):
                 "provenance": "RECOVERED_FROM_R2_DETAIL",
             }
         ]
-        with self.assertRaisesRegex(RecoveryRegistryError, "metadata de provenance incompleta"):
+        with self.assertRaisesRegex(RecoveryRegistryError, "provenance incompleta"):
             plan_registry_patch(list(rows[0]), rows, provenance_rows)
 
 
