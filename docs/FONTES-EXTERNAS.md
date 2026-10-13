@@ -10,60 +10,35 @@ A origem externa nunca substitui o SSOT do catálogo e nunca autoriza remoção 
 
 ## Configuração da fonte
 
-A identidade, domínio e regras particulares de um fornecedor ficam fora do repositório, em arquivo operacional ignorado pelo Git, por exemplo:
-
-`.external-ingest/source.json`
-
-Contrato esperado:
-
-```json
-{
-  "version": 1,
-  "sources": {
-    "vendor-a": {
-      "origin": "https://vendor.example",
-      "productPathPrefixes": ["/product/"],
-      "allowedImageHosts": ["vendor.example", "cdn.vendor.example"],
-      "taxonomySignals": {
-        "Anime": "Animes & Desenhos",
-        "Videogames": "Games",
-        "Movies": "Filmes & Séries",
-        "Series": "Filmes & Séries",
-        "Marvel": "Marvel & DC",
-        "DC": "Marvel & DC"
-      },
-      "nonFranchiseTerms": ["Anime", "Videogames", "Premium", "NSFW"],
-      "featureTerms": {
-        "nsfw": "NSFW",
-        "bust": "Bust",
-        "premium": "Premium"
-      }
-    }
-  }
-}
-```
-
-O repositório versiona o **contrato de ingestão**, não a marca ou endpoint de terceiros. Isso preserva o gate de identidade comercial e permite trocar/adicionar fontes sem hardcode.
+A identidade comercial, domínio e regras particulares de um fornecedor ficam fora do repositório, em arquivo operacional ignorado pelo Git, por exemplo `.external-ingest/source.json`. O repositório versiona o contrato de ingestão, não a marca ou endpoint de terceiros.
 
 O contrato preserva:
 
 - **1 produto externo = 1 identidade de entrada**;
-- todas as imagens desse produto ficam na mesma galeria de entrada;
-- `NSFW`, `Bust`, `Premium`, `Extras` e similares são recursos/variantes, não categorias públicas novas;
-- a categoria pública é resolvida somente por sinais configurados que apontem para o SSOT real;
+- a identidade de entrada deriva de `sourceId + product.id` da origem, nunca de slug, título, preço ou posição;
+- `product.id` precisa existir e ser um inteiro positivo; ausência/valor inválido falha fechado;
+- slug e permalink são apenas metadata/proveniência e podem mudar sem criar outro produto;
+- todas as imagens do produto ficam na mesma identidade de entrada;
+- `NSFW`, `Bust`, `Premium`, `Extras` e similares são features/variantes, não categorias públicas novas;
+- categoria pública é resolvida apenas por sinais configurados que apontem para o SSOT real;
 - conflito ou ausência de categoria/franquia fica `review_*` e bloqueia materialização;
-- preço, texto comercial e descrição da loja externa não entram na identidade canônica;
-- URL do produto e URL de cada imagem ficam apenas como proveniência.
+- URL do produto e URL de cada imagem ficam como proveniência.
 
-### Aquisição é uma etapa separada
+### Identidade de imagem
 
-Os scripts do repositório **não fazem bulk scraping nem download de rede**. Eles consomem somente um export/API obtido com autorização e bytes de imagem já materializados por um meio autorizado.
+Quando a origem fornece `image.id`, esse ID é a identidade estável da mídia. Quando não fornece, o pipeline usa `SHA-256(sourceUrl)` como fallback determinístico. A posição `1..N` representa somente a ordem da galeria e **nunca participa da identidade da imagem**.
 
-Isso evita transformar um detalhe de aquisição em dependência arquitetural e mantém o pipeline compatível com fontes próprias, exports do fornecedor ou integrações formalmente autorizadas.
+O `targetPath` também não depende da ordem nem do slug do produto: ele usa o ID estável do produto e a identidade estável da imagem. Assim, renomear um produto ou reordenar sua galeria não cria cópias artificiais.
+
+## Aquisição é uma etapa separada
+
+Os scripts do repositório **não fazem bulk scraping nem download de rede**. Eles consomem somente export/API obtido com autorização e bytes de imagem já materializados por um meio autorizado.
+
+Isso evita transformar aquisição em dependência arquitetural e mantém o pipeline compatível com fontes próprias, exports do fornecedor ou integrações formalmente autorizadas.
 
 ## 1. Normalizar um export WooCommerce autorizado
 
-Exporte a resposta de produtos da WooCommerce Store API para JSON e execute:
+Exemplo:
 
 ```bash
 python tools/import_woocommerce_catalog.py \
@@ -84,35 +59,26 @@ Saídas:
 
 `products.jsonl` contém uma linha por produto e registra:
 
-- `sourceProductKey` estável e namespaced;
-- `incomingModel`, usado como identidade do lote externo;
-- título original e `displayName` normalizado;
-- candidato de categoria pública;
-- candidato de franquia;
-- features;
-- contagem de imagens;
-- estado de revisão.
+- `sourceProductId`: ID imutável normalizado da origem;
+- `sourceProductKey`: chave namespaced `sourceId:product:<id>`;
+- `incomingModel`: identidade `sourceId / product:<id>` usada pelo planner;
+- `sourceSlug`, título original e `displayName` como metadata;
+- candidato de categoria pública e franquia;
+- features, contagem de imagens e estado de revisão.
 
-`image-download-plan.jsonl` contém uma linha por imagem, com URL de origem, posição e `targetPath` determinístico. O arquivo é um **plano de materialização**, não um downloader.
+`image-download-plan.jsonl` contém uma linha por imagem, com URL de origem, posição de galeria e `targetPath` determinístico. O arquivo é um **plano de materialização**, não um downloader.
 
-O resumo sempre registra `networkDownloads=0`.
+Exemplo de caminho estável:
+
+```text
+vendor-a/product-42/1001.webp
+```
+
+Se `image.id` não existir, o nome usa a identidade derivada do hash da URL. O resumo sempre registra `networkDownloads=0`.
 
 ## 2. Materializar mídia por meio autorizado
 
-Depois que os bytes forem obtidos por um canal autorizado, grave-os sob uma raiz local preservando os `targetPath` do plano.
-
-Exemplo:
-
-```text
-/caminho/fonte-autorizada/
-  vendor-a/
-    personagem-modelo/
-      001-12345.webp
-      002-12346.webp
-      ...
-```
-
-Nenhum arquivo precisa ser renomeado manualmente além do plano determinístico.
+Depois que os bytes forem obtidos por um canal autorizado, grave-os sob uma raiz local preservando os `targetPath` do plano. Nenhum arquivo precisa ser renomeado manualmente além do plano determinístico.
 
 ## 3. Gerar o manifesto técnico externo
 
@@ -127,10 +93,9 @@ python tools/build_external_image_manifest.py \
 
 Esse gate:
 
-- recusa produto que ainda esteja em `review_*`;
-- exige `imageCount` positivo no produto normalizado;
-- exige cobertura integral da galeria: a quantidade do plano deve ser exatamente igual ao `imageCount`;
-- exige posições contíguas `1..N`, sem lacunas nem posições duplicadas;
+- recusa produto ainda em `review_*`;
+- exige `imageCount` positivo;
+- exige cobertura integral da galeria e posições contíguas `1..N` sem duplicação;
 - recusa path traversal e arquivo ausente;
 - abre/verifica cada imagem;
 - recalcula SHA-256 e dHash;
@@ -140,11 +105,11 @@ Esse gate:
 - só emite `completeGalleryCoverage=true` quando a galeria inteira foi comprovada;
 - não acessa a rede.
 
-Isso impede que um produto anunciado com, por exemplo, 7 imagens seja publicado silenciosamente com apenas 5 materializadas.
+Isso impede que um produto anunciado com, por exemplo, 7 imagens seja promovido silenciosamente com apenas 5 materializadas.
 
 ## 4. Reconciliar com o catálogo atual
 
-Use o fluxo já canônico:
+Use o fluxo canônico:
 
 ```bash
 python tools/plan_gallery_merge.py \
@@ -153,20 +118,10 @@ python tools/plan_gallery_merge.py \
   --output ".external-ingest/gallery-merge-plan.json"
 ```
 
-Produto externo que corresponda a ficha já existente deve usar `model-identity-map.csv` explícito. Nome parecido nunca é autorização para mesclar.
-
-Depois, candidatos perceptuais continuam exigindo `resolve_gallery_merge.py` e o manifesto de promoção auditável.
+Produto externo que corresponda a ficha já existente deve usar `model-identity-map.csv` explícito. Nome, slug ou similaridade perceptual nunca autorizam fusão de identidade. Candidatos perceptuais continuam exigindo revisão por `resolve_gallery_merge.py` e manifesto de promoção auditável.
 
 ## Política NSFW
 
-NSFW continua sendo uma variante/feature transversal. Não existe uma categoria pública paralela `NSFW`.
+NSFW continua sendo uma feature/variante transversal. Não existe categoria pública paralela `NSFW`.
 
-Um título externo como `Personagem STL + Bust + NSFW – Franquia` pode ser normalizado como:
-
-- display name: `Personagem`;
-- franquia candidata: `Franquia`;
-- categoria pública candidata: resolvida pelo SSOT configurado;
-- features: `Bust`, `NSFW` e demais sinais presentes;
-- todas as imagens do mesmo produto permanecem na mesma identidade de entrada.
-
-Se a fonte publicar produtos Normal e NSFW como produtos separados, eles permanecem identidades de entrada separadas até uma revisão explícita decidir a relação correta.
+Se a fonte publicar produtos Normal e NSFW como produtos separados, eles permanecem identidades de entrada separadas enquanto tiverem IDs de produto distintos, até uma revisão explícita decidir a relação correta.

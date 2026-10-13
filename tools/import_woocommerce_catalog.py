@@ -9,6 +9,7 @@ contract, not a third-party brand or endpoint.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import html
 import json
 import re
@@ -58,6 +59,31 @@ def safe_segment(value: str) -> str:
     if not safe:
         raise ImportContractError(f"segmento inseguro/vazio após normalização: {value!r}")
     return safe
+
+
+def stable_product_id(value: Any) -> str:
+    """Return the immutable WooCommerce product id in canonical decimal form."""
+    if isinstance(value, bool):
+        raise ImportContractError("produto sem id estável positivo")
+    if isinstance(value, int):
+        number = value
+    else:
+        text = normalized_text(value)
+        if not text.isdigit():
+            raise ImportContractError("produto sem id estável positivo")
+        number = int(text)
+    if number <= 0:
+        raise ImportContractError("produto sem id estável positivo")
+    return str(number)
+
+
+def stable_image_identity(image: dict[str, Any], source_url: str) -> tuple[str, str]:
+    """Return an order-independent image identity and its provenance kind."""
+    provider_id = normalized_text(image.get("id"))
+    if provider_id:
+        return provider_id, "provider_id"
+    digest = hashlib.sha256(source_url.encode("utf-8")).hexdigest()
+    return f"url-sha256-{digest}", "url_sha256"
 
 
 def load_json(path: Path) -> Any:
@@ -241,6 +267,7 @@ def normalize_product(
     source_id: str,
     source: dict[str, Any],
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    source_product_id = stable_product_id(product.get("id"))
     title = normalized_text(product.get("name"))
     slug = normalized_text(product.get("slug"))
     permalink = normalized_text(product.get("permalink"))
@@ -263,8 +290,8 @@ def normalize_product(
     }
     features = source_features(title, categories, tags, feature_terms)
 
-    source_product_key = f"{source_id}:{slug}"
-    incoming_model = f"{source_id} / {slug}"
+    source_product_key = f"{source_id}:product:{source_product_id}"
+    incoming_model = f"{source_id} / product:{source_product_id}"
     allowed_hosts = {normalized_key(value) for value in source.get("allowedImageHosts") or []}
     raw_images = product.get("images")
     if not isinstance(raw_images, list) or not raw_images:
@@ -272,6 +299,7 @@ def normalize_product(
 
     image_rows: list[dict[str, Any]] = []
     seen_urls: set[str] = set()
+    seen_image_identities: set[str] = set()
     for position, image in enumerate(raw_images, 1):
         if not isinstance(image, dict):
             raise ImportContractError(f"imagem inválida em {source_product_key}, posição {position}")
@@ -287,13 +315,19 @@ def normalize_product(
         if src in seen_urls:
             raise ImportContractError(f"imagem duplicada no produto {source_product_key}: {src}")
         seen_urls.add(src)
+
+        image_id, identity_kind = stable_image_identity(image, src)
+        if image_id in seen_image_identities:
+            raise ImportContractError(
+                f"identidade de imagem duplicada no produto {source_product_key}: {image_id}"
+            )
+        seen_image_identities.add(image_id)
         extension = image_extension(src)
-        image_id = normalized_text(image.get("id")) or f"url-{position}"
         stable_id = safe_segment(image_id)
         target_path = (
             Path(source_id)
-            / safe_segment(slug)
-            / f"{position:03d}-{stable_id}{extension}"
+            / f"product-{safe_segment(source_product_id)}"
+            / f"{stable_id}{extension}"
         ).as_posix()
         image_rows.append(
             {
@@ -303,6 +337,7 @@ def normalize_product(
                 "incomingModel": incoming_model,
                 "position": position,
                 "sourceImageId": image_id,
+                "sourceImageIdentityKind": identity_kind,
                 "sourceUrl": src,
                 "sourceAlt": normalized_text(image.get("alt")),
                 "targetPath": target_path,
@@ -320,7 +355,8 @@ def normalize_product(
         "sourceId": source_id,
         "sourceProductKey": source_product_key,
         "incomingModel": incoming_model,
-        "sourceProductId": product.get("id"),
+        "sourceProductId": source_product_id,
+        "sourceSlug": slug,
         "sourceUrl": permalink,
         "sourceTitle": title,
         "displayName": display_name(title, franchise),

@@ -73,12 +73,12 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
     def product_url(slug: str) -> str:
         return f"https://vendor.example/product/{slug}/"
 
-    def test_one_product_with_seven_images_stays_one_incoming_model(self) -> None:
-        product = {
-            "id": 42,
+    def product(self, *, product_id: int = 42, slug: str = "juri-han-stl-street-fighter") -> dict:
+        return {
+            "id": product_id,
             "name": "Juri Han STL – Street Fighter",
-            "slug": "juri-han-stl-street-fighter",
-            "permalink": self.product_url("juri-han-stl-street-fighter"),
+            "slug": slug,
+            "permalink": self.product_url(slug),
             "categories": [
                 {"name": "Street Fighter"},
                 {"name": "NSFW"},
@@ -88,23 +88,89 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "images": self.images(7),
         }
 
-        row, images = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
+    def test_one_product_with_seven_images_stays_one_incoming_model(self) -> None:
+        row, images = normalize_product(
+            self.product(), source_id=self.SOURCE_ID, source=self.source
+        )
 
         self.assertEqual(row["displayName"], "Juri Han")
         self.assertEqual(row["canonicalCategoryCandidate"], "Games")
         self.assertEqual(row["franchiseCandidate"], "Street Fighter")
         self.assertEqual(row["features"], ["Bust", "NSFW"])
+        self.assertEqual(row["sourceProductId"], "42")
+        self.assertEqual(row["sourceProductKey"], "vendor-a:product:42")
+        self.assertEqual(row["incomingModel"], "vendor-a / product:42")
+        self.assertEqual(row["sourceSlug"], "juri-han-stl-street-fighter")
         self.assertEqual(row["imageCount"], 7)
         self.assertTrue(row["readyForMaterialization"])
         self.assertEqual(len(images), 7)
         self.assertEqual(
             {image["incomingModel"] for image in images},
-            {"vendor-a / juri-han-stl-street-fighter"},
+            {"vendor-a / product:42"},
         )
         self.assertEqual(
             images[0]["targetPath"],
-            "vendor-a/juri-han-stl-street-fighter/001-1001.webp",
+            "vendor-a/product-42/1001.webp",
         )
+        self.assertEqual(images[0]["sourceImageIdentityKind"], "provider_id")
+
+    def test_product_identity_survives_slug_and_permalink_rename(self) -> None:
+        before = self.product(product_id=42, slug="juri-old-slug")
+        after = self.product(product_id=42, slug="juri-new-slug")
+
+        before_row, before_images = normalize_product(
+            before, source_id=self.SOURCE_ID, source=self.source
+        )
+        after_row, after_images = normalize_product(
+            after, source_id=self.SOURCE_ID, source=self.source
+        )
+
+        self.assertEqual(before_row["sourceProductKey"], after_row["sourceProductKey"])
+        self.assertEqual(before_row["incomingModel"], after_row["incomingModel"])
+        self.assertNotEqual(before_row["sourceSlug"], after_row["sourceSlug"])
+        self.assertEqual(
+            {row["targetPath"] for row in before_images},
+            {row["targetPath"] for row in after_images},
+        )
+
+    def test_missing_or_invalid_product_id_fails_closed(self) -> None:
+        for bad_id in (None, "", 0, -1, True, "abc"):
+            product = self.product()
+            product["id"] = bad_id
+            with self.subTest(bad_id=bad_id):
+                with self.assertRaisesRegex(ImportContractError, "id estável positivo"):
+                    normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
+
+    def test_url_hash_image_fallback_is_order_independent(self) -> None:
+        product = self.product()
+        product["images"] = [
+            {"src": "https://cdn.vendor.example/uploads/no-id-a.webp", "alt": "A"},
+            {"src": "https://cdn.vendor.example/uploads/no-id-b.webp", "alt": "B"},
+        ]
+        first_row, first = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
+        product["images"] = list(reversed(product["images"]))
+        second_row, second = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
+
+        self.assertEqual(first_row["sourceProductKey"], second_row["sourceProductKey"])
+        first_by_url = {
+            row["sourceUrl"]: (row["sourceImageId"], row["targetPath"])
+            for row in first
+        }
+        second_by_url = {
+            row["sourceUrl"]: (row["sourceImageId"], row["targetPath"])
+            for row in second
+        }
+        self.assertEqual(first_by_url, second_by_url)
+        self.assertTrue(all(row["sourceImageIdentityKind"] == "url_sha256" for row in first))
+
+    def test_duplicate_provider_image_id_is_rejected(self) -> None:
+        product = self.product()
+        product["images"] = [
+            {"id": 77, "src": "https://cdn.vendor.example/uploads/a.webp"},
+            {"id": 77, "src": "https://cdn.vendor.example/uploads/b.webp"},
+        ]
+        with self.assertRaisesRegex(ImportContractError, "identidade de imagem duplicada"):
+            normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
     def test_title_features_are_removed_from_display_name_but_preserved_as_features(self) -> None:
         product = {
@@ -121,9 +187,7 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "tags": [{"name": "Bust"}, {"name": "NSFW"}, {"name": "Pre-Supported"}],
             "images": self.images(3, "cynthia"),
         }
-
         row, images = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
-
         self.assertEqual(row["displayName"], "Cynthia")
         self.assertEqual(row["canonicalCategoryCandidate"], "Animes & Desenhos")
         self.assertEqual(row["franchiseCandidate"], "Pokemon")
@@ -137,16 +201,12 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "slug": "lucy-and-david-diorama-cyberpunk",
             "permalink": self.product_url("lucy-and-david-diorama-cyberpunk"),
             "categories": [
-                {"name": "Cyberpunk"},
-                {"name": "Series"},
-                {"name": "Videogames"},
+                {"name": "Cyberpunk"}, {"name": "Series"}, {"name": "Videogames"}
             ],
             "tags": [],
             "images": self.images(2, "cyberpunk"),
         }
-
         row, _ = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
-
         self.assertIsNone(row["canonicalCategoryCandidate"])
         self.assertEqual(row["categoryResolution"], "review_conflict")
         self.assertFalse(row["readyForMaterialization"])
@@ -159,16 +219,12 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "slug": "hela-stl-queen-in-black-marvel",
             "permalink": self.product_url("hela-stl-queen-in-black-marvel"),
             "categories": [
-                {"name": "Marvel"},
-                {"name": "Comics"},
-                {"name": "Premium"},
+                {"name": "Marvel"}, {"name": "Comics"}, {"name": "Premium"}
             ],
             "tags": [{"name": "Bust"}, {"name": "NSFW"}],
             "images": self.images(4, "hela"),
         }
-
         row, _ = normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
-
         self.assertEqual(row["canonicalCategoryCandidate"], "Marvel & DC")
         self.assertEqual(row["franchiseCandidate"], "Marvel")
         self.assertTrue(row["readyForMaterialization"])
@@ -181,19 +237,12 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "permalink": self.product_url("ryu-stl-street-fighter"),
             "categories": [{"name": "Street Fighter"}, {"name": "Videogames"}],
             "tags": [],
-            "images": [
-                {
-                    "id": 1,
-                    "src": "https://untrusted.example/ryu.webp",
-                    "alt": "Ryu",
-                }
-            ],
+            "images": [{"id": 1, "src": "https://untrusted.example/ryu.webp", "alt": "Ryu"}],
         }
-
         with self.assertRaisesRegex(ImportContractError, "host de imagem não autorizado"):
             normalize_product(product, source_id=self.SOURCE_ID, source=self.source)
 
-    def test_duplicate_product_slug_is_rejected(self) -> None:
+    def test_duplicate_product_id_is_rejected_even_when_slug_changes(self) -> None:
         base = {
             "id": 90,
             "name": "Ryu STL – Street Fighter",
@@ -204,21 +253,15 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "images": self.images(1, "ryu"),
         }
         duplicate = dict(base)
-        duplicate["id"] = 91
+        duplicate["slug"] = "ryu-renamed"
+        duplicate["permalink"] = self.product_url("ryu-renamed")
+        duplicate["images"] = self.images(1, "ryu-renamed")
 
         with self.assertRaisesRegex(ImportContractError, "produto duplicado"):
             build_inventory([base, duplicate], source_id=self.SOURCE_ID, source=self.source)
 
     def test_summary_counts_nsfw_products_and_images(self) -> None:
-        juri = {
-            "id": 100,
-            "name": "Juri Han STL – Street Fighter",
-            "slug": "juri-han-stl-street-fighter",
-            "permalink": self.product_url("juri-han-stl-street-fighter"),
-            "categories": [{"name": "Street Fighter"}, {"name": "NSFW"}, {"name": "Videogames"}],
-            "tags": [{"name": "NSFW"}],
-            "images": self.images(7, "juri"),
-        }
+        juri = self.product(product_id=100, slug="juri-han-stl-street-fighter")
         ryu = {
             "id": 101,
             "name": "Ryu STL – Street Fighter",
@@ -228,11 +271,9 @@ class ImportWooCommerceCatalogTests(unittest.TestCase):
             "tags": [],
             "images": self.images(2, "ryu"),
         }
-
         products, images, summary = build_inventory(
             [juri, ryu], source_id=self.SOURCE_ID, source=self.source
         )
-
         self.assertEqual(len(products), 2)
         self.assertEqual(len(images), 9)
         self.assertEqual(summary["products"], 2)
