@@ -1037,5 +1037,14 @@
       ],
       "reason": "Continuidade auditada por SHA 8f3728eed3b86960ea13acd684dbc93491b0461f7da05f87dc788beae7e007e8 e caminho RV1 de 2026-09-30; preserva mdl_3748b471194c3ace236d após renome organizacional do mesmo arquivo."
     }
+  ],
+  "comparisonCollisionGroups": [
+    {
+      "canonicalIdentityKeys": [
+        "Games / 00 - Fliperama / Street Fighter / Ryu / Ryu",
+        "Games / 00 - Fliperama / Street Fighter / Ryu / ryu"
+      ],
+      "reason": "Exceção histórica auditada: Ryu.png e ryu.webp são dois produtos distintos já publicados, com IDs/códigos/slugs independentes. A equivalência textual é preservada apenas como seed histórico de identidade e não autoriza fusão nem novo ID."
+    }
   ]
 }

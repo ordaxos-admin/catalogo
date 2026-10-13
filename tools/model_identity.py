@@ -11,16 +11,21 @@ DEFAULT_VIEW_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-
 DEFAULT_IDENTITY_ALIAS_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-model-identity-aliases.json"
 
 
-def load_identity_aliases(path: Path | None = None) -> dict[str, str]:
+def _load_identity_config(path: Path | None = None) -> tuple[Path, dict]:
     config_path = path or DEFAULT_IDENTITY_ALIAS_CONFIG
     if not config_path.is_file():
-        return {}
+        return config_path, {"version": 1, "aliases": [], "comparisonCollisionGroups": []}
     try:
         data = json.loads(config_path.read_text(encoding="utf-8"))
     except json.JSONDecodeError as exc:
         raise RuntimeError(f"JSON de aliases de identidade inválido: {config_path}: {exc}") from exc
     if not isinstance(data, dict) or data.get("version") != 1:
         raise RuntimeError(f"configuração de aliases de identidade inválida: {config_path}")
+    return config_path, data
+
+
+def load_identity_aliases(path: Path | None = None) -> dict[str, str]:
+    config_path, data = _load_identity_config(path)
     raw = data.get("aliases")
     if not isinstance(raw, list):
         raise RuntimeError(f"aliases de identidade inválidos: {config_path}")
@@ -152,16 +157,77 @@ def comparison_identity_key(value: str) -> str:
     )
 
 
-def validate_identity_comparison_collisions(identity_keys: Iterable[str]) -> None:
+def load_identity_comparison_collision_groups(
+    path: Path | None = None,
+) -> tuple[frozenset[str], ...]:
+    config_path, data = _load_identity_config(path)
+    # Reuse the canonical alias validator so collision groups cannot bypass alias invariants.
+    load_identity_aliases(path)
+    raw_aliases = data.get("aliases")
+    if not isinstance(raw_aliases, list):
+        raise RuntimeError(f"aliases de identidade inválidos: {config_path}")
+    canonical_keys = {
+        str(item.get("canonicalIdentityKey") or "").strip()
+        for item in raw_aliases
+        if isinstance(item, dict)
+    }
+    canonical_keys.discard("")
+
+    raw_groups = data.get("comparisonCollisionGroups", [])
+    if not isinstance(raw_groups, list):
+        raise RuntimeError(f"comparisonCollisionGroups inválido: {config_path}")
+
+    groups: list[frozenset[str]] = []
+    seen_canonicals: set[str] = set()
+    for index, item in enumerate(raw_groups, 1):
+        if not isinstance(item, dict):
+            raise RuntimeError(f"grupo de colisão textual inválido na posição {index}: {config_path}")
+        keys = item.get("canonicalIdentityKeys")
+        reason = str(item.get("reason") or "").strip()
+        if not isinstance(keys, list) or len(keys) < 2 or not reason:
+            raise RuntimeError(f"grupo de colisão textual incompleto na posição {index}: {config_path}")
+        normalized = [str(value or "").strip() for value in keys]
+        if any(not value for value in normalized) or len(set(normalized)) != len(normalized):
+            raise RuntimeError(f"grupo de colisão textual possui chaves vazias/duplicadas: {config_path}")
+        missing = sorted(set(normalized) - canonical_keys)
+        if missing:
+            raise RuntimeError(
+                f"grupo de colisão textual referencia canônico não registrado: {missing[0]}"
+            )
+        comparison_keys = {comparison_identity_key(value) for value in normalized}
+        if len(comparison_keys) != 1:
+            raise RuntimeError(
+                "grupo de colisão textual deve conter apenas identidades textualmente equivalentes: "
+                + " | ".join(normalized)
+            )
+        reused = sorted(set(normalized) & seen_canonicals)
+        if reused:
+            raise RuntimeError(
+                f"identidade canônica aparece em mais de um grupo de colisão textual: {reused[0]}"
+            )
+        seen_canonicals.update(normalized)
+        groups.append(frozenset(normalized))
+    return tuple(groups)
+
+
+def validate_identity_comparison_collisions(
+    identity_keys: Iterable[str],
+    allowed_collision_groups: Iterable[frozenset[str]] | None = None,
+) -> None:
     by_comparison: dict[str, set[str]] = {}
     for raw in identity_keys:
         identity = str(raw)
         by_comparison.setdefault(comparison_identity_key(identity), set()).add(identity)
 
+    allowed = set(
+        allowed_collision_groups
+        if allowed_collision_groups is not None
+        else load_identity_comparison_collision_groups()
+    )
     collisions = [
         sorted(values, key=str.casefold)
         for values in by_comparison.values()
-        if len(values) > 1
+        if len(values) > 1 and frozenset(values) not in allowed
     ]
     if collisions:
         sample = " | ".join(collisions[0][:3])
@@ -169,7 +235,6 @@ def validate_identity_comparison_collisions(identity_keys: Iterable[str]) -> Non
             "identidades públicas textualmente equivalentes gerariam IDs distintos; "
             f"normalize/revise o registro antes de publicar: {sample}"
         )
-
 
 def taxonomy_name_comparison_key(value: str) -> str:
     """Normalize typography while preserving semantic distinctions such as accents."""

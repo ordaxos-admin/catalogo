@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "auditedAt": "2026-10-07",
+  "auditedAt": "2026-10-13",
   "baselinePublishedModels": 2596,
-  "baselineGroups": 49,
-  "baselineSiblingRows": 114,
+  "baselineGroups": 54,
+  "baselineSiblingRows": 146,
   "policy": {
     "pending": "Não consolidar automaticamente; exige revisão visual/identidade.",
     "distinct": "Produtos revisados e confirmados como distintos.",
@@ -249,11 +249,10 @@
       "baseSlug": "league-of-legends-jinx",
       "siblingSlugs": [
         "league-of-legends-jinx-01",
-        "league-of-legends-jinx-02",
-        "league-of-legends-jinx-03"
+        "league-of-legends-jinx-02"
       ],
       "status": "mixed",
-      "reason": "Revisão visual concluída em 2026-10-07: dois membros do grupo são a mesma escultura em renders diferentes; os demais são produtos distintos."
+      "reason": "Revisão visual concluída em 2026-10-07 e reconciliada em 2026-10-13 com o SSOT de galeria: Jinx 02 e Jinx 03 são a mesma escultura em renders diferentes; Jinx 03 foi absorvida na galeria canônica de Jinx 02. Jinx 01 permanece produto distinto."
     },
     {
       "categorySlug": "games",
@@ -352,11 +351,10 @@
       "siblingSlugs": [
         "mortal-kombat-mileena-02",
         "mortal-kombat-mileena-03",
-        "mortal-kombat-mileena-04",
         "mortal-kombat-mileena-05"
       ],
       "status": "mixed",
-      "reason": "Revisão visual concluída em 2026-10-07: Mileena.jpg e Mileena 04.jpg são a mesma escultura em renders/enquadramentos diferentes e foram registradas como uma galeria canônica explícita; Mileena 02.jpg, 03.jpg e 05.jpg são produtos distintos."
+      "reason": "Revisão visual concluída em 2026-10-07 e reconciliada em 2026-10-13 com o SSOT de galeria: Mileena.jpg e Mileena 04.jpg são a mesma escultura em renders/enquadramentos diferentes; Mileena 04 foi absorvida na galeria canônica da base. Mileena 02, 03 e 05 permanecem produtos distintos."
     },
     {
       "categorySlug": "games",
@@ -713,6 +711,100 @@
       ],
       "status": "distinct",
       "reason": "Revisão visual concluída em 2026-10-07: todos os membros numerados representam produtos distintos."
+    },
+    {
+      "categorySlug": "animes-desenhos",
+      "franchiseSlug": "fantasy",
+      "folderPathKey": "ares",
+      "displayName": "Ares",
+      "baseId": "mdl_ce44f9659e08debf441f",
+      "baseSlug": "fantasy-ares-fantasy",
+      "siblingSlugs": [
+        "fantasy-ares-fantasy-02"
+      ],
+      "status": "distinct",
+      "reason": "Revisão visual direta concluída em 2026-10-13: o modelo base mostra guerreiro em pé com lança e escudo; o 02 é outro guerreiro em composição/diorama com dois leões. Escultura, pose e base são distintas; manter como produtos separados."
+    },
+    {
+      "categorySlug": "filmes-series",
+      "franchiseSlug": "exterminador-do-futuro",
+      "folderPathKey": "t-800",
+      "displayName": "T-800",
+      "baseId": "mdl_42e4a5837fb1c5ebc529",
+      "baseSlug": "exterminador-do-futuro-t-800",
+      "siblingSlugs": [
+        "exterminador-do-futuro-t-800-04",
+        "exterminador-do-futuro-t-800-05",
+        "exterminador-do-futuro-t-800-06",
+        "exterminador-do-futuro-t-800-07",
+        "exterminador-do-futuro-t-800-08"
+      ],
+      "status": "distinct",
+      "reason": "Revisão visual direta concluída em 2026-10-13: base e modelos 04 a 08 representam esculturas/composições diferentes, incluindo figura vestida, figura ajoelhada, diorama industrial, poses armadas, composição com busto e endoesqueleto. Não são vistas da mesma peça; manter como produtos distintos."
+    },
+    {
+      "categorySlug": "games",
+      "franchiseSlug": "bayonetta",
+      "folderPathKey": "bayonetta",
+      "displayName": "Bayonetta",
+      "baseId": "mdl_e0acd6f002d0042cc6be",
+      "baseSlug": "bayonetta-bayonetta",
+      "siblingSlugs": [
+        "bayonetta-bayonetta-3",
+        "bayonetta-bayonetta-5",
+        "bayonetta-bayonetta-6"
+      ],
+      "status": "distinct",
+      "reason": "Revisão visual direta concluída em 2026-10-13: as quatro fichas têm poses, bases e composições diferentes; os modelos 5 e 6 inclusive usam dioramas/criaturas distintos. Não são renders/vistas da mesma escultura; manter como produtos separados."
+    },
+    {
+      "categorySlug": "games",
+      "franchiseSlug": "mortal-kombat",
+      "folderPathKey": "sub-zero",
+      "displayName": "Sub-Zero",
+      "baseId": "mdl_6ab7220a55d95aef8aad",
+      "baseSlug": "mortal-kombat-sub-zero",
+      "siblingSlugs": [
+        "mortal-kombat-sub-zero-02",
+        "mortal-kombat-sub-zero-03",
+        "mortal-kombat-sub-zero-04",
+        "mortal-kombat-sub-zero-05",
+        "mortal-kombat-sub-zero-06"
+      ],
+      "status": "distinct",
+      "reason": "Revisão visual direta concluída em 2026-10-13: base e modelos 02 a 06 são esculturas/composições diferentes, incluindo bases, troféu/diorama, pose com gelo e dupla apresentação. Não são vistas de uma mesma peça; manter como produtos distintos."
+    },
+    {
+      "categorySlug": "games",
+      "franchiseSlug": "street-fighter",
+      "folderPathKey": "chun-li",
+      "displayName": "Chun-Li",
+      "baseId": "mdl_ad572268752760130d18",
+      "baseSlug": "street-fighter-chun-li",
+      "siblingSlugs": [
+        "street-fighter-chun-li-02",
+        "street-fighter-chun-li-03",
+        "street-fighter-chun-li-04",
+        "street-fighter-chun-li-05",
+        "street-fighter-chun-li-06",
+        "street-fighter-chun-li-07",
+        "street-fighter-chun-li-08",
+        "street-fighter-chun-li-09",
+        "street-fighter-chun-li-10",
+        "street-fighter-chun-li-11",
+        "street-fighter-chun-li-12",
+        "street-fighter-chun-li-13",
+        "street-fighter-chun-li-14",
+        "street-fighter-chun-li-15",
+        "street-fighter-chun-li-16",
+        "street-fighter-chun-li-17",
+        "street-fighter-chun-li-18",
+        "street-fighter-chun-li-19",
+        "street-fighter-chun-li-20",
+        "street-fighter-chun-li-21"
+      ],
+      "status": "distinct",
+      "reason": "Revisão visual direta concluída em 2026-10-13 das 21 fichas: cada arquivo numerado representa escultura/produto distinto, com variações reais de pose, roupa, base, composição e/ou fornecedor. Alguns arquivos mostram múltiplos ângulos dentro da própria imagem, mas não correspondem entre si como vistas da mesma peça. Manter as fichas como produtos distintos."
     }
   ]
 }

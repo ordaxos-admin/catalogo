@@ -13,7 +13,12 @@ from audit_model_identity import (
     sibling_review_priority,
     validate_numbered_sibling_review,
 )
-from model_identity import canonical_identity_key, load_identity_aliases
+from model_identity import (
+    canonical_identity_key,
+    load_identity_aliases,
+    load_identity_comparison_collision_groups,
+    validate_identity_comparison_collisions,
+)
 
 
 def model(model_id: str, slug: str, *, folder: str = "androides/androide-18", name: str = "Androide 18") -> dict:
@@ -71,6 +76,51 @@ class AuditModelIdentityTests(unittest.TestCase):
             }), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "também aparece como alias"):
                 load_identity_aliases(path)
+
+    def test_textual_collision_group_is_explicit_exact_and_fail_closed(self) -> None:
+        first = "Games / Street Fighter / Ryu / Ryu"
+        second = "Games / Street Fighter / Ryu / ryu"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "aliases.json"
+            path.write_text(json.dumps({
+                "version": 1,
+                "aliases": [
+                    {"canonicalIdentityKey": first, "aliases": ["source-a"], "reason": "historico a"},
+                    {"canonicalIdentityKey": second, "aliases": ["source-b"], "reason": "historico b"},
+                ],
+                "comparisonCollisionGroups": [{
+                    "canonicalIdentityKeys": [first, second],
+                    "reason": "dois produtos historicos distintos",
+                }],
+            }), encoding="utf-8")
+            groups = load_identity_comparison_collision_groups(path)
+            self.assertEqual(groups, (frozenset({first, second}),))
+            validate_identity_comparison_collisions([first, second], groups)
+            with self.assertRaisesRegex(RuntimeError, "textualmente equivalentes"):
+                validate_identity_comparison_collisions([first, second], ())
+
+    def test_textual_collision_group_rejects_invalid_membership(self) -> None:
+        first = "Games / Street Fighter / Ryu / Ryu"
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "aliases.json"
+            payload = {
+                "version": 1,
+                "aliases": [{"canonicalIdentityKey": first, "aliases": ["source-a"], "reason": "historico"}],
+                "comparisonCollisionGroups": [{
+                    "canonicalIdentityKeys": [first, "Games / Street Fighter / Ryu / ryu"],
+                    "reason": "invalido",
+                }],
+            }
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "registrado"):
+                load_identity_comparison_collision_groups(path)
+
+            second = "Games / Street Fighter / Ryu / Modelo 02"
+            payload["aliases"].append({"canonicalIdentityKey": second, "aliases": ["source-b"], "reason": "outro"})
+            payload["comparisonCollisionGroups"][0]["canonicalIdentityKeys"][1] = second
+            path.write_text(json.dumps(payload), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "apenas identidades textualmente equivalentes"):
+                load_identity_comparison_collision_groups(path)
 
     def test_identity_alias_registry_rejects_ambiguous_alias_owner(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -199,10 +249,10 @@ class AuditModelIdentityTests(unittest.TestCase):
     def test_numbered_review_registry_cannot_grow_above_audited_baseline(self) -> None:
         registry = load_numbered_sibling_review_registry()
 
-        self.assertLessEqual(len(registry), 49)
+        self.assertLessEqual(len(registry), 54)
         self.assertLessEqual(
             sum(len(item["siblingSlugs"]) for item in registry.values()),
-            114,
+            146,
         )
         self.assertTrue(
             all(item["status"] in {"pending", "distinct", "mixed", "gallery"} for item in registry.values())

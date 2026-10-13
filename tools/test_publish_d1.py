@@ -106,6 +106,25 @@ class PublishD1Tests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "textualmente equivalentes"):
                 load_models(path)
 
+    def test_load_allows_only_configured_historical_textual_collision(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "models.jsonl"
+            rows = [
+                model("mdl_76a24cb91d53097e7641", "street-fighter-ryu-76a24cb91d", "TS-76A24CB91D53", variant="Ryu"),
+                model("mdl_367b07e514865250a36e", "street-fighter-ryu-367b07e514", "TS-367B07E51486", variant="Ryu"),
+            ]
+            rows[0]["identityKey"] = "Games / 00 - Fliperama / Street Fighter / Ryu / Ryu"
+            rows[1]["identityKey"] = "Games / 00 - Fliperama / Street Fighter / Ryu / ryu"
+            path.write_text(
+                "".join(json.dumps(row, ensure_ascii=False) + "\n" for row in rows),
+                encoding="utf-8",
+            )
+            loaded = load_models(path)
+            self.assertEqual([row["id"] for row in loaded], [
+                "mdl_76a24cb91d53097e7641",
+                "mdl_367b07e514865250a36e",
+            ])
+
     def test_load_keeps_numbered_sibling_as_release_review_concern(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "models.jsonl"
