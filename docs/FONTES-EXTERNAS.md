@@ -4,7 +4,7 @@
 
 O catálogo aceita lotes externos sem misturar aquisição de terceiros com a identidade pública do produto. A fronteira é explícita:
 
-`fonte autorizada -> inventário normalizado -> mídia materializada -> manifest externo + auditoria visual -> revisão de galeria -> promoção`
+`fonte autorizada -> inventário normalizado -> mídia materializada -> manifest externo + auditoria visual -> revisão de identidade/galeria -> promoção`
 
 A origem externa nunca substitui o SSOT do catálogo e nunca autoriza remoção automática de mídia já publicada.
 
@@ -128,16 +128,51 @@ Esse gate é proposital: mídia externa `watermarked` nunca é promovida, e `unk
 
 ## 4. Reconciliar com o catálogo atual
 
-Use o fluxo canônico:
+Antes de criar qualquer mapa de identidade, gere um relatório **somente de candidatos** usando o índice público do bundle e os dois manifests de imagem:
+
+```bash
+python tools/propose_external_identity_matches.py \
+  ".catalog-bundle/models.jsonl" \
+  ".catalog-ingest/manifest.jsonl" \
+  ".external-ingest/manifest.jsonl" \
+  --output ".external-ingest/identity-candidates.json"
+```
+
+Esse auditor exige o mesmo escopo de categoria + franquia para formar candidato e combina evidência de nome, SHA-256 e dHash. O resultado é sempre `reviewOnly=true` e `automaticMappings=0`: nome exato, similaridade visual e até SHA idêntico **não autorizam merge**, porque variantes distintas ou modelos que compartilham uma imagem podem coexistir. SHA igual encontrado fora da taxonomia esperada vira `scopeConflict`, não candidato silencioso.
+
+Registre uma decisão explícita para **cada** identidade de entrada em `identity-decisions.csv`:
+
+```csv
+incoming_model,decision,target_model,reason
+vendor-a / product:42,map_existing,Games / Street Fighter / Ryu / ryu,mesma escultura e vistas confirmadas
+vendor-a / product:43,new_model,,variante escultórica distinta
+```
+
+`decision` aceita somente `map_existing` ou `new_model`. `map_existing` exige que o alvo esteja no relatório de candidatos; `new_model` exige alvo vazio; toda decisão exige justificativa. Dois produtos externos não podem ser resolvidos para o mesmo modelo público.
+
+Gere o mapa auditável:
+
+```bash
+python tools/resolve_external_identity_matches.py \
+  ".external-ingest/identity-candidates.json" \
+  ".external-ingest/identity-decisions.csv" \
+  --output ".external-ingest/model-identity-map.csv" \
+  --summary ".external-ingest/identity-resolution.json"
+```
+
+O `model-identity-map.csv` registra também o SHA-256 canônico do relatório de candidatos e a justificativa da decisão. Se todas as entradas forem `new_model`, o mapa fica sem linhas e o `--mapping` deve ser omitido no passo seguinte.
+
+Depois da resolução, use o fluxo canônico de galeria. Para lotes com pelo menos um `map_existing`:
 
 ```bash
 python tools/plan_gallery_merge.py \
   ".catalog-ingest/manifest.jsonl" \
   ".external-ingest/manifest.jsonl" \
+  --mapping ".external-ingest/model-identity-map.csv" \
   --output ".external-ingest/gallery-merge-plan.json"
 ```
 
-Produto externo que corresponda a ficha já existente deve usar `model-identity-map.csv` explícito. Nome, slug ou similaridade perceptual nunca autorizam fusão de identidade. Candidatos perceptuais continuam exigindo revisão por `resolve_gallery_merge.py` e manifesto de promoção auditável.
+Produto externo que corresponda a ficha já existente deve usar esse mapa explícito. Nome, slug ou similaridade perceptual nunca autorizam fusão de identidade. Candidatos perceptuais continuam exigindo revisão por `resolve_gallery_merge.py` e manifesto de promoção auditável.
 
 Depois que a identidade do modelo é explicitamente reconciliada, a seleção de mídia segue esta ordem:
 
