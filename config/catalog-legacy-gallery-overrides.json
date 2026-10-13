@@ -257,16 +257,16 @@
     },
     {
       "categorySlug": "animes-desenhos",
-      "franchiseSlug": "classicos",
-      "folderPathKey": "digimon/kari-e-tailmon",
+      "franchiseSlug": "digimon",
+      "folderPathKey": "kari-e-tailmon",
       "family": "digimon-kari-e-tailmon-modelo",
-      "canonicalSlug": "classicos-kari-e-tailmon",
+      "canonicalSlug": "digimon-kari-e-tailmon",
       "memberSlugs": [
-        "classicos-kari-e-tailmon",
-        "classicos-kari-e-tailmon-02"
+        "digimon-kari-e-tailmon",
+        "digimon-kari-e-tailmon-02"
       ],
       "matchMode": "explicit-members",
-      "reason": "Revisão visual de 2026-10-07: os dois arquivos mostram a mesma escultura; o segundo é apenas um close/render adicional. Escopo atualizado para a taxonomia canônica Clássicos / Digimon."
+      "reason": "Revisão visual de 2026-10-07: os dois arquivos mostram a mesma escultura; o segundo é apenas um close/render adicional. Identidade publicada histórica preservada sem migração implícita de slug/franquia."
     },
     {
       "categorySlug": "marvel-dc",
