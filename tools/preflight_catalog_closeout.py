@@ -203,12 +203,17 @@ def closeout(
         "--manifest", str(manifest),
         "--provenance", str(provenance),
         "--root", str(catalog_root),
+        "--mapping", str(mapping),
     ]
     registry_dry = execute("recovery-registry-dry-run", registry_base)
     pending_registry = int(registry_dry.get("pendingUpdates") or 0)
     if pending_registry and not apply_local:
         report["status"] = "local_changes_required"
         report["pendingRegistryUpdates"] = pending_registry
+        report["pendingRegistryInserts"] = int(registry_dry.get("pendingInserts") or 0)
+        report["pendingRegistryExistingRowUpdates"] = int(
+            registry_dry.get("pendingExistingRowUpdates") or 0
+        )
         write_report(report_path, report)
         return report
 
