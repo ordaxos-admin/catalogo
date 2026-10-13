@@ -104,8 +104,15 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
                 "ingest-fresh": {"images": 10, "ok": 10, "errors": 0},
                 "bundle-v8-fresh": {"models": 7, "canonicalImages": 10, "variantFiles": 30},
                 "r2-dry-run": {"dryRun": True},
-                "d1-check-production": {"checkProduction": True},
-                "legacy-gallery-repairs-preflight": {"apply": False, "pendingRelations": 2},
+                "d1-compatibility-check": {"checkProduction": True},
+                "legacy-gallery-repairs-preflight": {
+                    "ready": True,
+                    "apply": False,
+                    "pendingRelations": 0,
+                    "sourcesToRetire": 0,
+                    "destructiveDeletes": 0,
+                },
+                "d1-final-check-production": {"checkProduction": True},
             }
             calls: list[tuple[str, list[str]]] = []
 
@@ -134,11 +141,64 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
             self.assertIn("--apply", by_name["recovery-registry-apply"])
             self.assertIn("--dry-run", by_name["r2-dry-run"])
             self.assertNotIn("--apply", by_name["r2-dry-run"])
-            self.assertIn("--check-production", by_name["d1-check-production"])
-            self.assertNotIn("--apply", by_name["d1-check-production"])
+            self.assertIn("--check-production", by_name["d1-compatibility-check"])
+            self.assertNotIn("--retire-absent-approvals", by_name["d1-compatibility-check"])
+            self.assertNotIn("--apply", by_name["d1-compatibility-check"])
             self.assertNotIn("--apply", by_name["legacy-gallery-repairs-preflight"])
+            self.assertIn("--check-production", by_name["d1-final-check-production"])
+            self.assertIn("--retire-absent-approvals", by_name["d1-final-check-production"])
+            self.assertNotIn("--apply", by_name["d1-final-check-production"])
             self.assertIn("--no-resume", by_name["ingest-fresh"])
             self.assertIn("--no-resume", by_name["bundle-v8-fresh"])
+
+    def test_pending_legacy_repairs_stop_before_final_inventory_gate(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            args = self.paths(tmp)
+            summaries = {
+                "recovery-materialize-dry-run": {"pendingCopies": 0},
+                "recovery-verify": {"completeCoverage": True, "verified": 3},
+                "recovery-registry-dry-run": {"pendingUpdates": 0},
+                "ingest-fresh": {"images": 10, "ok": 10, "errors": 0},
+                "bundle-v8-fresh": {"models": 7, "canonicalImages": 10, "variantFiles": 30},
+                "r2-dry-run": {"dryRun": True},
+                "d1-compatibility-check": {"checkProduction": True},
+                "legacy-gallery-repairs-preflight": {
+                    "ready": True,
+                    "apply": False,
+                    "pendingRelations": 2,
+                    "sourcesToRetire": 2,
+                    "destructiveDeletes": 0,
+                },
+            }
+            calls: list[tuple[str, list[str]]] = []
+
+            def fake_run_step(_repo, name, argv, env=None):
+                calls.append((name, list(argv)))
+                return {"name": name, "durationMs": 1, "summary": summaries[name]}
+
+            with patch.object(module, "run_step", side_effect=fake_run_step):
+                result = closeout(
+                    repo_root=args[0],
+                    catalog_root=args[1],
+                    registry=args[2],
+                    mapping=args[3],
+                    incoming_root=args[4],
+                    manifest=args[5],
+                    ingest_output=args[6],
+                    bundle_output=args[7],
+                    report_path=args[8],
+                    apply_local=False,
+                )
+
+            self.assertEqual(result["status"], "repairs_required")
+            self.assertEqual(result["pendingLegacyGalleryRelations"], 2)
+            self.assertEqual(result["sourcesToRetire"], 2)
+            self.assertEqual(result["productionWrites"], 0)
+            by_name = {name: argv for name, argv in calls}
+            self.assertIn("d1-compatibility-check", by_name)
+            self.assertIn("legacy-gallery-repairs-preflight", by_name)
+            self.assertNotIn("d1-final-check-production", by_name)
+            self.assertNotIn("--retire-absent-approvals", by_name["d1-compatibility-check"])
 
     def test_non_integral_ingest_aborts_before_bundle(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
