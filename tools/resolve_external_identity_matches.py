@@ -10,46 +10,21 @@ from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import json
 import sys
 from pathlib import Path
 from typing import Any
 
+from external_identity_contract import (
+    MAPPING_FIELDS,
+    canonical_sha256,
+    read_candidate_report,
+    validate_candidate_report,
+)
+
 ALLOWED_DECISIONS = {"map_existing", "new_model"}
 DECISION_FIELDS = ["incoming_model", "decision", "target_model", "reason"]
-MAPPING_FIELDS = [
-    "incoming_model",
-    "target_model",
-    "candidate_report_sha256",
-    "decision_reason",
-]
 
-
-def canonical_sha256(payload: Any) -> str:
-    encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
-
-
-def read_candidate_report(path: Path) -> dict[str, Any]:
-    if not path.is_file():
-        raise RuntimeError(f"relatório de candidatos não encontrado: {path}")
-    try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except json.JSONDecodeError as exc:
-        raise RuntimeError(f"relatório de candidatos inválido: {path}: {exc}") from exc
-    if not isinstance(payload, dict) or payload.get("version") != 1:
-        raise RuntimeError(f"contrato de candidatos inválido: {path}")
-    policy = payload.get("policy")
-    if (
-        not isinstance(policy, dict)
-        or policy.get("reviewOnly") is not True
-        or policy.get("automaticMappings") != 0
-    ):
-        raise RuntimeError("relatório de candidatos não preserva política review-only")
-    if not isinstance(payload.get("products"), list):
-        raise RuntimeError("relatório de candidatos sem products")
-    return payload
 
 
 def read_decisions(path: Path) -> dict[str, dict[str, str]]:
@@ -96,31 +71,8 @@ def resolve_identity_matches(
     report: dict[str, Any],
     decisions: dict[str, dict[str, str]],
 ) -> dict[str, Any]:
-    if report.get("version") != 1 or not isinstance(report.get("products"), list):
-        raise RuntimeError("contrato de candidatos inválido")
-    policy = report.get("policy")
-    if (
-        not isinstance(policy, dict)
-        or policy.get("reviewOnly") is not True
-        or policy.get("automaticMappings") != 0
-    ):
-        raise RuntimeError("relatório de candidatos não preserva política review-only")
-
+    products = validate_candidate_report(report)
     report_digest = canonical_sha256(report)
-    products: dict[str, dict[str, Any]] = {}
-    for product in report["products"]:
-        if not isinstance(product, dict):
-            raise RuntimeError("produto inválido no relatório de candidatos")
-        incoming = str(product.get("incomingModel") or "").strip()
-        if not incoming:
-            raise RuntimeError("produto sem incomingModel no relatório de candidatos")
-        if incoming in products:
-            raise RuntimeError(f"incomingModel duplicado no relatório de candidatos: {incoming}")
-        candidates = product.get("candidates")
-        conflicts = product.get("scopeConflicts")
-        if not isinstance(candidates, list) or not isinstance(conflicts, list):
-            raise RuntimeError(f"produto com candidatos/conflitos inválidos: {incoming}")
-        products[incoming] = product
 
     missing = sorted(set(products).difference(decisions), key=str.casefold)
     extra = sorted(set(decisions).difference(products), key=str.casefold)

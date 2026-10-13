@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from plan_gallery_merge import plan_gallery_merge, read_identity_mapping
+from plan_gallery_merge import main, plan_gallery_merge, read_identity_mapping
+from resolve_external_identity_matches import resolve_identity_matches, write_mapping_csv
 
 
 def row(
@@ -163,27 +164,119 @@ class GalleryMergePlannerTests(unittest.TestCase):
                 identity_mapping={incoming_a: existing_model, incoming_b: existing_model},
             )
 
-    def test_mapping_csv_is_fail_closed_and_unique(self):
+    def _resolved_mapping(self, report, incoming, target, reason="mesma ficha revisada"):
+        return resolve_identity_matches(
+            report,
+            {
+                incoming: {
+                    "decision": "map_existing",
+                    "target_model": target,
+                    "reason": reason,
+                }
+            },
+        )
+
+    def test_mapping_csv_is_bound_to_candidate_report_and_resolution(self):
+        incoming = "fonte / produto-a"
+        target = "Games / Saga / Heroi / modelo-a"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {"incomingModel": incoming, "candidates": [{"targetModel": target}], "scopeConflicts": []}
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, target)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "mapping.csv"
-            path.write_text(
-                "incoming_model,target_model\n"
-                "fonte / produto-a,Games / Saga / Heroi / modelo-a\n",
-                encoding="utf-8",
-            )
+            write_mapping_csv(path, resolution["mappings"])
             self.assertEqual(
-                read_identity_mapping(path),
-                {"fonte / produto-a": "Games / Saga / Heroi / modelo-a"},
+                read_identity_mapping(path, report, resolution),
+                {incoming: target},
             )
-
             path.write_text(
-                "incoming_model,target_model\n"
-                "fonte / produto-a,Games / Saga / Heroi / modelo-a\n"
-                "fonte / produto-b,Games / Saga / Heroi / modelo-a\n",
+                "incoming_model,target_model\n" f"{incoming},{target}\n",
                 encoding="utf-8",
             )
-            with self.assertRaisesRegex(RuntimeError, "produtos diferentes"):
-                read_identity_mapping(path)
+            with self.assertRaisesRegex(RuntimeError, "colunas do mapa de identidade divergentes"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_mapping_csv_rejects_stale_candidate_report_digest(self):
+        incoming = "fonte / produto-a"
+        target = "Games / Saga / Heroi / modelo-a"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {"incomingModel": incoming, "candidates": [{"targetModel": target}], "scopeConflicts": []}
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, target)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mapping.csv"
+            write_mapping_csv(path, resolution["mappings"])
+            text = path.read_text(encoding="utf-8-sig")
+            digest = resolution["candidateReportSha256"]
+            path.write_text(text.replace(digest, "0" * 64), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "outro relatório de candidatos"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_mapping_csv_cannot_switch_to_another_reviewed_candidate(self):
+        incoming = "fonte / produto-a"
+        selected = "Games / Saga / Heroi / modelo-a"
+        alternate = "Games / Saga / Heroi / modelo-b"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {
+                    "incomingModel": incoming,
+                    "candidates": [
+                        {"targetModel": selected},
+                        {"targetModel": alternate},
+                    ],
+                    "scopeConflicts": [],
+                }
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, selected)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mapping.csv"
+            write_mapping_csv(path, resolution["mappings"])
+            text = path.read_text(encoding="utf-8-sig")
+            path.write_text(text.replace(selected, alternate), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "diverge da resolução auditada"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_identity_resolution_rejects_target_not_in_candidate_report(self):
+        incoming = "fonte / produto-a"
+        selected = "Games / Saga / Heroi / modelo-a"
+        tampered = "Games / Saga / Heroi / modelo-b"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {"incomingModel": incoming, "candidates": [{"targetModel": selected}], "scopeConflicts": []}
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, selected)
+        resolution["mappings"][0]["target_model"] = tampered
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mapping.csv"
+            write_mapping_csv(path, resolution["mappings"])
+            with self.assertRaisesRegex(RuntimeError, "não pertence aos candidatos auditados"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_cli_requires_all_identity_artifacts_together(self):
+        argument_sets = [
+            ["plan_gallery_merge.py", "existing.jsonl", "incoming.jsonl", "--mapping", "map.csv"],
+            ["plan_gallery_merge.py", "existing.jsonl", "incoming.jsonl", "--candidate-report", "candidates.json"],
+            ["plan_gallery_merge.py", "existing.jsonl", "incoming.jsonl", "--identity-resolution", "resolution.json"],
+        ]
+        from unittest.mock import patch
+        for argv in argument_sets:
+            with self.subTest(argv=argv), patch("sys.argv", argv):
+                self.assertEqual(main(), 2)
 
     def test_watermarked_external_image_is_rejected_even_when_quality_is_higher(self):
         existing = [row("catalogo/frente.jpg", "a" * 64, "0000000000000000", 55)]

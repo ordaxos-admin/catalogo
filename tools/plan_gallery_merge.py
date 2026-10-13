@@ -8,13 +8,17 @@ authorizes removal by itself; it only produces a quality-ranked review proposal.
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
 
+from external_identity_contract import (
+    read_candidate_report,
+    read_identity_mapping,
+    read_identity_resolution,
+)
 from media_quality_policy import (
     WATERMARK_CLEAR,
     WATERMARK_LEGACY_ACCEPTED,
@@ -50,36 +54,6 @@ def model_identity(row: dict[str, Any]) -> str:
         raise RuntimeError(f"imagem sem identidade de modelo: {row.get('path', '<sem caminho>')}")
     return value
 
-
-def read_identity_mapping(path: Path) -> dict[str, str]:
-    if not path.is_file():
-        raise RuntimeError(f"mapa de identidade não encontrado: {path}")
-    mapping: dict[str, str] = {}
-    targets: dict[str, str] = {}
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        reader = csv.DictReader(handle)
-        required = {"incoming_model", "target_model"}
-        if not required.issubset(reader.fieldnames or []):
-            raise RuntimeError(
-                f"mapa de identidade sem colunas obrigatórias {sorted(required)}: {path}"
-            )
-        for line_no, row in enumerate(reader, 2):
-            incoming = str(row.get("incoming_model") or "").strip()
-            target = str(row.get("target_model") or "").strip()
-            if not incoming or not target:
-                raise RuntimeError(f"mapa de identidade incompleto em {path}, linha {line_no}")
-            if incoming in mapping:
-                raise RuntimeError(f"origem duplicada no mapa de identidade: {incoming}")
-            previous = targets.get(target)
-            if previous and previous != incoming:
-                raise RuntimeError(
-                    f"produtos diferentes apontam para o mesmo modelo público: {previous!r}, {incoming!r} -> {target!r}"
-                )
-            mapping[incoming] = target
-            targets[target] = incoming
-    if not mapping:
-        raise RuntimeError(f"mapa de identidade vazio: {path}")
-    return mapping
 
 
 def image_sha(row: dict[str, Any]) -> str:
@@ -331,13 +305,37 @@ def main() -> int:
     parser.add_argument(
         "--mapping",
         type=Path,
-        help="CSV explícito incoming_model,target_model para vincular produtos da entrada a modelos públicos existentes",
+        help="model-identity-map.csv produzido pelo resolver de identidade",
+    )
+    parser.add_argument(
+        "--candidate-report",
+        type=Path,
+        help="relatório JSON de candidatos que originou --mapping",
+    )
+    parser.add_argument(
+        "--identity-resolution",
+        type=Path,
+        help="summary JSON produzido pelo resolver; obrigatório junto com --mapping",
     )
     parser.add_argument("--visual-threshold", type=int, default=DEFAULT_VISUAL_THRESHOLD)
     args = parser.parse_args()
 
     try:
-        mapping = read_identity_mapping(args.mapping) if args.mapping else None
+        identity_inputs = (args.mapping, args.candidate_report, args.identity_resolution)
+        if any(identity_inputs) and not all(identity_inputs):
+            raise RuntimeError(
+                "--mapping, --candidate-report e --identity-resolution devem ser informados juntos"
+            )
+        if args.mapping:
+            candidate_report = read_candidate_report(args.candidate_report)
+            identity_resolution = read_identity_resolution(
+                args.identity_resolution, candidate_report
+            )
+            mapping = read_identity_mapping(
+                args.mapping, candidate_report, identity_resolution
+            )
+        else:
+            mapping = None
         plan = plan_gallery_merge(
             read_jsonl(args.existing),
             read_jsonl(args.incoming),

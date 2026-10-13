@@ -163,7 +163,7 @@ python tools/resolve_external_identity_matches.py \
   --summary ".external-ingest/identity-resolution.json"
 ```
 
-O `model-identity-map.csv` registra também o SHA-256 canônico do relatório de candidatos e a justificativa da decisão. Se todas as entradas forem `new_model`, o mapa fica sem linhas e o `--mapping` deve ser omitido no passo seguinte.
+O `model-identity-map.csv` registra também o SHA-256 canônico do relatório de candidatos e a justificativa da decisão. O planner não confia no CSV isoladamente: ele revalida o mapa contra o `identity-candidates.json` **e** o `identity-resolution.json`, impedindo que um alvo ou justificativa alterado depois da revisão seja consumido silenciosamente. Se todas as entradas forem `new_model`, o mapa fica sem linhas e os três argumentos de identidade devem ser omitidos no passo seguinte.
 
 Depois da resolução, use o fluxo canônico de galeria. Para lotes com pelo menos um `map_existing`:
 
@@ -172,6 +172,8 @@ python tools/plan_gallery_merge.py \
   ".catalog-ingest/manifest.jsonl" \
   ".external-ingest/manifest.jsonl" \
   --mapping ".external-ingest/model-identity-map.csv" \
+  --candidate-report ".external-ingest/identity-candidates.json" \
+  --identity-resolution ".external-ingest/identity-resolution.json" \
   --output ".external-ingest/gallery-merge-plan.json"
 ```
 

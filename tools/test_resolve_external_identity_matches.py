@@ -4,6 +4,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from plan_gallery_merge import read_identity_mapping
 from resolve_external_identity_matches import (
     read_decisions,
     resolve_identity_matches,
@@ -223,6 +224,7 @@ class ResolveExternalIdentityMatchesTests(unittest.TestCase):
             self.assertIn("incoming_model,target_model,candidate_report_sha256,decision_reason", text)
             self.assertIn(incoming, text)
             self.assertIn(target, text)
+            self.assertEqual(read_identity_mapping(path, report, result), {incoming: target})
 
 
 if __name__ == "__main__":
