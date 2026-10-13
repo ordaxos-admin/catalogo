@@ -13,9 +13,18 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 from PIL import Image, ImageOps, UnidentifiedImageError
 
+from import_woocommerce_catalog import (
+    ImportContractError as ExternalIdentityError,
+    image_extension,
+    stable_image_identity,
+    stable_product_id,
+    stable_provider_image_id,
+    stable_source_id,
+)
 from ingest_catalog import (
     IMAGE_EXTS,
     dhash_image,
@@ -66,12 +75,41 @@ def safe_local_path(root: Path, relative: str) -> Path:
     return target
 
 
+def _normalized_product_identity(row: dict[str, Any]) -> tuple[str, str, str, str]:
+    if row.get("version") != 1:
+        raise ExternalManifestError("produto externo com versão de contrato inválida")
+    try:
+        source_id = stable_source_id(row.get("sourceId"))
+        product_id = stable_product_id(row.get("sourceProductId"))
+    except ExternalIdentityError as exc:
+        raise ExternalManifestError(f"identidade externa de produto inválida: {exc}") from exc
+
+    if str(row.get("sourceProductId") or "") != product_id:
+        raise ExternalManifestError(
+            f"sourceProductId não canônico para {source_id}: {row.get('sourceProductId')!r}"
+        )
+
+    expected_key = f"{source_id}:product:{product_id}"
+    expected_model = f"{source_id} / product:{product_id}"
+    key = str(row.get("sourceProductKey") or "").strip()
+    incoming_model = str(row.get("incomingModel") or "").strip()
+    if key != expected_key or incoming_model != expected_model:
+        raise ExternalManifestError(
+            "contrato de identidade do produto diverge do namespace/ID imutável: "
+            f"key={key!r}, model={incoming_model!r}, esperado={expected_key!r}/{expected_model!r}"
+        )
+
+    source_url = str(row.get("sourceUrl") or "").strip()
+    parsed = urlparse(source_url)
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise ExternalManifestError(f"produto externo sem sourceUrl HTTPS válido: {key}")
+    return source_id, product_id, expected_key, expected_model
+
+
 def product_index(products: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
     indexed: dict[str, dict[str, Any]] = {}
     for row in products:
-        key = str(row.get("sourceProductKey") or "").strip()
-        if not key:
-            raise ExternalManifestError("produto sem sourceProductKey")
+        _, _, key, incoming_model = _normalized_product_identity(row)
         if key in indexed:
             raise ExternalManifestError(f"sourceProductKey duplicado: {key}")
         if row.get("readyForMaterialization") is not True:
@@ -80,7 +118,6 @@ def product_index(products: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             )
         category = str(row.get("canonicalCategoryCandidate") or "").strip()
         franchise = str(row.get("franchiseCandidate") or "").strip()
-        incoming_model = str(row.get("incomingModel") or "").strip()
         if not category or not franchise or not incoming_model:
             raise ExternalManifestError(
                 f"produto pronto sem categoria/franquia/identidade: {key}"
@@ -92,6 +129,68 @@ def product_index(products: list[dict[str, Any]]) -> dict[str, dict[str, Any]]:
             )
         indexed[key] = row
     return indexed
+
+
+def validate_plan_identity(product: dict[str, Any], plan: dict[str, Any]) -> None:
+    source_id, product_id, expected_key, expected_model = _normalized_product_identity(product)
+    if plan.get("version") != 1:
+        raise ExternalManifestError(f"image plan com versão inválida: {expected_key}")
+
+    plan_source_id = str(plan.get("sourceId") or "").strip()
+    plan_key = str(plan.get("sourceProductKey") or "").strip()
+    plan_model = str(plan.get("incomingModel") or "").strip()
+    if (
+        plan_source_id != source_id
+        or plan_key != expected_key
+        or plan_model != expected_model
+    ):
+        raise ExternalManifestError(
+            "image plan não pertence à identidade externa declarada: "
+            f"{plan_source_id!r}/{plan_key!r}/{plan_model!r}"
+        )
+
+    source_url = str(plan.get("sourceUrl") or "").strip()
+    parsed = urlparse(source_url)
+    if parsed.scheme != "https" or not parsed.netloc:
+        raise ExternalManifestError(f"sourceUrl HTTPS inválida no plano: {expected_key}")
+
+    image_id_raw = plan.get("sourceImageId")
+    if not isinstance(image_id_raw, str) or image_id_raw != image_id_raw.strip() or not image_id_raw:
+        raise ExternalManifestError(f"sourceImageId inválido no plano: {expected_key}")
+    image_id = image_id_raw
+    identity_kind = str(plan.get("sourceImageIdentityKind") or "").strip()
+
+    try:
+        if identity_kind == "provider_id":
+            canonical_image_id = stable_provider_image_id(image_id)
+            if canonical_image_id != image_id:
+                raise ExternalManifestError(
+                    f"sourceImageId provider_id não canônico: {image_id!r}"
+                )
+        elif identity_kind == "url_sha256":
+            canonical_image_id, expected_kind = stable_image_identity({}, source_url)
+            if expected_kind != "url_sha256" or canonical_image_id != image_id:
+                raise ExternalManifestError(
+                    f"sourceImageId url_sha256 não corresponde à sourceUrl: {image_id!r}"
+                )
+        else:
+            raise ExternalManifestError(
+                f"sourceImageIdentityKind inválido no plano: {identity_kind!r}"
+            )
+        extension = image_extension(source_url)
+    except ExternalIdentityError as exc:
+        raise ExternalManifestError(f"identidade de imagem inválida no plano: {exc}") from exc
+
+    expected_target = (
+        Path(source_id)
+        / f"product-{product_id}"
+        / f"{image_id}{extension}"
+    ).as_posix()
+    target = str(plan.get("targetPath") or "").strip()
+    if target != expected_target:
+        raise ExternalManifestError(
+            f"targetPath diverge da identidade determinística: {target!r} != {expected_target!r}"
+        )
 
 
 def validate_plan_coverage(
@@ -107,6 +206,7 @@ def validate_plan_coverage(
             raise ExternalManifestError(
                 f"image plan referencia produto ausente/não pronto: {key or '<vazio>'}"
             )
+        validate_plan_identity(indexed[key], plan)
         raw_position = plan.get("position")
         if not isinstance(raw_position, int) or isinstance(raw_position, bool) or raw_position <= 0:
             raise ExternalManifestError(
