@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import hashlib
 import json
 import os
 import sys
@@ -242,6 +241,14 @@ def plan_registry_patch(
                 )
 
         if current == recovered:
+            missing_metadata = [
+                column for column, value in existing_metadata.items() if not value
+            ]
+            if missing_metadata:
+                raise RecoveryRegistryError(
+                    "registro já contém SHA recuperado com metadata de provenance incompleta "
+                    f"em {recovery['relativePath']}: {missing_metadata}"
+                )
             if (
                 len(existing_historical) != 64
                 or any(char not in "0123456789abcdef" for char in existing_historical)
