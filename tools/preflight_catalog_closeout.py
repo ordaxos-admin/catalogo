@@ -257,7 +257,44 @@ def closeout(
         ["tools/publish_r2.py", str(bundle_output / "r2"), "--dry-run"],
     )
     execute(
-        "d1-check-production",
+        "d1-compatibility-check",
+        [
+            "tools/publish_d1.py",
+            str(bundle_output / "models.jsonl"),
+            "--check-production",
+        ],
+    )
+    repair_plan = execute(
+        "legacy-gallery-repairs-preflight",
+        ["tools/apply_legacy_gallery_repairs.py"],
+    )
+    if repair_plan.get("ready") is not True:
+        raise CloseoutError(f"plano de reparos legados não ficou pronto: {repair_plan}")
+    if int(repair_plan.get("destructiveDeletes") or 0) != 0:
+        raise CloseoutError(f"plano de reparos legados contém DELETE destrutivo: {repair_plan}")
+    pending_relations = int(repair_plan.get("pendingRelations") or 0)
+    sources_to_retire = int(repair_plan.get("sourcesToRetire") or 0)
+    if pending_relations < 0 or sources_to_retire < 0:
+        raise CloseoutError(f"plano de reparos legados contém contagens inválidas: {repair_plan}")
+    if pending_relations != sources_to_retire:
+        raise CloseoutError(
+            "plano de reparos legados não é monotônico 1:1: "
+            f"pendingRelations={pending_relations} sourcesToRetire={sources_to_retire}"
+        )
+    if pending_relations:
+        report["status"] = "repairs_required"
+        report["pendingLegacyGalleryRelations"] = pending_relations
+        report["sourcesToRetire"] = sources_to_retire
+        report["productionWrites"] = 0
+        report["nextAction"] = (
+            "apply only the reviewed monotonic gallery repairs separately, verify them, "
+            "then rerun this closeout for the final full-inventory D1 gate"
+        )
+        write_report(report_path, report)
+        return report
+
+    execute(
+        "d1-final-check-production",
         [
             "tools/publish_d1.py",
             str(bundle_output / "models.jsonl"),
@@ -266,16 +303,10 @@ def closeout(
             "config/catalog-model-retirement-approvals.csv",
         ],
     )
-    execute(
-        "legacy-gallery-repairs-preflight",
-        ["tools/apply_legacy_gallery_repairs.py"],
-    )
 
     report["status"] = "preflight_green"
     report["productionWrites"] = 0
-    report["nextAction"] = (
-        "review the final report, then apply the two monotonic gallery repairs separately"
-    )
+    report["nextAction"] = "review the final closeout report and proceed with PR readiness"
     write_report(report_path, report)
     return report
 
