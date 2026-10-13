@@ -102,7 +102,7 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
                 "recovery-registry-dry-run": {"pendingUpdates": 3},
                 "recovery-registry-apply": {"pendingUpdates": 0, "alreadyApplied": 3},
                 "ingest-fresh": {"images": 10, "ok": 10, "errors": 0},
-                "bundle-v8-fresh": {"models": 7, "canonicalImages": 10, "variantFiles": 30},
+                "bundle-fresh": {"models": 7, "canonicalImages": 10, "variantFiles": 30},
                 "r2-dry-run": {"dryRun": True},
                 "d1-compatibility-check": {"checkProduction": True},
                 "legacy-gallery-repairs-preflight": {
@@ -149,7 +149,7 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
             self.assertIn("--retire-absent-approvals", by_name["d1-final-check-production"])
             self.assertNotIn("--apply", by_name["d1-final-check-production"])
             self.assertIn("--no-resume", by_name["ingest-fresh"])
-            self.assertIn("--no-resume", by_name["bundle-v8-fresh"])
+            self.assertIn("--no-resume", by_name["bundle-fresh"])
 
     def test_pending_legacy_repairs_stop_before_final_inventory_gate(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
@@ -159,7 +159,7 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
                 "recovery-verify": {"completeCoverage": True, "verified": 3},
                 "recovery-registry-dry-run": {"pendingUpdates": 0},
                 "ingest-fresh": {"images": 10, "ok": 10, "errors": 0},
-                "bundle-v8-fresh": {"models": 7, "canonicalImages": 10, "variantFiles": 30},
+                "bundle-fresh": {"models": 7, "canonicalImages": 10, "variantFiles": 30},
                 "r2-dry-run": {"dryRun": True},
                 "d1-compatibility-check": {"checkProduction": True},
                 "legacy-gallery-repairs-preflight": {
@@ -229,7 +229,7 @@ class PreflightCatalogCloseoutTests(unittest.TestCase):
                         report_path=args[8],
                         apply_local=False,
                     )
-            self.assertNotIn("bundle-v8-fresh", calls)
+            self.assertNotIn("bundle-fresh", calls)
 
 
 if __name__ == "__main__":

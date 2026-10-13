@@ -128,10 +128,6 @@ def closeout(
     report_path: Path,
     apply_local: bool,
 ) -> dict[str, Any]:
-    if MEDIA_METADATA_VERSION != 8:
-        raise CloseoutError(
-            f"metadata version inesperada: {MEDIA_METADATA_VERSION}; esperado=8"
-        )
     for label, path in (
         ("repo", repo_root),
         ("catálogo", catalog_root),
@@ -241,7 +237,7 @@ def closeout(
     ensure_ingest_summary(ingest)
 
     bundle = execute(
-        "bundle-v8-fresh",
+        "bundle-fresh",
         [
             "tools/build_media_bundle.py",
             str(catalog_root),
