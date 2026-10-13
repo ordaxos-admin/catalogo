@@ -277,7 +277,18 @@ class ExternalIdentityMatchTests(unittest.TestCase):
 
     def test_bundle_sha_missing_from_ingest_manifest_fails_closed(self) -> None:
         canonical = "Games / Street Fighter / Ryu / ryu"
+        unrelated = "Games / Street Fighter / Ken / ken"
         with self.assertRaisesRegex(RuntimeError, "SHA do bundle ausente"):
+            run_match(
+                [model(canonical, model_id="mdl-ryu", name="Ryu")],
+                [existing_image(unrelated, "a" * 64, "0101010101010101")],
+                [external_image("vendor-a / product:42", "6" * 64, "1" * 16)],
+                ownership={canonical: ["5" * 64]},
+            )
+
+    def test_empty_ingest_manifest_fails_closed_before_bundle_lookup(self) -> None:
+        canonical = "Games / Street Fighter / Ryu / ryu"
+        with self.assertRaisesRegex(RuntimeError, "manifesto atual"):
             run_match(
                 [model(canonical, model_id="mdl-ryu", name="Ryu")],
                 [],
