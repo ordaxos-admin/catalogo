@@ -15,6 +15,7 @@ emitted only after every target verifies against the canonical manifest.
 from __future__ import annotations
 
 import argparse
+import errno
 import json
 import os
 import shutil
@@ -139,9 +140,32 @@ def copy_without_overwrite(source: Path, target: Path) -> None:
             os.fsync(dst.fileno())
 
         # os.link is atomic with respect to target creation and refuses to
-        # overwrite an existing destination. The temporary file is on the same
-        # target filesystem, so the hard-link operation does not cross devices.
-        os.link(temp, target)
+        # overwrite an existing destination. Some virtual/cloud filesystems
+        # (for example DriveFS on Windows) do not support hard links. In that
+        # specific capability case, fall back to exclusive target creation;
+        # the caller validates size/SHA immediately after this function.
+        try:
+            os.link(temp, target)
+        except FileExistsError:
+            raise
+        except OSError as exc:
+            unsupported_link = (
+                exc.errno in {errno.EPERM, errno.ENOTSUP, errno.EOPNOTSUPP}
+                or getattr(exc, "winerror", None) == 1
+            )
+            if not unsupported_link:
+                raise
+            try:
+                with temp.open("rb") as src, target.open("xb") as dst:
+                    shutil.copyfileobj(src, dst, length=1024 * 1024)
+                    dst.flush()
+                    os.fsync(dst.fileno())
+            except BaseException:
+                try:
+                    target.unlink()
+                except FileNotFoundError:
+                    pass
+                raise
     except FileExistsError as exc:
         raise RecoveryMaterializationError(
             f"destino surgiu durante materialização e não foi sobrescrito: {target}"

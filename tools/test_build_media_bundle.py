@@ -20,8 +20,10 @@ from build_media_bundle import (
     model_variant_name,
     save_media_build_state,
     stable_id,
+    update_identity_history,
     validate_built_model_identifiers,
     validate_built_taxonomy_identifiers,
+    validate_identity_continuity,
     validate_variant_disambiguation,
 )
 
@@ -1352,19 +1354,48 @@ class MediaBundleTests(unittest.TestCase):
             "canonicalSlug": "league-of-legends-jinx-02",
             "memberSlugs": ["league-of-legends-jinx-02", "league-of-legends-jinx-03"],
         }]}
+        approved_identity_moves: dict[str, str] = {}
         summary = apply_legacy_gallery_overrides(
             by_model,
             {canonical: canonical, source: source},
             load_taxonomy_config(),
             config,
+            approved_identity_moves,
         )
         self.assertEqual(summary, {"groupsApplied": 1, "sourcesMerged": 1})
+        self.assertEqual(approved_identity_moves, {source: canonical})
         self.assertEqual(list(by_model), [canonical])
         self.assertEqual(len(by_model[canonical]), 2)
         self.assertTrue(by_model[canonical][0]["legacy_gallery_canonical"])
         self.assertFalse(by_model[canonical][1]["legacy_gallery_canonical"])
         self.assertEqual(by_model[canonical][1]["model_key"], hierarchy)
         self.assertEqual(by_model[canonical][1]["public_model_key"], canonical)
+
+    def test_identity_continuity_allows_only_explicit_legacy_gallery_move(self) -> None:
+        source = "Animes & Desenhos / Clássicos / Digimon / Kari e Tailmon / kari-e-tailmon-02"
+        canonical = "Animes & Desenhos / Clássicos / Digimon / Kari e Tailmon / kari-e-tailmon"
+        sha = "7b" * 32
+        by_model = {canonical: [{"sha256": sha}]}
+        stable_keys = {canonical: canonical}
+        history = {sha: source}
+
+        with self.assertRaisesRegex(RuntimeError, "identity drift detectado"):
+            validate_identity_continuity(by_model, stable_keys, history)
+
+        approved_identity_moves = {source: canonical}
+        validate_identity_continuity(
+            by_model,
+            stable_keys,
+            history,
+            approved_identity_moves,
+        )
+        updated = update_identity_history(
+            history,
+            by_model,
+            stable_keys,
+            approved_identity_moves,
+        )
+        self.assertEqual(updated[sha], canonical)
 
     def test_legacy_gallery_override_fails_closed_when_source_exists_without_canonical(self) -> None:
         hierarchy = "Games / League of Legends / Jinx"

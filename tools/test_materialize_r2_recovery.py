@@ -6,6 +6,7 @@ import json
 import sys
 import tempfile
 import unittest
+from unittest import mock
 from pathlib import Path
 
 
@@ -125,6 +126,41 @@ class MaterializeR2RecoveryTests(unittest.TestCase):
             self.assertEqual(second["copied"], 0)
             self.assertEqual(second["alreadyVerified"], 2)
             self.assertTrue(second["completeCoverage"])
+
+    def test_apply_falls_back_to_exclusive_copy_when_hard_links_are_unsupported(self) -> None:
+        files = [("mdl_a", b"drivefs-compatible")]
+        with tempfile.TemporaryDirectory() as tmp:
+            base = Path(tmp)
+            incoming = base / "incoming"
+            root = base / "catalog"
+            root.mkdir()
+            self.write_incoming(incoming, files)
+
+            with mock.patch.object(module.os, "link", side_effect=OSError(1, "unsupported hard link")):
+                first = materialize(
+                    self.manifest(files),
+                    self.mapping(files),
+                    incoming_root=incoming,
+                    target_root=root,
+                    apply=True,
+                )
+
+            target = self.target_for(root, "mdl_a")
+            self.assertEqual(first["copied"], 1)
+            self.assertTrue(first["completeCoverage"])
+            self.assertEqual(target.read_bytes(), b"drivefs-compatible")
+            self.assertEqual(list(target.parent.glob("*.tmp")), [])
+            self.assertEqual(list(target.parent.glob(".*.tmp")), [])
+
+            second = materialize(
+                self.manifest(files),
+                self.mapping(files),
+                incoming_root=incoming,
+                target_root=root,
+                apply=True,
+            )
+            self.assertEqual(second["copied"], 0)
+            self.assertEqual(second["alreadyVerified"], 1)
 
     def test_conflicting_existing_target_fails_closed(self) -> None:
         files = [("mdl_a", b"expected")]

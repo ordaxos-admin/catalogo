@@ -36,6 +36,12 @@ from model_identity import (
     validate_taxonomy_slug_mappings,
     stem_view_descriptor,
 )
+from production_model_contract import (
+    DEFAULT_PRODUCTION_MODEL_CONTRACT,
+    apply_production_model_contract,
+    load_production_model_contract,
+    production_contract_fingerprint_entry,
+)
 
 VARIANTS = {
     "thumb": (360, 80),
@@ -60,7 +66,7 @@ DEFAULT_TAXONOMY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "cata
 DEFAULT_LEGACY_GALLERY_CONFIG = Path(__file__).resolve().parents[1] / "config" / "catalog-legacy-gallery-overrides.json"
 MEDIA_BUILD_STATE_VERSION = 1
 MEDIA_RENDERER_VERSION = 1
-MEDIA_METADATA_VERSION = 8
+MEDIA_METADATA_VERSION = 9
 MEDIA_CHECKPOINT_INTERVAL = 10
 MEDIA_STATE_REPLACE_ATTEMPTS = 10
 MEDIA_STATE_REPLACE_DELAY_SECONDS = 0.1
@@ -388,6 +394,8 @@ def model_metadata(
     audited_public: bool = False,
     grouped_gallery: bool = False,
     stable_identity_key: str | None = None,
+    production_contract_by_id: dict[str, dict] | None = None,
+    allow_retired_contract: bool = False,
 ) -> dict:
     hierarchy = hierarchy_key.split(" / ")
     canonical_key = stable_identity_key or identity_key
@@ -420,7 +428,7 @@ def model_metadata(
     code = f"TS-{code_hash}"
     search_text = " ".join(dict.fromkeys([*hierarchy, *collection_parts, display_name, variant_name, canonical_label, source_label, code])).casefold()
 
-    return {
+    metadata = {
         "identityKey": canonical_key,
         "sourceIdentityKey": identity_key,
         "id": model_id,
@@ -438,6 +446,13 @@ def model_metadata(
         "folderPathKey": "/".join(slugify(part) for part in collection_parts),
         "searchText": search_text,
     }
+    if production_contract_by_id is not None:
+        metadata = apply_production_model_contract(
+            metadata,
+            production_contract_by_id,
+            allow_retired=allow_retired_contract,
+        )
+    return metadata
 
 
 def load_legacy_gallery_overrides(path: Path | None = None) -> dict:
@@ -481,6 +496,7 @@ def preview_model_metadata(
     by_model: dict[str, list[dict]],
     stable_keys: dict[str, str],
     taxonomy: dict,
+    production_contract_by_id: dict[str, dict] | None = None,
 ) -> dict[str, dict]:
     preliminary: dict[str, dict] = {}
     no_collisions: Counter[str] = Counter()
@@ -496,6 +512,8 @@ def preview_model_metadata(
             bool(row.get("public_model_key")),
             any(bool(member.get("audit_model_group")) for member in rows),
             stable_keys[identity_key],
+            production_contract_by_id,
+            True,
         )
     collisions = Counter(item["slug"] for item in preliminary.values())
     if all(count == 1 for count in collisions.values()):
@@ -513,6 +531,8 @@ def preview_model_metadata(
             bool(row.get("public_model_key")),
             any(bool(member.get("audit_model_group")) for member in rows),
             stable_keys[identity_key],
+            production_contract_by_id,
+            True,
         )
     return resolved
 
@@ -522,8 +542,12 @@ def apply_legacy_gallery_overrides(
     stable_keys: dict[str, str],
     taxonomy: dict,
     config: dict,
+    approved_identity_moves: dict[str, str] | None = None,
+    production_contract_by_id: dict[str, dict] | None = None,
 ) -> dict[str, int]:
-    metadata = preview_model_metadata(by_model, stable_keys, taxonomy)
+    metadata = preview_model_metadata(
+        by_model, stable_keys, taxonomy, production_contract_by_id
+    )
     by_public_key: dict[tuple[str, str, str, str], str] = {}
     for identity_key, entry in metadata.items():
         key = (
@@ -574,6 +598,16 @@ def apply_legacy_gallery_overrides(
             if source_identity in claimed_sources:
                 raise RuntimeError(f"fonte de galeria consolidada mais de uma vez: {slug}")
             claimed_sources.add(source_identity)
+            if approved_identity_moves is not None:
+                source_stable = stable_keys[source_identity]
+                canonical_stable = stable_keys[canonical_identity]
+                previous_destination = approved_identity_moves.get(source_stable)
+                if previous_destination is not None and previous_destination != canonical_stable:
+                    raise RuntimeError(
+                        "fonte histórica de galeria aponta para canônicos conflitantes: "
+                        f"{source_stable}: {previous_destination} | {canonical_stable}"
+                    )
+                approved_identity_moves[source_stable] = canonical_stable
             source_rows = by_model.pop(source_identity)
             for row in source_rows:
                 merged = dict(row)
@@ -615,6 +649,7 @@ def build_model_bundle(
     taxonomy: dict,
     include_original: bool,
     stable_identity_key: str | None = None,
+    production_contract_by_id: dict[str, dict] | None = None,
 ) -> tuple[dict, int, int]:
     validate_model_group(identity_key, rows)
     rows = sorted(
@@ -637,6 +672,8 @@ def build_model_bundle(
         bool(rows[0].get("public_model_key")),
         grouped_gallery,
         stable_identity_key,
+        production_contract_by_id,
+        False,
     )
     model_id = metadata["id"]
     gallery_images = []
@@ -769,6 +806,7 @@ def model_build_fingerprint(
     include_original: bool,
     taxonomy: dict,
     stable_identity_key: str | None = None,
+    production_contract_entry: dict | None = None,
 ) -> str:
     hierarchy = str(rows[0]["model_key"]).split(" / ")
     franchise_pos = franchise_index(hierarchy, taxonomy)
@@ -803,6 +841,7 @@ def model_build_fingerprint(
         "includeOriginal": include_original,
         "variants": VARIANTS,
         "taxonomyRule": relevant_rule,
+        "productionContract": production_contract_entry,
         "rows": normalized_rows,
     }
     encoded = json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
@@ -873,7 +912,9 @@ def validate_identity_continuity(
     by_model: dict[str, list[dict]],
     stable_keys: dict[str, str],
     history: dict[str, str],
+    approved_identity_moves: dict[str, str] | None = None,
 ) -> None:
+    approved_identity_moves = approved_identity_moves or {}
     for identity_key, rows in by_model.items():
         stable_identity = stable_keys[identity_key]
         for row in rows:
@@ -882,9 +923,12 @@ def validate_identity_continuity(
                 raise RuntimeError(f"SHA-256 inválido ao validar continuidade: {identity_key}")
             previous = history.get(sha)
             if previous is not None and previous != stable_identity:
+                if approved_identity_moves.get(previous) == stable_identity:
+                    continue
                 raise RuntimeError(
                     "identity drift detectado: imagem histórica reapareceu sob outro produto; "
-                    "registre o renome em config/catalog-model-identity-aliases.json antes de publicar: "
+                    "registre o renome em config/catalog-model-identity-aliases.json ou uma consolidação "
+                    "legacy_gallery explícita antes de publicar: "
                     f"{sha}: histórico={previous!r}, atual={identity_key!r}"
                 )
 
@@ -893,9 +937,10 @@ def update_identity_history(
     history: dict[str, str],
     by_model: dict[str, list[dict]],
     stable_keys: dict[str, str],
+    approved_identity_moves: dict[str, str] | None = None,
 ) -> dict[str, str]:
     updated = dict(history)
-    validate_identity_continuity(by_model, stable_keys, updated)
+    validate_identity_continuity(by_model, stable_keys, updated, approved_identity_moves)
     for identity_key, rows in by_model.items():
         stable_identity = stable_keys[identity_key]
         for row in rows:
@@ -1026,11 +1071,17 @@ def build_bundle(
     taxonomy_config: Path | None = None,
     identity_alias_config: Path | None = None,
     legacy_gallery_config: Path | None = None,
+    production_contract_config: Path | None = None,
     workers: int = 4,
     resume: bool = True,
 ) -> dict:
     taxonomy = load_taxonomy_config(taxonomy_config)
     identity_aliases = load_identity_aliases(identity_alias_config)
+    if production_contract_config is None:
+        production_contract = {"source": {"publishedModels": 0}, "byId": {}}
+    else:
+        production_contract = load_production_model_contract(production_contract_config)
+    production_contract_by_id = production_contract["byId"]
     records = [row for row in read_manifest(manifest_path) if row.get("status") == "OK" and row.get("canonical") is True]
     by_model: dict[str, list[dict]] = defaultdict(list)
     for row in records:
@@ -1053,8 +1104,14 @@ def build_bundle(
             )
         initial_stable_owners[stable_key] = identity_key
     legacy_gallery = load_legacy_gallery_overrides(legacy_gallery_config)
+    approved_identity_moves: dict[str, str] = {}
     legacy_gallery_summary = apply_legacy_gallery_overrides(
-        by_model, initial_stable_keys, taxonomy, legacy_gallery
+        by_model,
+        initial_stable_keys,
+        taxonomy,
+        legacy_gallery,
+        approved_identity_moves,
+        production_contract_by_id,
     )
 
     model_keys = sorted(by_model, key=str.casefold)
@@ -1072,8 +1129,17 @@ def build_bundle(
                 f"{stable_key}: {previous} | {identity_key}"
             )
         stable_owners[stable_key] = identity_key
-    base_slugs = []
+    candidate_model_ids = {
+        identity_key: stable_id("mdl", stable_keys[identity_key])
+        for identity_key in model_keys
+    }
+    base_slugs: list[str] = []
     for identity_key in model_keys:
+        model_id = candidate_model_ids[identity_key]
+        contract_entry = production_contract_by_id.get(model_id)
+        if contract_entry is not None:
+            base_slugs.append(str(contract_entry["slug"]))
+            continue
         row = by_model[identity_key][0]
         hierarchy = str(row["model_key"]).split(" / ")
         franchise_pos = franchise_index(hierarchy, taxonomy)
@@ -1092,6 +1158,12 @@ def build_bundle(
         slug_name = humanize_stem(identity_label) if audited_public else display_name
         slug_parts = [franchise_name, slug_name] if audited_public else [franchise_name, *collection_parts, display_name]
         base_slugs.append(slugify(" ".join(slug_parts)))
+    candidate_id_set = set(candidate_model_ids.values())
+    base_slugs.extend(
+        str(entry["slug"])
+        for model_id, entry in production_contract_by_id.items()
+        if model_id not in candidate_id_set
+    )
     slug_collisions = Counter(base_slugs)
 
     if workers < 1 or workers > 16:
@@ -1107,7 +1179,12 @@ def build_bundle(
         "identityHistory": {},
     }
     identity_history = checkpoint_identity_history(state, r2_root)
-    validate_identity_continuity(by_model, stable_keys, identity_history)
+    validate_identity_continuity(
+        by_model,
+        stable_keys,
+        identity_history,
+        approved_identity_moves,
+    )
     fingerprints = {
         identity_key: model_build_fingerprint(
             identity_key,
@@ -1115,6 +1192,9 @@ def build_bundle(
             include_original,
             taxonomy,
             stable_keys[identity_key],
+            production_contract_fingerprint_entry(
+                production_contract_by_id, candidate_model_ids[identity_key]
+            ),
         )
         for identity_key in model_keys
     }
@@ -1149,6 +1229,7 @@ def build_bundle(
             taxonomy=taxonomy,
             include_original=include_original,
             stable_identity_key=stable_keys[identity_key],
+            production_contract_by_id=production_contract_by_id,
         )
 
     built_models = 0
@@ -1183,7 +1264,12 @@ def build_bundle(
         stable_keys[identity_key]: state["models"][stable_keys[identity_key]]
         for identity_key in model_keys
     }
-    state["identityHistory"] = update_identity_history(identity_history, by_model, stable_keys)
+    state["identityHistory"] = update_identity_history(
+        identity_history,
+        by_model,
+        stable_keys,
+        approved_identity_moves,
+    )
     save_media_build_state(state_path, state)
 
     built_entries = [results[identity_key][0] for identity_key in model_keys]
@@ -1219,6 +1305,8 @@ def build_bundle(
         "variantLabelsAdjusted": variant_adjustments,
         "legacyGalleryGroupsApplied": legacy_gallery_summary["groupsApplied"],
         "legacyGallerySourcesMerged": legacy_gallery_summary["sourcesMerged"],
+        "productionContractModels": len(production_contract_by_id),
+        "productionContractPublishedModels": production_contract["source"]["publishedModels"],
     }
     (output / "publish-summary.json").write_text(
         json.dumps(summary, ensure_ascii=False, indent=2) + "\n",
@@ -1246,6 +1334,12 @@ def main() -> int:
         default=DEFAULT_LEGACY_GALLERY_CONFIG,
         help="SSOT de consolidações históricas de vistas em galerias canônicas",
     )
+    parser.add_argument(
+        "--production-contract-config",
+        type=Path,
+        default=DEFAULT_PRODUCTION_MODEL_CONTRACT,
+        help="snapshot versionado das identidades já existentes no D1",
+    )
     parser.add_argument("--workers", type=int, default=4, help="modelos processados em paralelo; padrão: 4")
     parser.add_argument("--no-resume", action="store_true", help="ignora o checkpoint de mídia e recompõe todos os modelos")
     args = parser.parse_args()
@@ -1263,6 +1357,7 @@ def main() -> int:
         taxonomy_config=args.taxonomy_config.resolve(),
         identity_alias_config=args.identity_alias_config.resolve(),
         legacy_gallery_config=args.legacy_gallery_config.resolve(),
+        production_contract_config=args.production_contract_config.resolve(),
         workers=args.workers,
         resume=not args.no_resume,
     )

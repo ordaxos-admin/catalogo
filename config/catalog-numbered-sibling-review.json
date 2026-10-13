@@ -2,8 +2,8 @@
   "version": 1,
   "auditedAt": "2026-10-13",
   "baselinePublishedModels": 2596,
-  "baselineGroups": 54,
-  "baselineSiblingRows": 146,
+  "baselineGroups": 53,
+  "baselineSiblingRows": 145,
   "policy": {
     "pending": "Não consolidar automaticamente; exige revisão visual/identidade.",
     "distinct": "Produtos revisados e confirmados como distintos.",
@@ -24,19 +24,6 @@
       ],
       "status": "distinct",
       "reason": "Revisão visual concluída em 2026-10-07: armaggon.jpg e armaggon-02.jpg são esculturas completamente diferentes, com pose, caracterização e base distintas."
-    },
-    {
-      "categorySlug": "animes-desenhos",
-      "franchiseSlug": "digimon",
-      "folderPathKey": "kari-e-tailmon",
-      "displayName": "Kari e tailmon",
-      "baseId": "mdl_391c8d41819ef4162e63",
-      "baseSlug": "digimon-kari-e-tailmon",
-      "siblingSlugs": [
-        "digimon-kari-e-tailmon-02"
-      ],
-      "status": "gallery",
-      "reason": "Revisão visual concluída em 2026-10-07: kari-e-tailmon.jpg e kari-e-tailmon-02.png mostram a mesma escultura e composição; o segundo arquivo é apenas um close/render adicional e deve compor a mesma galeria."
     },
     {
       "categorySlug": "animes-desenhos",
