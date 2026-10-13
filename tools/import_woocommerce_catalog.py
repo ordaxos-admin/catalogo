@@ -33,6 +33,7 @@ FEATURE_SEGMENT_RE = re.compile(
 )
 STL_TOKEN_RE = re.compile(r"(?i)\bSTL\b")
 SAFE_SEGMENT_RE = re.compile(r"[^a-z0-9._-]+")
+SOURCE_ID_RE = re.compile(r"^[a-z0-9](?:[a-z0-9._-]{0,62}[a-z0-9])?$")
 
 
 class ImportContractError(RuntimeError):
@@ -61,6 +62,17 @@ def safe_segment(value: str) -> str:
     return safe
 
 
+def stable_source_id(value: Any) -> str:
+    """Return an explicit, path-safe namespace for one configured source."""
+    raw = str(value or "")
+    if raw != raw.strip() or not SOURCE_ID_RE.fullmatch(raw):
+        raise ImportContractError(
+            "sourceId inválido; use 1..64 caracteres ASCII minúsculos [a-z0-9._-], "
+            "começando e terminando por letra/número"
+        )
+    return raw
+
+
 def stable_product_id(value: Any) -> str:
     """Return the immutable WooCommerce product id in canonical decimal form."""
     if isinstance(value, bool):
@@ -77,11 +89,26 @@ def stable_product_id(value: Any) -> str:
     return str(number)
 
 
+def stable_provider_image_id(value: Any) -> str:
+    """Return a canonical positive WooCommerce media id."""
+    if isinstance(value, bool):
+        raise ImportContractError("image.id do provedor deve ser inteiro positivo")
+    if isinstance(value, int):
+        number = value
+    else:
+        text = normalized_text(value)
+        if not text.isdigit():
+            raise ImportContractError("image.id do provedor deve ser inteiro positivo")
+        number = int(text)
+    if number <= 0:
+        raise ImportContractError("image.id do provedor deve ser inteiro positivo")
+    return str(number)
+
+
 def stable_image_identity(image: dict[str, Any], source_url: str) -> tuple[str, str]:
     """Return an order-independent image identity and its provenance kind."""
-    provider_id = normalized_text(image.get("id"))
-    if provider_id:
-        return provider_id, "provider_id"
+    if "id" in image and image.get("id") is not None:
+        return stable_provider_image_id(image.get("id")), "provider_id"
     digest = hashlib.sha256(source_url.encode("utf-8")).hexdigest()
     return f"url-sha256-{digest}", "url_sha256"
 
@@ -96,6 +123,7 @@ def load_json(path: Path) -> Any:
 
 
 def load_source_config(path: Path, source_id: str) -> dict[str, Any]:
+    source_id = stable_source_id(source_id)
     payload = load_json(path)
     if not isinstance(payload, dict) or payload.get("version") != 1:
         raise ImportContractError(f"configuração externa inválida: {path}")
@@ -267,6 +295,7 @@ def normalize_product(
     source_id: str,
     source: dict[str, Any],
 ) -> tuple[dict[str, Any], list[dict[str, Any]]]:
+    source_id = stable_source_id(source_id)
     source_product_id = stable_product_id(product.get("id"))
     title = normalized_text(product.get("name"))
     slug = normalized_text(product.get("slug"))
@@ -382,6 +411,7 @@ def build_inventory(
     source_id: str,
     source: dict[str, Any],
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, Any]]:
+    source_id = stable_source_id(source_id)
     products = product_list(payload)
     product_rows: list[dict[str, Any]] = []
     image_rows: list[dict[str, Any]] = []
@@ -459,11 +489,12 @@ def main() -> int:
     args = parser.parse_args()
 
     try:
-        source = load_source_config(args.config, args.source_id)
+        source_id = stable_source_id(args.source_id)
+        source = load_source_config(args.config, source_id)
         products, images, summary = build_inventory(
-            load_json(args.export), source_id=args.source_id, source=source
+            load_json(args.export), source_id=source_id, source=source
         )
-        output = args.output / args.source_id
+        output = args.output / source_id
         write_jsonl(output / "products.jsonl", products)
         write_jsonl(output / "image-download-plan.jsonl", images)
         (output / "summary.json").write_text(
