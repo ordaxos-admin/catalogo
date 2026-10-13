@@ -15,6 +15,7 @@ A identidade comercial, domínio e regras particulares de um fornecedor ficam fo
 O contrato preserva:
 
 - **1 produto externo = 1 identidade de entrada**;
+- `sourceId` é um namespace operacional explícito e path-safe: 1..64 caracteres ASCII minúsculos `[a-z0-9._-]`, começando e terminando por letra/número; qualquer valor com `/`, `\\`, `..`, espaço, Unicode ou capitalização fora do contrato falha fechado antes de gerar caminhos;
 - a identidade de entrada deriva de `sourceId + product.id` da origem, nunca de slug, título, preço ou posição;
 - `product.id` precisa existir e ser um inteiro positivo; ausência/valor inválido falha fechado;
 - slug e permalink são apenas metadata/proveniência e podem mudar sem criar outro produto;
@@ -26,11 +27,13 @@ O contrato preserva:
 
 ### Identidade de imagem
 
-Quando a origem fornece `image.id`, esse ID é a identidade estável da mídia. Quando não fornece, o pipeline usa `SHA-256(sourceUrl)` como fallback determinístico. A posição `1..N` representa somente a ordem da galeria e **nunca participa da identidade da imagem**.
+Quando a origem fornece `image.id`, esse ID é a identidade estável da mídia e precisa ser um inteiro positivo do provedor. O valor é normalizado para decimal canônico (`"0007"` e `7` viram `"7"`), evitando colisões artificiais de filename após sanitização. `image.id` explicitamente inválido falha fechado; somente ausência real do campo/valor permite fallback.
+
+Quando `image.id` não existe, o pipeline usa `SHA-256(sourceUrl)` como fallback determinístico. A posição `1..N` representa somente a ordem da galeria e **nunca participa da identidade da imagem**.
 
 Cada item do plano registra `sourceImageIdentityKind` (`provider_id` ou `url_sha256`), tornando auditável qual fonte de identidade foi usada sem inferir isso pelo nome do arquivo.
 
-O `targetPath` também não depende da ordem nem do slug do produto: ele usa o ID estável do produto e a identidade estável da imagem. Assim, renomear um produto ou reordenar sua galeria não cria cópias artificiais.
+O `targetPath` também não depende da ordem nem do slug do produto: ele usa o namespace seguro da fonte, o ID estável do produto e a identidade estável da imagem. Assim, renomear um produto ou reordenar sua galeria não cria cópias artificiais nem permite path traversal na etapa anterior à materialização.
 
 ## Aquisição é uma etapa separada
 
