@@ -8,7 +8,6 @@ import tempfile
 import unittest
 from pathlib import Path
 
-
 TOOLS_DIR = Path(__file__).resolve().parent
 if str(TOOLS_DIR) not in sys.path:
     sys.path.insert(0, str(TOOLS_DIR))
@@ -34,28 +33,22 @@ class VerifyR2RecoveryTests(unittest.TestCase):
             "version": 1,
             "bucket": "catalog-media",
             "provenance": "RECOVERED_FROM_R2_DETAIL",
-            "entries": [
-                {
-                    "modelId": model_id,
-                    "r2Key": f"media/{model_id}/{name}/detail.webp",
-                    "expectedSize": len(payload),
-                    "sha256": self.digest(payload),
-                }
-                for model_id, name, payload in files
-            ],
+            "entries": [{
+                "modelId": model_id,
+                "r2Key": f"media/{model_id}/{name}/detail.webp",
+                "expectedSize": len(payload),
+                "sha256": self.digest(payload),
+            } for model_id, name, payload in files],
         }
 
     @staticmethod
     def mapping(files: list[tuple[str, str, bytes]]) -> dict:
         return {
             "version": 1,
-            "entries": [
-                {
-                    "modelId": model_id,
-                    "relativePath": f"Games/Franchise/{model_id}/{name}.webp",
-                }
-                for model_id, name, _ in files
-            ],
+            "entries": [{
+                "modelId": model_id,
+                "relativePath": f"Games/Franchise/{model_id}/{name}.webp",
+            } for model_id, name, _ in files],
         }
 
     def materialize(self, root: Path, files: list[tuple[str, str, bytes]]) -> None:
@@ -75,24 +68,16 @@ class VerifyR2RecoveryTests(unittest.TestCase):
             rows, summary = verify_materialization(
                 self.manifest(files), self.mapping(files), root=root
             )
-
         self.assertEqual(len(rows), 2)
         self.assertTrue(summary["completeCoverage"])
         self.assertEqual(summary["verified"], 2)
         self.assertEqual(summary["networkReads"], 0)
         self.assertEqual(summary["writesToSourceRoot"], 0)
-        self.assertEqual(
-            {row["provenance"] for row in rows}, {"RECOVERED_FROM_R2_DETAIL"}
-        )
-        self.assertEqual(
-            {row["sourceBucket"] for row in rows}, {"catalog-media"}
-        )
+        self.assertEqual({row["provenance"] for row in rows}, {"RECOVERED_FROM_R2_DETAIL"})
+        self.assertEqual({row["sourceBucket"] for row in rows}, {"catalog-media"})
 
     def test_missing_or_extra_mapping_is_rejected(self) -> None:
-        files = [
-            ("mdl_a", "ada", b"first"),
-            ("mdl_b", "cammy", b"second"),
-        ]
+        files = [("mdl_a", "ada", b"first"), ("mdl_b", "cammy", b"second")]
         mapping = self.mapping(files)
         mapping["entries"] = [mapping["entries"][0], {"modelId": "mdl_extra", "relativePath": "x.webp"}]
         with tempfile.TemporaryDirectory() as tmp:
@@ -106,6 +91,15 @@ class VerifyR2RecoveryTests(unittest.TestCase):
             mapping["entries"][0]["relativePath"] = unsafe
             with self.subTest(unsafe=unsafe), tempfile.TemporaryDirectory() as tmp:
                 with self.assertRaises(RecoveryVerificationError):
+                    verify_materialization(self.manifest(files), mapping, root=Path(tmp))
+
+    def test_recovered_detail_must_keep_truthful_webp_extension(self) -> None:
+        files = [("mdl_a", "ada", b"first")]
+        for wrong in ("Games/Saga/ada.jpg", "Games/Saga/ada.png", "Games/Saga/ada.jpeg"):
+            mapping = self.mapping(files)
+            mapping["entries"][0]["relativePath"] = wrong
+            with self.subTest(wrong=wrong), tempfile.TemporaryDirectory() as tmp:
+                with self.assertRaisesRegex(RecoveryVerificationError, "formato WebP real"):
                     verify_materialization(self.manifest(files), mapping, root=Path(tmp))
 
     def test_size_or_sha_mismatch_is_rejected(self) -> None:
@@ -122,7 +116,6 @@ class VerifyR2RecoveryTests(unittest.TestCase):
         payload["entries"][0]["r2Key"] = "media/mdl_a/img/card.webp"
         with self.assertRaisesRegex(RecoveryVerificationError, "detail.webp"):
             validate_manifest(payload)
-
         payload = self.manifest(files)
         payload["provenance"] = "RECOVERED"
         with self.assertRaisesRegex(RecoveryVerificationError, "provenance inválida"):
@@ -136,11 +129,7 @@ class VerifyR2RecoveryTests(unittest.TestCase):
         self.assertEqual(len(entries), 3)
         self.assertEqual(
             {entry["modelId"] for entry in entries},
-            {
-                "mdl_4178950210474bea1aa9",
-                "mdl_dc75a8c0af5b0d852743",
-                "mdl_ebb783318941d6abc94e",
-            },
+            {"mdl_4178950210474bea1aa9", "mdl_dc75a8c0af5b0d852743", "mdl_ebb783318941d6abc94e"},
         )
 
 
