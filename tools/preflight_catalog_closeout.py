@@ -50,12 +50,17 @@ def run_step(
     env: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     started = time.time()
+    child_env = (env or os.environ.copy()).copy()
+    child_env["PYTHONUTF8"] = "1"
+    child_env["PYTHONIOENCODING"] = "utf-8"
     completed = subprocess.run(
         [sys.executable, *argv],
         cwd=repo_root,
         text=True,
+        encoding="utf-8",
+        errors="strict",
         capture_output=True,
-        env=env or os.environ.copy(),
+        env=child_env,
         check=False,
     )
     duration_ms = round((time.time() - started) * 1000)
