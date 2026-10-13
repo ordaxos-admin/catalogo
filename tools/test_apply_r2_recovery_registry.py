@@ -257,13 +257,22 @@ class ApplyR2RecoveryRegistryTests(unittest.TestCase):
             self.assertEqual(row["modelo_publico"], "hero-model")
             self.assertEqual(row["provenance"], "RECOVERED_FROM_R2_DETAIL")
 
-    def test_recovered_sha_without_historical_lineage_is_rejected(self) -> None:
+    def test_recovered_sha_with_complete_provenance_but_without_historical_lineage_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             manifest, provenance, registry, payload, _historical, _relative = self.fixture(root)
             row = self.read_registry_row(registry)
+            row.update({
+                "sha256": self.digest(payload),
+                "historical_caminho": "",
+                "historical_sha256": "",
+                "provenance": "RECOVERED_FROM_R2_DETAIL",
+                "source_bucket": "catalog-media",
+                "source_r2_key": "media/mdl_a/img/detail.webp",
+                "recovery_model_id": "mdl_a",
+                "recovery_size": str(len(payload)),
+            })
             fields = list(row)
-            row["sha256"] = self.digest(payload)
             with registry.open("w", encoding="utf-8-sig", newline="") as handle:
                 writer = csv.DictWriter(handle, fieldnames=fields)
                 writer.writeheader()
