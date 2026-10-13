@@ -7,6 +7,11 @@ historical originals: the current ``sha256`` is replaced only after the physical
 file re-verifies against the canonical recovery manifest, while the previous
 registry hash is preserved as ``historical_sha256`` lineage.
 
+If a historical registry row still exists, it is updated in place. If the row
+was removed together with the missing physical source, insertion is permitted
+only when the local recovery mapping provides the exact audited row metadata
+from the physical recovery report. Nothing is inferred from names or D1.
+
 Dry-run is the default. ``--apply`` performs one atomic CSV replacement after
 all recovery rows and physical files pass validation. The operation is
 idempotent and fails closed on partial/ambiguous state.
@@ -42,6 +47,8 @@ RECOVERY_COLUMNS = (
     "recovery_model_id",
     "recovery_size",
 )
+AUDIT_ROW_COLUMNS = ("codigo", "identificacao", "modelo_publico")
+HEX = set("0123456789abcdef")
 
 
 class RecoveryRegistryError(RuntimeError):
@@ -51,6 +58,10 @@ class RecoveryRegistryError(RuntimeError):
 def normalize_relative_path(value: str) -> str:
     normalized = value.replace("\\", "/").strip()
     return unicodedata.normalize("NFKC", normalized).casefold()
+
+
+def valid_sha256(value: str) -> bool:
+    return len(value) == 64 and all(char in HEX for char in value)
 
 
 def sha256_path(path: Path) -> str:
@@ -150,6 +161,90 @@ def load_verified_provenance(
     return sorted(rows, key=lambda row: row["modelId"])
 
 
+def load_recovery_mapping(
+    payload: Any | None,
+    *,
+    expected_models: set[str],
+) -> dict[str, dict[str, Any]]:
+    if payload is None:
+        return {}
+    if not isinstance(payload, dict) or payload.get("version") != 1:
+        raise RecoveryRegistryError("mapping de recuperação inválido: version deve ser 1")
+    entries = payload.get("entries")
+    if not isinstance(entries, list):
+        raise RecoveryRegistryError("mapping de recuperação sem entries")
+
+    result: dict[str, dict[str, Any]] = {}
+    seen_paths: set[str] = set()
+    for index, raw in enumerate(entries, 1):
+        if not isinstance(raw, dict):
+            raise RecoveryRegistryError(f"mapping entry {index} não é objeto")
+        model_id = str(raw.get("modelId") or "").strip()
+        relative_path = str(raw.get("relativePath") or "").strip()
+        if not model_id or not relative_path:
+            raise RecoveryRegistryError(
+                f"mapping entry {index} sem modelId/relativePath"
+            )
+        if model_id in result:
+            raise RecoveryRegistryError(f"modelId duplicado no mapping: {model_id}")
+        normalized_path = normalize_relative_path(relative_path)
+        if normalized_path in seen_paths:
+            raise RecoveryRegistryError(
+                f"relativePath duplicado no mapping: {relative_path}"
+            )
+        seen_paths.add(normalized_path)
+
+        audit_row = raw.get("auditRow")
+        normalized_audit: dict[str, str] | None = None
+        if audit_row is not None:
+            if not isinstance(audit_row, dict):
+                raise RecoveryRegistryError(
+                    f"auditRow inválido no mapping para {model_id}"
+                )
+            historical = str(audit_row.get("historicalSha256") or "").strip().lower()
+            codigo = str(audit_row.get("codigo") or "").strip()
+            identificacao = str(audit_row.get("identificacao") or "").strip()
+            modelo_publico = str(audit_row.get("modelo_publico") or "").strip()
+            status = str(audit_row.get("status") or "").strip()
+            if not valid_sha256(historical):
+                raise RecoveryRegistryError(
+                    f"historicalSha256 inválido no mapping para {model_id}"
+                )
+            if not codigo:
+                raise RecoveryRegistryError(
+                    f"codigo auditado ausente no mapping para {model_id}"
+                )
+            if not modelo_publico:
+                raise RecoveryRegistryError(
+                    f"modelo_publico auditado ausente no mapping para {model_id}"
+                )
+            if not PUBLISHABLE_AUDIT_STATUS_RE.fullmatch(status):
+                raise RecoveryRegistryError(
+                    f"status auditado não publicável no mapping para {model_id}: {status!r}"
+                )
+            normalized_audit = {
+                "historical_sha256": historical,
+                "codigo": codigo,
+                "identificacao": identificacao,
+                "modelo_publico": modelo_publico,
+                "status": status,
+            }
+
+        result[model_id] = {
+            "relativePath": relative_path,
+            "auditRow": normalized_audit,
+        }
+
+    found = set(result)
+    missing = sorted(expected_models - found)
+    extra = sorted(found - expected_models)
+    if missing or extra:
+        raise RecoveryRegistryError(
+            f"cobertura do mapping divergente: missing={missing} extra={extra}"
+        )
+    return result
+
+
 def read_registry(path: Path) -> tuple[list[str], list[dict[str, str]]]:
     if not path.is_file():
         raise RecoveryRegistryError(f"registro de auditoria não encontrado: {path}")
@@ -167,11 +262,37 @@ def read_registry(path: Path) -> tuple[list[str], list[dict[str, str]]]:
     return fieldnames, rows
 
 
+def verify_existing_row_against_mapping(
+    row: dict[str, str],
+    audit_row: dict[str, str] | None,
+    *,
+    relative_path: str,
+) -> None:
+    if audit_row is None:
+        return
+    comparisons = {
+        "codigo": audit_row["codigo"],
+        "identificacao": audit_row["identificacao"],
+        "modelo_publico": audit_row["modelo_publico"],
+        "status": audit_row["status"],
+    }
+    for column, expected in comparisons.items():
+        actual = str(row.get(column) or "").strip()
+        if actual != expected:
+            raise RecoveryRegistryError(
+                f"metadata histórica diverge do mapping em {relative_path}: "
+                f"{column}={actual!r} esperado={expected!r}"
+            )
+
+
 def plan_registry_patch(
     fieldnames: list[str],
     rows: list[dict[str, str]],
     provenance_rows: list[dict[str, Any]],
+    *,
+    mapping: dict[str, dict[str, Any]] | None = None,
 ) -> tuple[list[str], list[dict[str, str]], dict[str, Any]]:
+    mapping = mapping or {}
     path_index: dict[str, int] = {}
     for index, row in enumerate(rows):
         rel = str(row.get("caminho") or "").strip()
@@ -183,42 +304,29 @@ def plan_registry_patch(
         path_index[key] = index
 
     output_fields = list(fieldnames)
-    for column in RECOVERY_COLUMNS:
+    for column in (*AUDIT_ROW_COLUMNS, *RECOVERY_COLUMNS):
         if column not in output_fields:
             output_fields.append(column)
 
     patched = [dict(row) for row in rows]
     pending = 0
     already_applied = 0
+    inserted = 0
+    updated = 0
     changes: list[dict[str, Any]] = []
 
     for recovery in provenance_rows:
         model_id = recovery["modelId"]
         key = normalize_relative_path(recovery["relativePath"])
+        mapping_entry = mapping.get(model_id)
+        if mapping_entry is not None:
+            mapped_key = normalize_relative_path(str(mapping_entry["relativePath"]))
+            if mapped_key != key:
+                raise RecoveryRegistryError(
+                    f"caminho da provenance diverge do mapping para {model_id}"
+                )
+        audit_row = mapping_entry.get("auditRow") if mapping_entry else None
         row_index = path_index.get(key)
-        if row_index is None:
-            raise RecoveryRegistryError(
-                f"destino recuperado não existe no registro auditado: {recovery['relativePath']}"
-            )
-        row = patched[row_index]
-        status = str(row.get("status") or "").strip()
-        if not PUBLISHABLE_AUDIT_STATUS_RE.fullmatch(status):
-            raise RecoveryRegistryError(
-                f"linha recuperada não está publicável no registro: {recovery['relativePath']} ({status!r})"
-            )
-
-        current = str(row.get("sha256") or "").strip().lower()
-        if len(current) != 64 or any(char not in "0123456789abcdef" for char in current):
-            raise RecoveryRegistryError(
-                f"SHA atual inválido no registro: {recovery['relativePath']}"
-            )
-        recovered = recovery["sha256"]
-        existing_historical = str(row.get("historical_sha256") or "").strip().lower()
-        existing_provenance = str(row.get("provenance") or "").strip()
-        existing_bucket = str(row.get("source_bucket") or "").strip()
-        existing_key = str(row.get("source_r2_key") or "").strip()
-        existing_model = str(row.get("recovery_model_id") or "").strip()
-        existing_size = str(row.get("recovery_size") or "").strip()
 
         expected_metadata = {
             "provenance": recovery["provenance"],
@@ -227,12 +335,69 @@ def plan_registry_patch(
             "recovery_model_id": model_id,
             "recovery_size": str(recovery["size"]),
         }
+        recovered = recovery["sha256"]
+
+        if row_index is None:
+            if audit_row is None:
+                raise RecoveryRegistryError(
+                    "destino recuperado não existe no registro auditado e o mapping não "
+                    f"fornece auditRow explícito: {recovery['relativePath']}"
+                )
+            historical = audit_row["historical_sha256"]
+            if historical == recovered:
+                raise RecoveryRegistryError(
+                    f"historicalSha256 não pode ser o SHA recuperado: {model_id}"
+                )
+            new_row = {column: "" for column in output_fields}
+            new_row.update(
+                {
+                    "codigo": audit_row["codigo"],
+                    "identificacao": audit_row["identificacao"],
+                    "modelo_publico": audit_row["modelo_publico"],
+                    "status": audit_row["status"],
+                    "caminho": recovery["relativePath"],
+                    "sha256": recovered,
+                    "historical_sha256": historical,
+                    **expected_metadata,
+                }
+            )
+            patched.append(new_row)
+            path_index[key] = len(patched) - 1
+            pending += 1
+            inserted += 1
+            changes.append(
+                {
+                    "modelId": model_id,
+                    "path": recovery["relativePath"],
+                    "state": "pending_insert",
+                    "historicalSha256": historical,
+                    "currentSha256": recovered,
+                }
+            )
+            continue
+
+        row = patched[row_index]
+        status = str(row.get("status") or "").strip()
+        if not PUBLISHABLE_AUDIT_STATUS_RE.fullmatch(status):
+            raise RecoveryRegistryError(
+                f"linha recuperada não está publicável no registro: {recovery['relativePath']} ({status!r})"
+            )
+        verify_existing_row_against_mapping(
+            row, audit_row, relative_path=recovery["relativePath"]
+        )
+
+        current = str(row.get("sha256") or "").strip().lower()
+        if not valid_sha256(current):
+            raise RecoveryRegistryError(
+                f"SHA atual inválido no registro: {recovery['relativePath']}"
+            )
+        existing_historical = str(row.get("historical_sha256") or "").strip().lower()
         existing_metadata = {
-            "provenance": existing_provenance,
-            "source_bucket": existing_bucket,
-            "source_r2_key": existing_key,
-            "recovery_model_id": existing_model,
-            "recovery_size": existing_size,
+            "provenance": str(row.get("provenance") or "").strip(),
+            "source_bucket": str(row.get("source_bucket") or "").strip(),
+            "source_r2_key": str(row.get("source_r2_key") or "").strip(),
+            "recovery_model_id": str(row.get("recovery_model_id") or "").strip(),
+            "recovery_size": str(row.get("recovery_size") or "").strip(),
         }
         for column, value in existing_metadata.items():
             if value and value != expected_metadata[column]:
@@ -250,24 +415,32 @@ def plan_registry_patch(
                     f"em {recovery['relativePath']}: {missing_metadata}"
                 )
             if (
-                len(existing_historical) != 64
-                or any(char not in "0123456789abcdef" for char in existing_historical)
+                not valid_sha256(existing_historical)
                 or existing_historical == recovered
             ):
                 raise RecoveryRegistryError(
                     f"registro já contém SHA recuperado sem lineage histórica válida: {recovery['relativePath']}"
                 )
+            if audit_row and existing_historical != audit_row["historical_sha256"]:
+                raise RecoveryRegistryError(
+                    f"lineage histórica diverge do mapping em {recovery['relativePath']}"
+                )
             historical = existing_historical
             state = "already_applied"
             already_applied += 1
         else:
+            if audit_row and current != audit_row["historical_sha256"]:
+                raise RecoveryRegistryError(
+                    f"SHA histórico atual diverge do mapping em {recovery['relativePath']}"
+                )
             if existing_historical and existing_historical != current:
                 raise RecoveryRegistryError(
                     f"lineage histórica diverge do SHA atual em {recovery['relativePath']}"
                 )
             historical = existing_historical or current
-            state = "pending"
+            state = "pending_update"
             pending += 1
+            updated += 1
 
         row["sha256"] = recovered
         row["historical_sha256"] = historical
@@ -287,6 +460,8 @@ def plan_registry_patch(
         "version": 1,
         "recoveryRows": len(provenance_rows),
         "pendingUpdates": pending,
+        "pendingInserts": inserted,
+        "pendingExistingRowUpdates": updated,
         "alreadyApplied": already_applied,
         "completeCoverage": len(changes) == len(provenance_rows),
         "changes": changes,
@@ -323,15 +498,21 @@ def apply_registry_recovery(
     provenance_path: Path,
     root: Path,
     apply: bool,
+    mapping_payload: Any | None = None,
 ) -> dict[str, Any]:
     provenance_rows = load_verified_provenance(
         provenance_path,
         manifest_payload=manifest_payload,
         root=root,
     )
+    expected_models = {row["modelId"] for row in provenance_rows}
+    mapping = load_recovery_mapping(
+        mapping_payload,
+        expected_models=expected_models,
+    )
     fieldnames, rows = read_registry(registry)
     output_fields, patched, summary = plan_registry_patch(
-        fieldnames, rows, provenance_rows
+        fieldnames, rows, provenance_rows, mapping=mapping
     )
     before_sha = sha256_path(registry)
     result = {
@@ -349,12 +530,14 @@ def apply_registry_recovery(
     write_registry_atomic(registry, fieldnames=output_fields, rows=patched)
     after_sha = sha256_path(registry)
 
-    # Re-read and re-plan to prove the atomic replacement is complete and idempotent.
     verify_fields, verify_rows = read_registry(registry)
     _fields, _rows, verify_summary = plan_registry_patch(
-        verify_fields, verify_rows, provenance_rows
+        verify_fields, verify_rows, provenance_rows, mapping=mapping
     )
-    if verify_summary["pendingUpdates"] != 0 or verify_summary["alreadyApplied"] != len(provenance_rows):
+    if (
+        verify_summary["pendingUpdates"] != 0
+        or verify_summary["alreadyApplied"] != len(provenance_rows)
+    ):
         raise RecoveryRegistryError("registro não ficou idempotente após aplicação")
 
     return {
@@ -374,6 +557,11 @@ def main() -> int:
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--provenance", type=Path, required=True)
     parser.add_argument("--root", type=Path, required=True)
+    parser.add_argument(
+        "--mapping",
+        type=Path,
+        help="mapping local; auditRow é obrigatório somente quando a linha histórica não existe no registry",
+    )
     parser.add_argument("--report", type=Path)
     parser.add_argument(
         "--apply",
@@ -389,6 +577,7 @@ def main() -> int:
             provenance_path=args.provenance.resolve(),
             root=args.root.resolve(),
             apply=args.apply,
+            mapping_payload=load_json(args.mapping) if args.mapping else None,
         )
         if args.report:
             args.report.parent.mkdir(parents=True, exist_ok=True)
