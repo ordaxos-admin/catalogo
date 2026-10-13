@@ -216,17 +216,26 @@ python tools/build_media_bundle.py "/raiz/do/Catalogo" ".catalog-ingest/manifest
 python tools/publish_r2.py ".publish-bundle/r2" --dry-run
 
 python tools/publish_d1.py ".publish-bundle/models.jsonl" \
-  --check-production \
-  --retire-absent-approvals config/catalog-model-retirement-approvals.csv
+  --check-production
 
 python tools/apply_legacy_gallery_repairs.py
 ```
 
-Nenhum desses três comandos acima deve usar `--apply` nesta fase.
+Nenhum desses três comandos acima deve usar `--apply` nesta fase. O primeiro gate D1 valida compatibilidade do bundle contra o estado atual sem autorizar aposentadorias ausentes. Se o plano de galeria retornar relações pendentes, o closeout encerra com `status=repairs_required` e `productionWrites=0`; apenas os reparos monotônicos auditados podem então ser aplicados separadamente.
+
+Depois de aplicar e verificar esses reparos, repita o closeout. Quando `pendingRelations=0`, o orquestrador executa também o gate D1 final de inventário completo:
+
+```bash
+python tools/publish_d1.py ".publish-bundle/models.jsonl" \
+  --check-production \
+  --retire-absent-approvals config/catalog-model-retirement-approvals.csv
+```
+
+Esse gate final continua fail-closed: qualquer modelo ainda publicado e ausente do snapshot precisa de aprovação explícita; uma fonte já absorvida por galeria não permanece publicada e, portanto, não precisa de exceção.
 
 ## Closeout orquestrado
 
-`tools/preflight_catalog_closeout.py` executa a mesma sequência e não possui caminho de escrita em Cloudflare.
+`tools/preflight_catalog_closeout.py` executa a sequência fail-closed acima e não possui caminho de escrita em Cloudflare.
 
 Primeiro, somente leitura/local dry-run:
 
@@ -253,10 +262,10 @@ Mesmo com `--apply-local`:
 
 - R2 continua obrigatoriamente `--dry-run`;
 - D1 continua obrigatoriamente `--check-production`;
-- reparos de galeria continuam sem `--apply`;
+- reparos de galeria continuam sem `--apply` dentro do orquestrador;
 - `productionWrites=0` é registrado em `.catalog-ingest/closeout-preflight.json`.
 
-Somente um relatório final `status=preflight_green` permite avaliar separadamente a aplicação dos dois reparos monotônicos de galeria.
+Um relatório `status=repairs_required` só autoriza os reparos monotônicos explicitamente planejados, mantendo `productionWrites=0` no preflight. Depois de aplicá-los e verificá-los separadamente, o closeout deve ser reexecutado; somente `status=preflight_green` após o gate D1 final permite fechar a PR.
 
 ## Estado atual
 
