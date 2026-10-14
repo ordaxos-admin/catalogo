@@ -70,7 +70,8 @@ Arquivos esperados:
 - franquia: 1.361 resolved / 21 ambiguous / 243 missing;
 - checkpoint histórico que disparou a mudança: **6.310 arquivos / 9,071 GiB** locais e **5,962 GiB livres** no C:;
 - esse checkpoint não é mais o desenho operacional: a aquisição integral local foi substituída pelo staging privado + cache transitório;
-- checkpoint após a migração parcial desta sessão: **1.208 objetos `remoteVerified`**, **5.667 arquivos / 3,896 GiB** ainda no cache local e **0 arquivos de imagem** em `Revisao`;
+- checkpoint pos-gate desta sessao: **1.453 objetos `remoteVerified`** no estado combinado (baseline+journal), **5.423 arquivos / 3,309 GiB** no cache local, **21,004 GiB livres** no C: e **0 arquivos de imagem** em `Revisao`;
+- journal atual: **245 eventos duraveis** sobre baseline legado de 1.208 objetos; o smoke `stream -> staging` adicionou 1 objeto com `localWrites=0`;
 - o espaço livre global do C: oscila porque outros workstreams simultâneos também escrevem no disco; o catálogo deve manter seu próprio cache decrescente e nunca tentar compensar isso reduzindo o gate de segurança;
 - árvore humana de revisão: `C:\Users\TONECOS\Documents\catalogo\Revisao\STLForge.cl`;
 - histórico pré-revisão: a árvore de revisão usava hardlinks NTFS; esse desenho foi substituído abaixo por índice somente de metadata;
@@ -87,8 +88,11 @@ A mídia externa não deve permanecer integralmente no notebook. O disco local �
 - uploader temporário: Worker `catalog-staging-uploader`, restrito ao IP operacional atual e ao bucket de staging;
 - todo upload exige SHA-256 declarado, o Worker recalcula o hash, grava metadata `sha256` e a ferramenta local confirma novamente via `HEAD` tamanho + hash;
 - somente após o `HEAD` remoto confirmado o cache local pode ser removido;
-- `staging-offload-state.json` é o checkpoint resumível e liga `targetPath`, produto, imagem, URL de origem, SHA-256 e `remoteKey`;
-- `offload_to_staging.py` esvazia cache local com concorrência limitada, mas serializa checkpoint e deleção;
+- `staging-offload-state.json` virou baseline legado somente leitura; novos `remoteVerified` sao persistidos em `staging-offload-journal.jsonl`, append-only e com `fsync` antes de qualquer delecao local;
+- `tools/staging_checkpoint.py` e o SSOT versionado do checkpoint: carrega baseline+journal, ignora apenas uma ultima linha parcial causada por crash e falha fechado para qualquer linha completa corrompida;
+- `staging-offload.lock` aplica lease exclusivo entre fluxos mutadores, impedindo writers concorrentes;
+- a mudanca elimina a dependencia de `os.replace` sobre o baseline: no Windows, um leitor externo pode manter handle sem delete-share e bloquear rename mesmo sem outro writer;
+- `offload_to_staging.py` esvazia cache local com concorrencia limitada e grava o evento duravel no journal antes da delecao;
 - `stream_to_staging.py` transmite itens ainda não materializados `stlforge.cl -> memória -> validação PIL/SHA -> R2 staging`, sem escrever mídia no disco;
 - as ferramentas operacionais se localizam pelo próprio diretório de aquisição, sem caminho absoluto da máquina;
 - o endpoint temporário de upload é injetado por `CATALOG_STAGING_UPLOAD_URL`; o streaming exige também `CATALOG_STAGING_SOURCE_ORIGIN`, sem URL operacional embutida no código;
@@ -99,6 +103,14 @@ A mídia externa não deve permanecer integralmente no notebook. O disco local �
 - o Worker temporário deve ser desativado/removido após a migração de staging.
 
 A promoção pública continua sendo outra etapa: `staging -> reconciliação explícita -> qualidade/watermark -> map_existing|new_model -> delta aprovado -> tonecos-catalogo-media/D1`. Subir para staging **não publica** nada ao usuário.
+
+### Evidencia de reconciliacao - lote 001
+
+- 71 produtos `readyForMaterialization` ja tinham galeria 100% verificada no staging;
+- 13 apresentaram nome normalizado exato no catalogo vivo e 10 permaneceram candidatos apos exigir categoria + franquia iguais;
+- o resolver canonico fechou 10 `map_existing`, 0 `new_model` e 0 mappings automaticos;
+- a auditoria visual cobriu 60 imagens desses 10 produtos: `clear=0`, `watermarked=60`, `unknown=0`, `promotable=0`;
+- nenhum write de catalogo, D1 ou bucket publico foi realizado; as identidades resolvidas servem para dedupe, mas essa midia externa nao e promovivel.
 
 ## Próximo gate
 
