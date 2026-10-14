@@ -68,21 +68,23 @@ def verify(models_path: Path, api_base: str) -> dict[str, Any]:
             "slug": (str(candidate["slug"]), str(public.get("slug") or "")),
             "code": (str(candidate["code"]), str(public.get("code") or "")),
             "image_count": (int(candidate["imageCount"]), int(public.get("image_count") or 0)),
-            "gallery_manifest_key": (str(candidate["galleryManifestKey"]), str(public.get("gallery_manifest_key") or "")),
             "cover_storage_key": (str(candidate["coverStorageKey"]), str(public.get("cover_storage_key") or "")),
         }
         mismatches = [key for key, pair in comparisons.items() if pair[0] != pair[1]]
         if mismatches:
             raise CatalogSmokeError(f"modelo público diverge do bundle {model_id}: {mismatches}")
 
+        # galleryManifestKey is an internal storage pointer and is intentionally
+        # not part of the public catalog payload. Its exact physical object is
+        # already bound by the R2 proof. The Worker loads that private manifest
+        # internally and validates it against the model's physical gallery_version
+        # before serving /api/models/<slug>/images, so a successful public gallery
+        # read is the correct public proof rather than exposing the private key.
+        #
         # galleryVersion in models.jsonl is the physical R2 manifest version.
-        # The public API intentionally exposes models.public_gallery_version as
-        # gallery_version, a separate monotonic cache revision. Requiring those
-        # values to be equal makes every newly inserted model fail release
-        # verification (public revision starts at 1). A successful public gallery
-        # read still proves the physical manifest contract because the Worker
-        # validates the stored manifest against the model's physical gallery_version
-        # before serving it.
+        # The public API exposes models.public_gallery_version as gallery_version,
+        # a separate monotonic cache revision. Requiring those values to be equal
+        # would conflate physical storage identity with public cache revision.
         try:
             public_gallery_revision = int(public.get("gallery_version") or 0)
         except (TypeError, ValueError) as exc:
