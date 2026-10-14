@@ -2,6 +2,7 @@ name: External catalog batch release
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - '.github/workflows/external-batch-release.yml'
       - 'config/external-batches/**'
@@ -117,7 +118,12 @@ jobs:
   apply:
     name: Publish reviewed delta
     needs: preflight
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
+    if: >-
+      ${{
+        (github.event_name == 'workflow_dispatch' && inputs.apply == true) ||
+        (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+         github.event.label.name == 'production-release' && github.actor == github.repository_owner)
+      }}
     runs-on: ubuntu-latest
     environment: production
     steps:
