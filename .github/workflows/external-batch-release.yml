@@ -12,6 +12,8 @@ on:
       - 'tools/publish_r2_wrangler.py'
       - 'tools/verify_external_batch_release.py'
       - 'tools/test_external_batch_release.py'
+      - 'tools/test_external_release_verifier.py'
+      - 'tools/test_new_only_released_preflight.py'
   workflow_dispatch:
     inputs:
       batch:
@@ -79,7 +81,11 @@ jobs:
           PY
       - name: Run focused external-release tests
         working-directory: tools
-        run: python -m unittest -v test_external_batch_release.py
+        run: >-
+          python -m unittest -v
+          test_external_batch_release.py
+          test_external_release_verifier.py
+          test_new_only_released_preflight.py
       - name: Materialize reviewed bytes from private staging
         run: >-
           python tools/materialize_external_media_batch.py "$BATCH_DESCRIPTOR"
