@@ -6,6 +6,7 @@ import argparse
 import json
 import sys
 import urllib.parse
+import urllib.request
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +27,11 @@ def verify(models_path: Path, api_base: str) -> dict[str, Any]:
         query: dict[str, str | int] = {"limit": 100}
         if cursor:
             query["cursor"] = cursor
-        payload = request_json(None if False else __import__("urllib.request").request.urlopen, f"{api_base}/api/catalog?{urllib.parse.urlencode(query)}", f"catálogo página {pages + 1}")
+        payload = request_json(
+            urllib.request.urlopen,
+            f"{api_base}/api/catalog?{urllib.parse.urlencode(query)}",
+            f"catálogo página {pages + 1}",
+        )
         items = payload.get("items")
         if not isinstance(items, list):
             raise CatalogSmokeError("catálogo retornou items inválido")
