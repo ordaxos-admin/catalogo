@@ -2,12 +2,9 @@
   "version": 1,
   "purpose": "External-source provenance identifiers may exist only in these exact non-user-facing control-plane files.",
   "paths": [
-    ".github/workflows/external-batch-release.yml",
     "config/external-batches/stlforge-batch-002.json",
     "docs/CONTINUIDADE-OPERACIONAL.md",
     "docs/evidence/stlforge-batch-002-media.jsonl",
-    "docs/operations/STLFORGE-PHYSICAL-ARCHIVE-2026-10-13.md",
-    "tools/materialize_external_media_batch.py",
-    "tools/test_external_batch_release.py"
+    "docs/operations/STLFORGE-PHYSICAL-ARCHIVE-2026-10-13.md"
   ]
 }
