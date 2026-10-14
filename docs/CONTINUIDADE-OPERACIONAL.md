@@ -191,6 +191,21 @@ O catálogo mestre operacional permanece fora do repositório público. Antes de
 
 Não reiniciar SHA V4 por conveniência. Reaproveitar hashes válidos e migrar/revalidar estado existente.
 
+## Workstream ativo — STLForge.cl / acervo físico externo
+
+Em **2026-10-13** foi iniciado um workstream isolado para materializar no computador a mídia pública exposta pela WooCommerce Store API de `stlforge.cl`, sem alterar produção.
+
+- branch: `ingest/stlforge-physical-archive-20261013`;
+- worktree: `C:\Users\TONECOS\Apps\VisualAgentLab\catalogo-stlforge-ingest`;
+- aquisição operacional fora do Git: `C:\Users\TONECOS\Documents\catalogo\.external-acquisition\stlforge-cl`;
+- produção atual permanece servindo sem depender desse processo;
+- `productionWrites=0` e `canonicalCatalogMutations=0` durante a aquisição;
+- somente metadados e imagens públicas são materializados; nenhum STL/arquivo pago entra nesse fluxo;
+- cada produto/imagem preserva IDs da origem, URL e SHA-256 local;
+- promoção será incremental após reconciliação explícita de identidade/galeria.
+
+Runbook: `docs/operations/STLFORGE-PHYSICAL-ARCHIVE-2026-10-13.md`.
+
 ## Próxima sequência de conteúdo
 
 Quando houver acesso ao catálogo mestre/local:
