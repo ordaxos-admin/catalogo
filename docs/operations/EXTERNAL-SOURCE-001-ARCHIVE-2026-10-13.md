@@ -52,6 +52,7 @@ Versioned SSOT:
 
 - descriptor: `config/external-batches/external-source-001-batch-002.json`;
 - evidence: `docs/evidence/external-source-001-batch-002-media.jsonl`;
+- release evidence: `docs/evidence/external-source-001-batch-002-release-2026-10-14.md`;
 - source ID: `external-source-001`.
 
 Reviewed scope:
@@ -69,7 +70,7 @@ A prior full local ingest reached 2,733 images / 2,678 detected models / 0 error
 
 ### Pinned technical identities
 
-The first green GitHub runner preflight generated these identities; the descriptor now pins them and every later preflight/apply must reproduce them exactly:
+The first green GitHub runner preflight generated these identities; the descriptor pins them and every later preflight must reproduce them exactly:
 
 | Model | ID | Slug | Code | Images |
 | --- | --- | --- | --- | ---: |
@@ -82,7 +83,7 @@ Identity drift is a release blocker. Never accept a new ID/slug/code from a rebu
 
 ## Release tooling
 
-`.github/workflows/external-batch-release.yml` is the only CI release path for this reviewed small delta.
+`.github/workflows/external-batch-release.yml` is the canonical CI release path for this reviewed small delta.
 
 Preflight always performs:
 
@@ -98,19 +99,19 @@ Preflight always performs:
 10. D1 new-only read-only production compatibility/SHA checks;
 11. short-lived preflight artifact upload.
 
-Publication is allowed only by explicit manual `workflow_dispatch` with `apply=true` and the production environment gate.
+The workflow has two explicit promotion entry points: manual `workflow_dispatch` with `apply=true`, or the owner-authorized `production-release` PR label path. Both still pass through the production environment gate and the same fail-closed rechecks. Automation or integrations that cannot emit the required trusted GitHub event must not weaken the workflow condition to compensate.
 
 Apply repeats materialization/build/identity assertions, then:
 
 1. re-checks D1 new-only state immediately before any production media write;
 2. uploads only the public R2 delta;
-3. reads every uploaded object back through the canonical media gateway and verifies SHA+size;
+3. verifies every production object by authenticated R2 read-back and additionally verifies public `media/...` objects through the canonical Worker gateway;
 4. emits an exact R2 proof bound to the expected public bucket;
-5. commits taxonomy + four models + image-source rows in one D1 batch transaction;
-6. verifies all four models and all galleries publicly;
+5. commits taxonomy + new models + image-source rows in one bounded D1 batch transaction;
+6. verifies released models and galleries publicly;
 7. runs general public-catalog health verification.
 
-`tools/publish_d1_new_models.py` intentionally has no snapshot/retirement semantics. It rejects existing ID/slug/code collisions and pre-existing source SHA matches. Model inserts have no conflict-update handler. The complete delta must fit inside one bounded transaction; otherwise the release fails and must be split by a new explicit authorization rather than partially committed.
+`tools/publish_d1_new_models.py` intentionally has no snapshot/retirement semantics. `--apply` rejects existing ID/slug/code collisions and pre-existing source SHA matches. Read-only preflight may report `releaseState=already-released` only when the complete batch already exists with exact compatible model/gallery metadata and every source SHA resolves to the same effective owner. Partial or divergent states remain fail-closed.
 
 ## Brand/source isolation
 
@@ -127,18 +128,50 @@ This is source isolation, not loss of provenance: `sourceOriginB64 + sourcePath`
 
 ## Current release state
 
-Batch 002 is not considered public until both R2 and D1 apply gates have completed and public verification succeeds. A green PR preflight proves reconstructability and compatibility only; it is not publication.
+`external-source-001-batch-002` is published and publicly verified.
 
-If another chat continues this work, it must first re-read the current PR head, descriptor, workflow and latest CI. Multiple workstreams may legitimately update the same PR branch; never force-push or discard an unfamiliar commit.
+Production proof is versioned in `docs/evidence/external-source-001-batch-002-release-2026-10-14.md`. The closed delta is:
+
+- 4 published models;
+- 29 canonical source images;
+- 87 public WebP variants;
+- 4 private gallery manifests;
+- 91 production R2 objects total;
+- no retirements;
+- no deletes;
+- no updates to pre-existing models.
+
+Final public verification confirmed gallery counts `6 / 5 / 12 / 6` and canonical covers through the Worker media gateway. Post-release preflight now returns `releaseState=already-released`, with 4 existing compatible models, 29/29 source SHA matches, identity drift 0 and no mutation intent. A repeated `--apply` remains intentionally blocked.
+
+The `production-release` label was removed after promotion so the PR is not left armed for another production action.
+
+## Next gate — batch 003
+
+No `external-source-001-batch-003` descriptor exists yet. Do not synthesize one from stale local cache or redownload the historical archive.
+
+A batch 003 may be created only after all of the following are true:
+
+1. a durable remote staging checkpoint/inventory is recovered or reconstructed from authoritative remote state;
+2. selected products have 100% of their gallery bytes present in private staging with SHA-256 + size evidence;
+3. watermark/quality review is explicit per source SHA;
+4. production SHA ownership is checked globally before identity resolution;
+5. identity is resolved explicitly as `map_existing` or `new_model`; no name/SHA/visual similarity becomes an automatic mapping;
+6. `map_existing` media is promoted only through the existing-gallery rules, never through the strict new-model publisher;
+7. `new_model` items receive a new versioned descriptor/evidence pair and pass the same reconstruction, identity, R2 and D1 preflight gates used by batch 002;
+8. no production write occurs while the candidate set is incomplete, partially reviewed or dependent on unavailable local files.
+
+If the durable checkpoint cannot be recovered from the notebook, inspect the private staging bucket itself and reconstruct a read-only inventory from remote object metadata rather than recreating the full local acquisition tree.
+
+If another chat continues this work, it must first re-read the current PR head, descriptor, workflow, release evidence and latest CI. Multiple workstreams may legitimately update the same PR branch; never force-push or discard an unfamiliar commit.
 
 ## Do not do
 
 - do not rebuild the full historical media archive on the notebook;
-- do not redownload all source media for a four-model release;
+- do not redownload all source media just to discover the next batch;
 - do not publish directly from an acquisition/review directory;
 - do not turn staging into a public media origin;
 - do not bypass the source-brand gate;
 - do not convert name/SHA/visual similarity into automatic model identity;
 - do not update or retire an existing model through the `new-only` publisher;
-- do not split the authorized four-model D1 delta into independent partial commits;
-- do not delete legacy/public media as part of this additive batch.
+- do not reuse batch 002 as a mutable container for future products;
+- do not delete legacy/public media as part of an additive batch.
