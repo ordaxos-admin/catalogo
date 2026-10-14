@@ -202,7 +202,21 @@ Em **2026-10-13** foi iniciado um workstream isolado para materializar no comput
 - `productionWrites=0` e `canonicalCatalogMutations=0` durante a aquisição;
 - somente metadados e imagens públicas são materializados; nenhum STL/arquivo pago entra nesse fluxo;
 - cada produto/imagem preserva IDs da origem, URL e SHA-256 local;
-- promoção será incremental após reconciliação explícita de identidade/galeria.
+- promoção será incremental após reconciliação explícita de identidade/galeria;
+- checkpoint 2026-10-14: 1.626 produtos brutos / 12.535 referências, 1.625 produtos normalizados / 12.486 imagens;
+- 36 URLs duplicadas de galeria foram saneadas no export operacional; 0 conflitos `image.id -> URL`;
+- Master Vault `product:27152` permanece preservado no staging, mas fora da fila de modelos individuais;
+- normalização atual: 1.307 `readyForMaterialization` e 318 `requiresReview`;
+- o cache físico legado chegou a ~9,071 GiB e provou que o notebook não deve ser o arquivo definitivo dessa fonte;
+- arquitetura atual usa bucket privado `tonecos-catalogo-staging`, separado do bucket público/canônico `tonecos-catalogo-media`;
+- objetos staged são content-addressed por SHA-256 em `stlforge-cl/sha256/<prefix>/<sha256>.<ext>`;
+- `offload_to_staging.py` só remove cache local depois de `PUT` validado + `HEAD` remoto com hash e tamanho iguais;
+- `stream_to_staging.py` transmite mídia ainda ausente diretamente da fonte para R2 em memória, sem gravar bytes no HD;
+- `acquire.py` reconhece `remoteVerified` e mantém piso de 15 GiB livres para impedir regressão de armazenamento;
+- `Revisao/STLForge.cl` agora é somente índice de metadata `REVIEW_ONLY_NOT_PUBLIC`, sem hardlinks/cópias de mídia;
+- Worker temporário `catalog-staging-uploader` é restrito ao IP operacional, valida SHA-256 e deve ser removido/desativado ao final da migração;
+- PR draft de handoff: #174;
+- upload para staging não publica nada: promoção segue incremental após reconciliação explícita, qualidade/watermark e delta aprovado.
 
 Runbook: `docs/operations/STLFORGE-PHYSICAL-ARCHIVE-2026-10-13.md`.
 
