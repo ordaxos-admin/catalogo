@@ -6,6 +6,7 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import patch
 
 from materialize_external_media_batch import staging_key, validate_descriptor, validate_evidence
@@ -17,6 +18,7 @@ from publish_d1_new_models import (
     validate_sha_new_only,
 )
 from publish_d1 import build_statements
+from publish_r2_wrangler import fetch_gateway, verify_one
 
 
 def model(model_id: str = "mdl_0123456789abcdefabcd", slug: str = "new-model", code: str = "TS-0123456789AB") -> dict:
@@ -106,6 +108,74 @@ class NewOnlyPublisherTests(unittest.TestCase):
             proof.write_text(json.dumps({"version": 1, "bucket": "public-media", "objects": {}}), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "não corresponde exatamente"):
                 validate_r2_proof(models, proof, "public-media")
+
+
+class R2ReleaseVerificationTests(unittest.TestCase):
+    class Response:
+        status = 200
+
+        def __init__(self, payload: bytes) -> None:
+            self.payload = payload
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc, tb):
+            return False
+
+        def read(self) -> bytes:
+            return self.payload
+
+    def test_gateway_maps_media_key_without_duplicate_prefix(self) -> None:
+        payload = b"media-bytes"
+        with patch(
+            "publish_r2_wrangler.urllib.request.urlopen",
+            return_value=self.Response(payload),
+        ) as urlopen:
+            self.assertEqual(
+                fetch_gateway("https://catalog.example", "media/mdl_1/img/card.webp"),
+                payload,
+            )
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, "https://catalog.example/media/mdl_1/img/card.webp")
+        self.assertNotIn("/media/media/", request.full_url)
+
+    def test_gateway_rejects_non_public_gallery_key(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "chave não pública"):
+            fetch_gateway("https://catalog.example", "gallery/mdl_1/manifest.json")
+
+    def test_gallery_manifest_is_read_back_from_r2_without_public_gateway(self) -> None:
+        payload = b"{}"
+        candidate = SimpleNamespace(
+            key="gallery/mdl_1/manifest.json",
+            size=len(payload),
+            sha256=hashlib.sha256(payload).hexdigest(),
+        )
+        with patch("publish_r2_wrangler.fetch_r2", return_value=payload) as fetch_r2, patch(
+            "publish_r2_wrangler.fetch_gateway"
+        ) as fetch_public:
+            result = verify_one(candidate, "https://catalog.example", "acct", "token", "bucket")
+        fetch_r2.assert_called_once_with("acct", "token", "bucket", candidate.key)
+        fetch_public.assert_not_called()
+        self.assertTrue(result["verified"])
+        self.assertTrue(result["r2Verified"])
+        self.assertNotIn("gatewayVerified", result)
+
+    def test_media_is_verified_in_r2_and_public_gateway(self) -> None:
+        payload = b"webp"
+        candidate = SimpleNamespace(
+            key="media/mdl_1/img/card.webp",
+            size=len(payload),
+            sha256=hashlib.sha256(payload).hexdigest(),
+        )
+        with patch("publish_r2_wrangler.fetch_r2", return_value=payload), patch(
+            "publish_r2_wrangler.fetch_gateway", return_value=payload
+        ) as fetch_public:
+            result = verify_one(candidate, "https://catalog.example", "acct", "token", "bucket")
+        fetch_public.assert_called_once_with("https://catalog.example", candidate.key)
+        self.assertTrue(result["verified"])
+        self.assertTrue(result["r2Verified"])
+        self.assertTrue(result["gatewayVerified"])
 
 
 class MaterializeEvidenceTests(unittest.TestCase):
