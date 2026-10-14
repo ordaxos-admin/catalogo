@@ -1,0 +1,57 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-002-media.jsonl",
+  "expectedProducts": 4,
+  "expectedImages": 29,
+  "products": [
+    {
+      "productId": 10000,
+      "displayName": "Shae Vizla",
+      "publicModelKey": "shae-vizla",
+      "sourceFolders": ["Filmes & Séries", "Star Wars", "Shae Vizla"],
+      "expectedImages": 12,
+      "expectedIdentityKey": "Filmes & Séries / Star Wars / Shae Vizla / shae-vizla",
+      "expectedModelId": "mdl_23dd3630f28aac37578f",
+      "expectedSlug": "star-wars-shae-vizla",
+      "expectedCode": "TS-23DD3630F28A"
+    },
+    {
+      "productId": 11991,
+      "displayName": "Rukia Kuchiki",
+      "publicModelKey": "rukia-kuchiki",
+      "sourceFolders": ["Animes & Desenhos", "Animes", "Bleach", "Rukia Kuchiki"],
+      "expectedImages": 5,
+      "expectedIdentityKey": "Animes & Desenhos / Animes / Bleach / Rukia Kuchiki / rukia-kuchiki",
+      "expectedModelId": "mdl_11beeac150d4cfc7f7b3",
+      "expectedSlug": "bleach-rukia-kuchiki",
+      "expectedCode": "TS-11BEEAC150D4"
+    },
+    {
+      "productId": 12124,
+      "displayName": "Doomguy 2",
+      "publicModelKey": "doomguy-2",
+      "sourceFolders": ["Games", "Doom", "Doomguy 2"],
+      "expectedImages": 6,
+      "expectedIdentityKey": "Games / Doom / Doomguy 2 / doomguy-2",
+      "expectedModelId": "mdl_54f58525ac72af9187c3",
+      "expectedSlug": "doom-doomguy-2",
+      "expectedCode": "TS-54F58525AC72"
+    },
+    {
+      "productId": 12858,
+      "displayName": "Gemma 3",
+      "publicModelKey": "gemma-3",
+      "sourceFolders": ["Games", "Monster Hunter", "Gemma 3"],
+      "expectedImages": 6,
+      "expectedIdentityKey": "Games / Monster Hunter / Gemma 3 / gemma-3",
+      "expectedModelId": "mdl_03087f436ba0fb2ac272",
+      "expectedSlug": "monster-hunter-gemma-3",
+      "expectedCode": "TS-03087F436BA0"
+    }
+  ]
+}
