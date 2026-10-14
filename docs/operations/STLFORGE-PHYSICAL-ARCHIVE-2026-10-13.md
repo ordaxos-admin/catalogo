@@ -112,6 +112,25 @@ A promoção pública continua sendo outra etapa: `staging -> reconciliação ex
 - a auditoria visual cobriu 60 imagens desses 10 produtos: `clear=0`, `watermarked=60`, `unknown=0`, `promotable=0`;
 - nenhum write de catalogo, D1 ou bucket publico foi realizado; as identidades resolvidas servem para dedupe, mas essa midia externa nao e promovivel.
 
+### Evidencia de reconciliacao - lote 002
+
+- 4 produtos com galeria completa foram auditados visualmente: Shae Vizla (12 vistas), Rukia Kuchiki (5), Doomguy 2 (6) e Gemma 3 (6);
+- auditoria de watermark: `clear=29`, `watermarked=0`, `unknown=0`; os 29 SHA-256 foram ligados ao artefato de revisao;
+- busca global no D1 por SHA retornou 0 correspondencias; nao havia duplicata binaria publicada escondida em outro escopo;
+- o reconciliador oficial retornou 4 `no_candidate`, 0 ambiguidades, 0 `scopeConflict` e 0 mappings automaticos;
+- o resolver explicito fechou 4 `new_model`, 0 `map_existing`;
+- o manifesto canonico local chegou a 2.733 imagens / 2.678 modelos, 0 erros, antes da remocao posterior do acervo fisico local;
+- em verificacao remota posterior, os quatro modelos nao existem no D1 de producao; a consulta foi somente leitura (`rows_written=0`, `changed_db=false`);
+- portanto o lote 002 continua **nao publicado**. Nao reconstruir/prometer bundle a partir de arquivos locais ausentes; retomar apenas a partir de fonte/staging remoto verificado e dos artefatos auditaveis preservados.
+
+### Estado local apos handoff
+
+- branch do PR #174 preservada em `a693a31bd7e7a72503c7261323785a78038abac3` e igual ao `origin` no momento da checagem;
+- o clone Git em `C:\Users\TONECOS\Documents\github\catalogo` existe e aponta para `ingest/stlforge-physical-archive-20261013`;
+- o antigo worktree `C:\Users\TONECOS\Apps\VisualAgentLab\catalogo-stlforge-ingest` nao existe mais;
+- o acervo fisico `C:\Users\TONECOS\Documents\catalogo` tambem nao existe mais;
+- nao recriar esses diretorios por conveniencia nem tratar a ausencia como autorizacao para baixar novamente todo o acervo.
+
 ## Próximo gate
 
 A conclusão do download total **não bloqueia** a correção incremental. Enquanto o gate de disco estiver ativo:
