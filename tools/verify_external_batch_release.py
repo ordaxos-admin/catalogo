@@ -68,14 +68,36 @@ def verify(models_path: Path, api_base: str) -> dict[str, Any]:
             "slug": (str(candidate["slug"]), str(public.get("slug") or "")),
             "code": (str(candidate["code"]), str(public.get("code") or "")),
             "image_count": (int(candidate["imageCount"]), int(public.get("image_count") or 0)),
-            "gallery_version": (int(candidate["galleryVersion"]), int(public.get("gallery_version") or 0)),
             "gallery_manifest_key": (str(candidate["galleryManifestKey"]), str(public.get("gallery_manifest_key") or "")),
             "cover_storage_key": (str(candidate["coverStorageKey"]), str(public.get("cover_storage_key") or "")),
         }
         mismatches = [key for key, pair in comparisons.items() if pair[0] != pair[1]]
         if mismatches:
             raise CatalogSmokeError(f"modelo público diverge do bundle {model_id}: {mismatches}")
-        galleries.append(verify_public_model_gallery(api_base, public))
+
+        # galleryVersion in models.jsonl is the physical R2 manifest version.
+        # The public API intentionally exposes models.public_gallery_version as
+        # gallery_version, a separate monotonic cache revision. Requiring those
+        # values to be equal makes every newly inserted model fail release
+        # verification (public revision starts at 1). A successful public gallery
+        # read still proves the physical manifest contract because the Worker
+        # validates the stored manifest against the model's physical gallery_version
+        # before serving it.
+        try:
+            public_gallery_revision = int(public.get("gallery_version") or 0)
+        except (TypeError, ValueError) as exc:
+            raise CatalogSmokeError(
+                f"modelo público {model_id} possui revisão pública de galeria inválida"
+            ) from exc
+        if public_gallery_revision < 1:
+            raise CatalogSmokeError(
+                f"modelo público {model_id} possui revisão pública de galeria inválida"
+            )
+
+        gallery = verify_public_model_gallery(api_base, public)
+        gallery["physicalGalleryVersion"] = int(candidate["galleryVersion"])
+        gallery["publicGalleryVersion"] = public_gallery_revision
+        galleries.append(gallery)
 
     return {
         "ok": True,
