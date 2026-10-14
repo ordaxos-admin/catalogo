@@ -2,7 +2,7 @@ name: External catalog batch release
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, labeled]
+    types: [opened, synchronize, reopened]
     paths:
       - '.github/workflows/external-batch-release.yml'
       - 'config/external-batches/**'
@@ -17,7 +17,7 @@ on:
       batch:
         description: Versioned external batch descriptor
         required: true
-        default: config/external-batches/stlforge-batch-002.json
+        default: config/external-batches/external-source-001-batch-002.json
         type: string
       apply:
         description: Publish the reviewed delta to production
@@ -33,7 +33,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  BATCH_DESCRIPTOR: ${{ github.event_name == 'workflow_dispatch' && inputs.batch || 'config/external-batches/stlforge-batch-002.json' }}
+  BATCH_DESCRIPTOR: ${{ github.event_name == 'workflow_dispatch' && inputs.batch || 'config/external-batches/external-source-001-batch-002.json' }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CATALOG_API_URL: ${{ vars.VITE_API_BASE_URL }}
@@ -53,9 +53,11 @@ jobs:
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
-      - name: Install Python media dependencies
-        run: python -m pip install -r tools/requirements.txt
-      - name: Export canonical D1 binding
+      - name: Install
+        run: |
+          python -m pip install -r tools/requirements.txt
+          npm ci
+      - name: Export canonical bindings and batch contract
         shell: bash
         run: |
           set -euo pipefail
@@ -63,10 +65,22 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
           database_id="$(node tools/read_wrangler_d1_id.mjs)"
           echo "CLOUDFLARE_D1_DATABASE_ID=$database_id" >> "$GITHUB_ENV"
+          python - "$BATCH_DESCRIPTOR" "$GITHUB_ENV" <<'PY'
+          import json, sys
+          from pathlib import Path
+          data=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          staging=str(data.get('stagingBucket') or '').strip()
+          production=str(data.get('productionBucket') or '').strip()
+          if not staging or not production or staging == production:
+              raise SystemExit('invalid staging/production bucket contract')
+          with open(sys.argv[2], 'a', encoding='utf-8') as handle:
+              handle.write(f'BATCH_STAGING_BUCKET={staging}\n')
+              handle.write(f'BATCH_PRODUCTION_BUCKET={production}\n')
+          PY
       - name: Run focused external-release tests
         working-directory: tools
         run: python -m unittest -v test_external_batch_release.py
-      - name: Materialize only reviewed source bytes
+      - name: Materialize reviewed bytes from private staging
         run: >-
           python tools/materialize_external_media_batch.py "$BATCH_DESCRIPTOR"
           --output "$RUNNER_TEMP/external-batch"
@@ -82,7 +96,7 @@ jobs:
           "$RUNNER_TEMP/external-batch/ingest/manifest.jsonl"
           --output "$RUNNER_TEMP/external-batch/bundle"
           --workers 4
-      - name: Assert batch counts
+      - name: Assert exact batch identity contract
         shell: bash
         run: |
           python - "$BATCH_DESCRIPTOR" "$RUNNER_TEMP/external-batch/bundle/models.jsonl" <<'PY'
@@ -90,16 +104,29 @@ jobs:
           from pathlib import Path
           descriptor=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
           models=[json.loads(line) for line in Path(sys.argv[2]).read_text(encoding='utf-8').splitlines() if line.strip()]
-          names={str(row['displayName']) for row in models}
-          expected_names={str(row['displayName']) for row in descriptor['products']}
-          images=sum(int(row['imageCount']) for row in models)
-          assert len(models)==int(descriptor['expectedProducts']), (len(models), descriptor['expectedProducts'])
-          assert images==int(descriptor['expectedImages']), (images, descriptor['expectedImages'])
-          assert names==expected_names, (sorted(names), sorted(expected_names))
-          print(json.dumps({'models':len(models),'images':images,'names':sorted(names)}, ensure_ascii=False))
+          expected={str(row['expectedModelId']): row for row in descriptor['products']}
+          actual={str(row['id']): row for row in models}
+          assert len(models)==int(descriptor['expectedProducts'])
+          assert sum(int(row['imageCount']) for row in models)==int(descriptor['expectedImages'])
+          assert set(actual)==set(expected), (sorted(actual), sorted(expected))
+          for model_id, contract in expected.items():
+              row=actual[model_id]
+              checks={
+                  'identityKey': contract['expectedIdentityKey'],
+                  'slug': contract['expectedSlug'],
+                  'code': contract['expectedCode'],
+                  'displayName': contract['displayName'],
+                  'imageCount': int(contract['expectedImages']),
+              }
+              for field, value in checks.items():
+                  if row[field] != value:
+                      raise AssertionError((model_id, field, row[field], value))
+          print(json.dumps({'models':len(models),'images':sum(int(r['imageCount']) for r in models),'ids':sorted(actual)}, ensure_ascii=False))
           PY
       - name: R2 delta dry-run
-        run: python tools/publish_r2_wrangler.py "$RUNNER_TEMP/external-batch/bundle/r2"
+        run: >-
+          python tools/publish_r2_wrangler.py "$RUNNER_TEMP/external-batch/bundle/r2"
+          --bucket "$BATCH_PRODUCTION_BUCKET"
       - name: D1 new-only production preflight
         run: python tools/publish_d1_new_models.py "$RUNNER_TEMP/external-batch/bundle/models.jsonl"
       - name: Upload preflight evidence
@@ -118,12 +145,7 @@ jobs:
   apply:
     name: Publish reviewed delta
     needs: preflight
-    if: >-
-      ${{
-        (github.event_name == 'workflow_dispatch' && inputs.apply == true) ||
-        (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
-         github.event.label.name == 'production-release' && github.actor == github.repository_owner)
-      }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -141,7 +163,7 @@ jobs:
         run: |
           python -m pip install -r tools/requirements.txt
           npm ci
-      - name: Export canonical D1 binding
+      - name: Export canonical bindings and batch contract
         shell: bash
         run: |
           set -euo pipefail
@@ -150,7 +172,19 @@ jobs:
           test -n "$CATALOG_API_URL" || { echo '::error::VITE_API_BASE_URL ausente'; exit 1; }
           database_id="$(node tools/read_wrangler_d1_id.mjs)"
           echo "CLOUDFLARE_D1_DATABASE_ID=$database_id" >> "$GITHUB_ENV"
-      - name: Re-materialize and re-verify reviewed bytes
+          python - "$BATCH_DESCRIPTOR" "$GITHUB_ENV" <<'PY'
+          import json, sys
+          from pathlib import Path
+          data=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          staging=str(data.get('stagingBucket') or '').strip()
+          production=str(data.get('productionBucket') or '').strip()
+          if not staging or not production or staging == production:
+              raise SystemExit('invalid staging/production bucket contract')
+          with open(sys.argv[2], 'a', encoding='utf-8') as handle:
+              handle.write(f'BATCH_STAGING_BUCKET={staging}\n')
+              handle.write(f'BATCH_PRODUCTION_BUCKET={production}\n')
+          PY
+      - name: Re-materialize and re-verify staged bytes
         run: >-
           python tools/materialize_external_media_batch.py "$BATCH_DESCRIPTOR"
           --output "$RUNNER_TEMP/external-batch"
@@ -166,19 +200,42 @@ jobs:
             "$RUNNER_TEMP/external-batch/ingest/manifest.jsonl" \
             --output "$RUNNER_TEMP/external-batch/bundle" \
             --workers 4
+      - name: Assert exact batch identity contract again
+        shell: bash
+        run: |
+          python - "$BATCH_DESCRIPTOR" "$RUNNER_TEMP/external-batch/bundle/models.jsonl" <<'PY'
+          import json, sys
+          from pathlib import Path
+          descriptor=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          models=[json.loads(line) for line in Path(sys.argv[2]).read_text(encoding='utf-8').splitlines() if line.strip()]
+          expected={str(row['expectedModelId']): row for row in descriptor['products']}
+          actual={str(row['id']): row for row in models}
+          assert set(actual)==set(expected)
+          assert len(actual)==int(descriptor['expectedProducts'])
+          assert sum(int(row['imageCount']) for row in models)==int(descriptor['expectedImages'])
+          for model_id, contract in expected.items():
+              row=actual[model_id]
+              assert row['identityKey']==contract['expectedIdentityKey']
+              assert row['slug']==contract['expectedSlug']
+              assert row['code']==contract['expectedCode']
+              assert row['displayName']==contract['displayName']
+              assert int(row['imageCount'])==int(contract['expectedImages'])
+          PY
       - name: Re-check D1 new-only immediately before R2 write
         run: python tools/publish_d1_new_models.py "$RUNNER_TEMP/external-batch/bundle/models.jsonl"
       - name: Publish and verify R2 delta
         run: >-
           python tools/publish_r2_wrangler.py "$RUNNER_TEMP/external-batch/bundle/r2"
+          --bucket "$BATCH_PRODUCTION_BUCKET"
           --apply
           --api-base "$CATALOG_API_URL"
           --proof "$RUNNER_TEMP/external-batch/r2-proof.json"
-      - name: Apply strictly new-only D1 delta
+      - name: Apply strictly new-only D1 delta atomically
         run: >-
           python tools/publish_d1_new_models.py "$RUNNER_TEMP/external-batch/bundle/models.jsonl"
           --apply
           --r2-proof "$RUNNER_TEMP/external-batch/r2-proof.json"
+          --expected-r2-bucket "$BATCH_PRODUCTION_BUCKET"
       - name: Verify general public catalog health
         run: python tools/verify_public_catalog.py --api-base "$CATALOG_API_URL"
       - name: Verify all released models and galleries
