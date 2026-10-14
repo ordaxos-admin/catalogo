@@ -12,6 +12,7 @@ from PIL import Image
 from build_media_bundle import (
     apply_legacy_gallery_overrides,
     build_bundle,
+    checkpoint_identity_history,
     disambiguate_public_variants,
     franchise_index,
     load_taxonomy_config,
@@ -23,6 +24,7 @@ from build_media_bundle import (
     validate_built_model_identifiers,
     validate_built_taxonomy_identifiers,
     validate_variant_disambiguation,
+    validate_identity_continuity,
 )
 
 
@@ -1365,6 +1367,34 @@ class MediaBundleTests(unittest.TestCase):
         self.assertFalse(by_model[canonical][1]["legacy_gallery_canonical"])
         self.assertEqual(by_model[canonical][1]["model_key"], hierarchy)
         self.assertEqual(by_model[canonical][1]["public_model_key"], canonical)
+        self.assertEqual(by_model[canonical][1]["legacy_gallery_source_identity_key"], source)
+        self.assertEqual(by_model[canonical][1]["legacy_gallery_source_stable_identity"], source)
+
+    def test_identity_continuity_accepts_reviewed_legacy_gallery_source_merge(self) -> None:
+        sha = "a" * 64
+        by_model = {
+            "canonical": [{"sha256": sha, "legacy_gallery_source_stable_identity": "source"}],
+        }
+        validate_identity_continuity(by_model, {"canonical": "canonical"}, {sha: "source"})
+
+    def test_identity_continuity_rejects_unreviewed_drift(self) -> None:
+        sha = "b" * 64
+        by_model = {"current": [{"sha256": sha}]}
+        with self.assertRaisesRegex(RuntimeError, "identity drift detectado"):
+            validate_identity_continuity(by_model, {"current": "current"}, {sha: "historical"})
+
+    def test_checkpoint_history_prefers_explicit_identity_history_over_stale_cache(self) -> None:
+        sha = "c" * 64
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            manifest = root / "gallery" / "canonical.json"
+            manifest.parent.mkdir(parents=True)
+            manifest.write_text(json.dumps({"images": [{"sourceSha256": sha}]}), encoding="utf-8")
+            state = {
+                "identityHistory": {sha: "historical-source"},
+                "models": {"new-canonical": {"modelEntry": {"galleryManifestKey": "gallery/canonical.json"}}},
+            }
+            self.assertEqual(checkpoint_identity_history(state, root)[sha], "historical-source")
 
     def test_legacy_gallery_override_fails_closed_when_source_exists_without_canonical(self) -> None:
         hierarchy = "Games / League of Legends / Jinx"

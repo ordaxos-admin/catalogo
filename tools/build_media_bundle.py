@@ -575,9 +575,12 @@ def apply_legacy_gallery_overrides(
                 raise RuntimeError(f"fonte de galeria consolidada mais de uma vez: {slug}")
             claimed_sources.add(source_identity)
             source_rows = by_model.pop(source_identity)
+            source_stable_identity = stable_keys[source_identity]
             for row in source_rows:
                 merged = dict(row)
                 merged["legacy_gallery_source_model_key"] = str(row.get("model_key") or "")
+                merged["legacy_gallery_source_identity_key"] = source_identity
+                merged["legacy_gallery_source_stable_identity"] = source_stable_identity
                 merged["legacy_gallery_canonical"] = False
                 merged["legacy_gallery_family"] = str(group["family"])
                 merged["model_key"] = canonical_model_key
@@ -776,8 +779,9 @@ def model_build_fingerprint(
     franchise_name = hierarchy[franchise_pos] if hierarchy else category_name
     taxonomy_key = f"{slugify(category_name)}/{slugify(franchise_name)}"
     relevant_rule = taxonomy.get("franchises", {}).get(taxonomy_key, {})
-    normalized_rows = [
-        {
+    normalized_rows = []
+    for row in sorted(rows, key=lambda item: str(item.get("path") or "").casefold()):
+        normalized = {
             "path": str(row.get("path") or ""),
             "sha256": str(row.get("sha256") or ""),
             "size": int(row.get("size") or 0),
@@ -787,13 +791,22 @@ def model_build_fingerprint(
             "model_key": str(row.get("model_key") or ""),
             "public_model_key": str(row.get("public_model_key") or ""),
             "audit_model_group": str(row.get("audit_model_group") or ""),
-            "legacy_gallery_source_model_key": str(row.get("legacy_gallery_source_model_key") or ""),
-            "legacy_gallery_canonical": bool(row.get("legacy_gallery_canonical")),
-            "legacy_gallery_family": str(row.get("legacy_gallery_family") or ""),
             "identification": str(row.get("identification") or ""),
         }
-        for row in sorted(rows, key=lambda item: str(item.get("path") or "").casefold())
-    ]
+        legacy_family = str(row.get("legacy_gallery_family") or "")
+        legacy_source_identity = str(row.get("legacy_gallery_source_identity_key") or "")
+        legacy_source_stable = str(row.get("legacy_gallery_source_stable_identity") or "")
+        legacy_source_model = str(row.get("legacy_gallery_source_model_key") or "")
+        legacy_canonical = bool(row.get("legacy_gallery_canonical"))
+        if legacy_family or legacy_source_identity or legacy_source_stable or legacy_source_model or legacy_canonical:
+            normalized.update({
+                "legacy_gallery_source_model_key": legacy_source_model,
+                "legacy_gallery_source_identity_key": legacy_source_identity,
+                "legacy_gallery_source_stable_identity": legacy_source_stable,
+                "legacy_gallery_canonical": legacy_canonical,
+                "legacy_gallery_family": legacy_family,
+            })
+        normalized_rows.append(normalized)
     payload = {
         "stateVersion": MEDIA_BUILD_STATE_VERSION,
         "rendererVersion": MEDIA_RENDERER_VERSION,
@@ -834,6 +847,7 @@ def load_media_build_state(path: Path) -> dict:
 
 def checkpoint_identity_history(state: dict, r2_root: Path) -> dict[str, str]:
     history = dict(state.get("identityHistory") or {})
+    authoritative_history = set(history)
     for stable_identity, entry in state.get("models", {}).items():
         if not isinstance(entry, dict):
             continue
@@ -861,6 +875,8 @@ def checkpoint_identity_history(state: dict, r2_root: Path) -> dict[str, str]:
                 continue
             previous = history.get(sha)
             if previous is not None and previous != stable_identity:
+                if sha in authoritative_history:
+                    continue
                 raise RuntimeError(
                     "checkpoint contém SHA histórico atribuído a identidades diferentes: "
                     f"{sha}: {previous} | {stable_identity}"
@@ -881,7 +897,11 @@ def validate_identity_continuity(
             if not re.fullmatch(r"[0-9a-f]{64}", sha):
                 raise RuntimeError(f"SHA-256 inválido ao validar continuidade: {identity_key}")
             previous = history.get(sha)
-            if previous is not None and previous != stable_identity:
+            allowed_previous = {stable_identity}
+            legacy_source_identity = str(row.get("legacy_gallery_source_stable_identity") or "").strip()
+            if legacy_source_identity:
+                allowed_previous.add(legacy_source_identity)
+            if previous is not None and previous not in allowed_previous:
                 raise RuntimeError(
                     "identity drift detectado: imagem histórica reapareceu sob outro produto; "
                     "registre o renome em config/catalog-model-identity-aliases.json antes de publicar: "
