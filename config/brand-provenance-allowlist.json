@@ -8,7 +8,6 @@
     "docs/evidence/stlforge-batch-002-media.jsonl",
     "docs/operations/STLFORGE-PHYSICAL-ARCHIVE-2026-10-13.md",
     "tools/materialize_external_media_batch.py",
-    "tools/test_external_batch_release.py",
-    "tools/test_staging_checkpoint.py"
+    "tools/test_external_batch_release.py"
   ]
 }
