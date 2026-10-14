@@ -13,6 +13,7 @@ import argparse
 import hashlib
 import json
 import os
+import re
 import subprocess
 import sys
 import urllib.error
@@ -77,6 +78,25 @@ def fetch_r2(account_id: str, token: str, bucket: str, key: str) -> bytes:
         raise RuntimeError(f"falha ao reler objeto R2 {key}: {exc}") from exc
 
 
+def _validate_full_gateway_response(status: int, headers: Any, data: bytes, key: str) -> None:
+    if status == 200:
+        return
+    if status != 206:
+        raise RuntimeError(f"gateway retornou HTTP {status}: {key}")
+
+    content_range = str(headers.get("Content-Range", "")).strip()
+    match = re.fullmatch(r"bytes\s+0-(\d+)/(\d+)", content_range, flags=re.IGNORECASE)
+    if match is None:
+        raise RuntimeError(f"gateway 206 sem Content-Range integral: {key}: {content_range!r}")
+    end = int(match.group(1))
+    total = int(match.group(2))
+    if total < 1 or end != total - 1 or len(data) != total:
+        raise RuntimeError(
+            f"gateway 206 não cobre objeto inteiro: {key}: "
+            f"range={content_range!r}, bytes={len(data)}"
+        )
+
+
 def fetch_gateway(api_base: str, key: str) -> bytes:
     if not key.startswith("media/"):
         raise RuntimeError(f"chave não pública não pode usar gateway /media: {key}")
@@ -90,9 +110,9 @@ def fetch_gateway(api_base: str, key: str) -> bytes:
     )
     try:
         with urllib.request.urlopen(request, timeout=60) as response:
-            if response.status != 200:
-                raise RuntimeError(f"gateway retornou HTTP {response.status}: {key}")
-            return response.read()
+            data = response.read()
+            _validate_full_gateway_response(int(response.status), response.headers, data, key)
+            return data
     except urllib.error.URLError as exc:
         raise RuntimeError(f"falha ao verificar gateway para {key}: {exc}") from exc
 
