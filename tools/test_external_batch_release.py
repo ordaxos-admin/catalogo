@@ -1,17 +1,25 @@
 from __future__ import annotations
 
+import base64
 import hashlib
 import json
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
-from materialize_external_media_batch import validate_descriptor, validate_evidence
-from publish_d1_new_models import new_only_statements, validate_new_only, validate_r2_proof, validate_sha_new_only
+from materialize_external_media_batch import staging_key, validate_descriptor, validate_evidence
+from publish_d1_new_models import (
+    build_transaction,
+    new_only_statements,
+    validate_new_only,
+    validate_r2_proof,
+    validate_sha_new_only,
+)
 from publish_d1 import build_statements
 
 
-def model(model_id: str = "mdl_new", slug: str = "new-model", code: str = "TS-NEW") -> dict:
+def model(model_id: str = "mdl_0123456789abcdefabcd", slug: str = "new-model", code: str = "TS-0123456789AB") -> dict:
     return {
         "identityKey": "Games / Example / New Model / new-model",
         "id": model_id,
@@ -23,7 +31,7 @@ def model(model_id: str = "mdl_new", slug: str = "new-model", code: str = "TS-NE
         "categorySlug": "games",
         "franchiseName": "Example",
         "franchiseSlug": "example",
-        "collection": "",
+        "collection": "New Model",
         "folderPath": ["New Model"],
         "folderPathKey": "new-model",
         "searchText": "games example new model",
@@ -59,7 +67,14 @@ class NewOnlyPublisherTests(unittest.TestCase):
             self.assertNotIn("DO UPDATE", item["sql"])
         self.assertFalse(any("DELETE" in item["sql"].upper() for item in statements))
 
-    def test_r2_proof_must_match_bundle_exactly(self) -> None:
+    def test_transaction_combines_model_and_image_statements_once(self) -> None:
+        image_statement = {"sql": "INSERT INTO model_image_sources VALUES(?,?,?,?,?,?)", "params": ["a"] * 6}
+        with patch("publish_d1_new_models.build_image_source_statements", return_value=[image_statement]):
+            transaction = build_transaction([model()], Path("models.jsonl"))
+        self.assertEqual(transaction[-1], image_statement)
+        self.assertEqual(len(transaction), len(new_only_statements([model()])) + 1)
+
+    def test_r2_proof_must_match_bundle_and_bucket_exactly(self) -> None:
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             r2 = root / "r2"
@@ -74,7 +89,7 @@ class NewOnlyPublisherTests(unittest.TestCase):
             proof = root / "proof.json"
             proof.write_text(json.dumps({
                 "version": 1,
-                "bucket": "tonecos-catalogo-media",
+                "bucket": "public-media",
                 "objects": {
                     "media/mdl_new/img/card.webp": {
                         "sha256": digest,
@@ -83,19 +98,29 @@ class NewOnlyPublisherTests(unittest.TestCase):
                     }
                 },
             }), encoding="utf-8")
-            result = validate_r2_proof(models, proof)
+            result = validate_r2_proof(models, proof, "public-media")
             self.assertTrue(result["ready"])
             self.assertEqual(result["objects"], 1)
-            proof.write_text(json.dumps({"version": 1, "objects": {}}), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "bucket errado"):
+                validate_r2_proof(models, proof, "wrong-bucket")
+            proof.write_text(json.dumps({"version": 1, "bucket": "public-media", "objects": {}}), encoding="utf-8")
             with self.assertRaisesRegex(RuntimeError, "não corresponde exatamente"):
-                validate_r2_proof(models, proof)
+                validate_r2_proof(models, proof, "public-media")
 
 
 class MaterializeEvidenceTests(unittest.TestCase):
+    @staticmethod
+    def b64(value: str) -> str:
+        return base64.b64encode(value.encode("utf-8")).decode("ascii")
+
     def descriptor(self) -> dict:
         return {
-            "version": 1,
-            "sourceOrigin": "https://stlforge.cl",
+            "version": 2,
+            "sourceId": "external-source-test",
+            "sourceOriginB64": self.b64("https://source.example"),
+            "stagingBucket": "private-staging",
+            "stagingPrefixB64": self.b64("provider-cache"),
+            "productionBucket": "public-media",
             "evidence": "docs/evidence/test.jsonl",
             "expectedProducts": 1,
             "expectedImages": 1,
@@ -105,6 +130,10 @@ class MaterializeEvidenceTests(unittest.TestCase):
                 "publicModelKey": "example",
                 "sourceFolders": ["Games", "Example", "Example"],
                 "expectedImages": 1,
+                "expectedIdentityKey": "Games / Example / Example / example",
+                "expectedModelId": "mdl_0123456789abcdefabcd",
+                "expectedSlug": "example-example",
+                "expectedCode": "TS-0123456789AB",
             }],
         }
 
@@ -113,7 +142,7 @@ class MaterializeEvidenceTests(unittest.TestCase):
             "productId": 7,
             "imageId": "8",
             "position": 1,
-            "sourceUrl": "https://stlforge.cl/wp-content/uploads/example.jpg",
+            "sourcePath": "/wp-content/uploads/example.jpg",
             "sha256": "a" * 64,
             "bytes": 10,
             "extension": "jpg",
@@ -122,18 +151,25 @@ class MaterializeEvidenceTests(unittest.TestCase):
             "publicModelKey": "example",
         }]
 
-    def test_evidence_requires_authorized_origin_and_clear_review(self) -> None:
+    def test_evidence_requires_safe_source_path_and_clear_review(self) -> None:
         descriptor = self.descriptor()
         products = validate_descriptor(descriptor, Path("batch.json"))
         validate_evidence(self.evidence(), descriptor, products)
         rows = self.evidence()
-        rows[0]["sourceUrl"] = "https://example.invalid/a.jpg"
-        with self.assertRaisesRegex(RuntimeError, "origem autorizada"):
+        rows[0]["sourcePath"] = "../escape.jpg"
+        with self.assertRaisesRegex(RuntimeError, "sourcePath inválido"):
             validate_evidence(rows, descriptor, products)
         rows = self.evidence()
         rows[0]["review"] = "unknown"
         with self.assertRaisesRegex(RuntimeError, "clear/stagingVerified"):
             validate_evidence(rows, descriptor, products)
+
+    def test_staging_key_is_derived_only_from_prefix_sha_and_extension(self) -> None:
+        row = self.evidence()[0]
+        self.assertEqual(
+            staging_key("provider-cache", row),
+            f"provider-cache/sha256/aa/{'a' * 64}.jpg",
+        )
 
     def test_evidence_rejects_duplicate_sha(self) -> None:
         descriptor = self.descriptor()
