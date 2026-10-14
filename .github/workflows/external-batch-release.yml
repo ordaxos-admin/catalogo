@@ -30,7 +30,7 @@ permissions:
 
 concurrency:
   group: external-batch-release-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   BATCH_DESCRIPTOR: ${{ github.event_name == 'workflow_dispatch' && inputs.batch || 'config/external-batches/external-source-001-batch-002.json' }}
