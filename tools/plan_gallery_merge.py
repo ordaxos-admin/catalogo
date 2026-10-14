@@ -8,12 +8,24 @@ authorizes removal by itself; it only produces a quality-ranked review proposal.
 from __future__ import annotations
 
 import argparse
-import csv
 import json
 import sys
 from collections import defaultdict
 from pathlib import Path
 from typing import Any, Iterable
+
+from external_identity_contract import (
+    read_candidate_report,
+    read_identity_mapping,
+    read_identity_resolution,
+)
+from media_quality_policy import (
+    WATERMARK_CLEAR,
+    WATERMARK_LEGACY_ACCEPTED,
+    WATERMARK_WATERMARKED,
+    WATERMARK_UNKNOWN,
+    manifest_watermark_status,
+)
 
 DEFAULT_VISUAL_THRESHOLD = 6
 
@@ -42,36 +54,6 @@ def model_identity(row: dict[str, Any]) -> str:
         raise RuntimeError(f"imagem sem identidade de modelo: {row.get('path', '<sem caminho>')}")
     return value
 
-
-def read_identity_mapping(path: Path) -> dict[str, str]:
-    if not path.is_file():
-        raise RuntimeError(f"mapa de identidade não encontrado: {path}")
-    mapping: dict[str, str] = {}
-    targets: dict[str, str] = {}
-    with path.open("r", encoding="utf-8-sig", newline="") as handle:
-        reader = csv.DictReader(handle)
-        required = {"incoming_model", "target_model"}
-        if not required.issubset(reader.fieldnames or []):
-            raise RuntimeError(
-                f"mapa de identidade sem colunas obrigatórias {sorted(required)}: {path}"
-            )
-        for line_no, row in enumerate(reader, 2):
-            incoming = str(row.get("incoming_model") or "").strip()
-            target = str(row.get("target_model") or "").strip()
-            if not incoming or not target:
-                raise RuntimeError(f"mapa de identidade incompleto em {path}, linha {line_no}")
-            if incoming in mapping:
-                raise RuntimeError(f"origem duplicada no mapa de identidade: {incoming}")
-            previous = targets.get(target)
-            if previous and previous != incoming:
-                raise RuntimeError(
-                    f"produtos diferentes apontam para o mesmo modelo público: {previous!r}, {incoming!r} -> {target!r}"
-                )
-            mapping[incoming] = target
-            targets[target] = incoming
-    if not mapping:
-        raise RuntimeError(f"mapa de identidade vazio: {path}")
-    return mapping
 
 
 def image_sha(row: dict[str, Any]) -> str:
@@ -117,6 +99,7 @@ def compact_image(row: dict[str, Any], source: str) -> dict[str, Any]:
         "width": int(row.get("width") or 0),
         "height": int(row.get("height") or 0),
         "bytes": int(row.get("size") or 0),
+        "watermarkStatus": manifest_watermark_status(row),
     }
 
 
@@ -207,31 +190,75 @@ def plan_gallery_merge(
                     distance = hamming(dhash, other_hash)
                     if distance <= visual_threshold:
                         visual_matches.append((distance, item))
+            visual_matches.sort(
+                key=lambda pair: (pair[0], tuple(-value for value in quality_tuple(pair[1])))
+            )
+            match_payload = [
+                {**compact_image(item, "existing_or_planned"), "dhashDistance": distance}
+                for distance, item in visual_matches
+            ]
+
+            incoming_watermark = manifest_watermark_status(row)
+            if incoming_watermark == WATERMARK_WATERMARKED:
+                actions.append({
+                    "model": identity,
+                    "sourceModel": str(row.get("_source_model_identity") or identity),
+                    "action": "reject_watermarked",
+                    "incoming": compact_image(row, "incoming"),
+                    "matches": match_payload,
+                    "recommendedSource": "existing_or_planned" if visual_matches else "none",
+                    "reason": "incoming_watermarked",
+                })
+                counts["reject_watermarked"] += 1
+                continue
+
+            if incoming_watermark == WATERMARK_UNKNOWN:
+                actions.append({
+                    "model": identity,
+                    "sourceModel": str(row.get("_source_model_identity") or identity),
+                    "action": "review_watermark_required",
+                    "incoming": compact_image(row, "incoming"),
+                    "matches": match_payload,
+                    "recommendedSource": "audit_required",
+                    "reason": "watermark_status_unknown",
+                })
+                counts["review_watermark_required"] += 1
+                continue
 
             if visual_matches:
-                visual_matches.sort(key=lambda pair: (pair[0], tuple(-value for value in quality_tuple(pair[1]))))
                 best_existing = best_quality(item for _, item in visual_matches)
-                incoming_better = quality_tuple(row) > quality_tuple(best_existing)
+                best_existing_watermark = manifest_watermark_status(best_existing)
+                if (
+                    incoming_watermark == WATERMARK_CLEAR
+                    and best_existing_watermark == WATERMARK_WATERMARKED
+                ):
+                    incoming_better = True
+                    recommendation_reason = "clear_incoming_beats_watermarked_match"
+                elif (
+                    incoming_watermark == WATERMARK_CLEAR
+                    and best_existing_watermark == WATERMARK_LEGACY_ACCEPTED
+                ):
+                    incoming_better = True
+                    recommendation_reason = "verified_clear_incoming_beats_unverified_legacy_match"
+                else:
+                    incoming_better = quality_tuple(row) > quality_tuple(best_existing)
+                    recommendation_reason = "perceptual_similarity_requires_review"
                 actions.append({
                     "model": identity,
                     "sourceModel": str(row.get("_source_model_identity") or identity),
                     "action": "review_visual_candidate",
                     "incoming": compact_image(row, "incoming"),
-                    "matches": [
-                        {**compact_image(item, "existing_or_planned"), "dhashDistance": distance}
-                        for distance, item in visual_matches
-                    ],
+                    "matches": match_payload,
                     "recommendedSource": "incoming" if incoming_better else "existing_or_planned",
-                    "reason": "perceptual_similarity_requires_review",
+                    "reason": recommendation_reason,
                 })
                 counts["review_visual_candidate"] += 1
                 if incoming_better:
                     counts["review_prefers_incoming"] += 1
                 else:
                     counts["review_prefers_existing"] += 1
-                # Do not add a visual candidate to the accepted set automatically:
-                # a reviewer must first decide whether this is the same view or a
-                # genuinely different angle.
+                # A perceptual candidate is never promoted automatically. The
+                # reviewer confirms same-view replacement versus a distinct angle.
                 continue
 
             actions.append({
@@ -241,7 +268,7 @@ def plan_gallery_merge(
                 "incoming": compact_image(row, "incoming"),
                 "matches": [],
                 "recommendedSource": "incoming",
-                "reason": "no_exact_or_perceptual_match",
+                "reason": "no_exact_or_perceptual_match_and_watermark_clear",
             })
             counts["add_view"] += 1
             accepted.append(row)
@@ -253,6 +280,9 @@ def plan_gallery_merge(
             "exactDuplicate": "skip",
             "distinctView": "add",
             "perceptualCandidate": "review_only",
+            "watermarkedIncoming": "reject",
+            "unknownWatermark": "block_until_audited",
+            "qualityPreference": "higher_quality_after_watermark_eligibility",
             "visualThreshold": visual_threshold,
             "destructiveDeletes": 0,
         },
@@ -275,13 +305,37 @@ def main() -> int:
     parser.add_argument(
         "--mapping",
         type=Path,
-        help="CSV explícito incoming_model,target_model para vincular produtos da entrada a modelos públicos existentes",
+        help="model-identity-map.csv produzido pelo resolver de identidade",
+    )
+    parser.add_argument(
+        "--candidate-report",
+        type=Path,
+        help="relatório JSON de candidatos que originou --mapping",
+    )
+    parser.add_argument(
+        "--identity-resolution",
+        type=Path,
+        help="summary JSON produzido pelo resolver; obrigatório junto com --mapping",
     )
     parser.add_argument("--visual-threshold", type=int, default=DEFAULT_VISUAL_THRESHOLD)
     args = parser.parse_args()
 
     try:
-        mapping = read_identity_mapping(args.mapping) if args.mapping else None
+        identity_inputs = (args.mapping, args.candidate_report, args.identity_resolution)
+        if any(identity_inputs) and not all(identity_inputs):
+            raise RuntimeError(
+                "--mapping, --candidate-report e --identity-resolution devem ser informados juntos"
+            )
+        if args.mapping:
+            candidate_report = read_candidate_report(args.candidate_report)
+            identity_resolution = read_identity_resolution(
+                args.identity_resolution, candidate_report
+            )
+            mapping = read_identity_mapping(
+                args.mapping, candidate_report, identity_resolution
+            )
+        else:
+            mapping = None
         plan = plan_gallery_merge(
             read_jsonl(args.existing),
             read_jsonl(args.incoming),

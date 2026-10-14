@@ -2,7 +2,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from plan_gallery_merge import plan_gallery_merge, read_identity_mapping
+from plan_gallery_merge import main, plan_gallery_merge, read_identity_mapping
+from resolve_external_identity_matches import resolve_identity_matches, write_mapping_csv
 
 
 def row(
@@ -15,8 +16,10 @@ def row(
     width: int = 800,
     height: int = 1200,
     size: int = 100_000,
+    watermark: str | None = None,
+    external: bool = False,
 ):
-    return {
+    result = {
         "path": path,
         "status": "OK",
         "canonical": True,
@@ -29,6 +32,11 @@ def row(
         "model_key": "Games / Saga / Heroi",
         "public_model_key": model,
     }
+    if watermark is not None:
+        result["watermark_status"] = watermark
+    if external:
+        result["source_provenance"] = {"kind": "AUTHORIZED_EXTERNAL_MEDIA"}
+    return result
 
 
 class GalleryMergePlannerTests(unittest.TestCase):
@@ -156,27 +164,212 @@ class GalleryMergePlannerTests(unittest.TestCase):
                 identity_mapping={incoming_a: existing_model, incoming_b: existing_model},
             )
 
-    def test_mapping_csv_is_fail_closed_and_unique(self):
+    def _resolved_mapping(self, report, incoming, target, reason="mesma ficha revisada"):
+        return resolve_identity_matches(
+            report,
+            {
+                incoming: {
+                    "decision": "map_existing",
+                    "target_model": target,
+                    "reason": reason,
+                }
+            },
+        )
+
+    def test_mapping_csv_is_bound_to_candidate_report_and_resolution(self):
+        incoming = "fonte / produto-a"
+        target = "Games / Saga / Heroi / modelo-a"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {"incomingModel": incoming, "candidates": [{"targetModel": target}], "scopeConflicts": []}
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, target)
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "mapping.csv"
-            path.write_text(
-                "incoming_model,target_model\n"
-                "fonte / produto-a,Games / Saga / Heroi / modelo-a\n",
-                encoding="utf-8",
-            )
+            write_mapping_csv(path, resolution["mappings"])
             self.assertEqual(
-                read_identity_mapping(path),
-                {"fonte / produto-a": "Games / Saga / Heroi / modelo-a"},
+                read_identity_mapping(path, report, resolution),
+                {incoming: target},
             )
-
             path.write_text(
-                "incoming_model,target_model\n"
-                "fonte / produto-a,Games / Saga / Heroi / modelo-a\n"
-                "fonte / produto-b,Games / Saga / Heroi / modelo-a\n",
+                "incoming_model,target_model\n" f"{incoming},{target}\n",
                 encoding="utf-8",
             )
-            with self.assertRaisesRegex(RuntimeError, "produtos diferentes"):
-                read_identity_mapping(path)
+            with self.assertRaisesRegex(RuntimeError, "colunas do mapa de identidade divergentes"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_mapping_csv_rejects_stale_candidate_report_digest(self):
+        incoming = "fonte / produto-a"
+        target = "Games / Saga / Heroi / modelo-a"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {"incomingModel": incoming, "candidates": [{"targetModel": target}], "scopeConflicts": []}
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, target)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mapping.csv"
+            write_mapping_csv(path, resolution["mappings"])
+            text = path.read_text(encoding="utf-8-sig")
+            digest = resolution["candidateReportSha256"]
+            path.write_text(text.replace(digest, "0" * 64), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "outro relatório de candidatos"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_mapping_csv_cannot_switch_to_another_reviewed_candidate(self):
+        incoming = "fonte / produto-a"
+        selected = "Games / Saga / Heroi / modelo-a"
+        alternate = "Games / Saga / Heroi / modelo-b"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {
+                    "incomingModel": incoming,
+                    "candidates": [
+                        {"targetModel": selected},
+                        {"targetModel": alternate},
+                    ],
+                    "scopeConflicts": [],
+                }
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, selected)
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mapping.csv"
+            write_mapping_csv(path, resolution["mappings"])
+            text = path.read_text(encoding="utf-8-sig")
+            path.write_text(text.replace(selected, alternate), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "diverge da resolução auditada"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_identity_resolution_rejects_target_not_in_candidate_report(self):
+        incoming = "fonte / produto-a"
+        selected = "Games / Saga / Heroi / modelo-a"
+        tampered = "Games / Saga / Heroi / modelo-b"
+        report = {
+            "version": 1,
+            "policy": {"reviewOnly": True, "automaticMappings": 0},
+            "products": [
+                {"incomingModel": incoming, "candidates": [{"targetModel": selected}], "scopeConflicts": []}
+            ],
+        }
+        resolution = self._resolved_mapping(report, incoming, selected)
+        resolution["mappings"][0]["target_model"] = tampered
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "mapping.csv"
+            write_mapping_csv(path, resolution["mappings"])
+            with self.assertRaisesRegex(RuntimeError, "não pertence aos candidatos auditados"):
+                read_identity_mapping(path, report, resolution)
+
+    def test_cli_requires_all_identity_artifacts_together(self):
+        argument_sets = [
+            ["plan_gallery_merge.py", "existing.jsonl", "incoming.jsonl", "--mapping", "map.csv"],
+            ["plan_gallery_merge.py", "existing.jsonl", "incoming.jsonl", "--candidate-report", "candidates.json"],
+            ["plan_gallery_merge.py", "existing.jsonl", "incoming.jsonl", "--identity-resolution", "resolution.json"],
+        ]
+        from unittest.mock import patch
+        for argv in argument_sets:
+            with self.subTest(argv=argv), patch("sys.argv", argv):
+                self.assertEqual(main(), 2)
+
+    def test_watermarked_external_image_is_rejected_even_when_quality_is_higher(self):
+        existing = [row("catalogo/frente.jpg", "a" * 64, "0000000000000000", 55)]
+        incoming = [row(
+            "fonte-externa/frente-hq.png",
+            "b" * 64,
+            "0000000000000001",
+            99,
+            width=3000,
+            height=4000,
+            watermark="watermarked",
+            external=True,
+        )]
+
+        plan = plan_gallery_merge(existing, incoming)
+
+        self.assertEqual(plan["counts"], {"reject_watermarked": 1})
+        self.assertEqual(plan["actions"][0]["action"], "reject_watermarked")
+        self.assertEqual(plan["actions"][0]["recommendedSource"], "existing_or_planned")
+
+    def test_external_image_without_watermark_audit_is_blocked(self):
+        incoming = [row(
+            "fonte-externa/costas.jpg",
+            "b" * 64,
+            "ffffffffffffffff",
+            90,
+            external=True,
+        )]
+
+        plan = plan_gallery_merge([], incoming)
+
+        self.assertEqual(plan["counts"], {"review_watermark_required": 1})
+        self.assertEqual(plan["actions"][0]["action"], "review_watermark_required")
+        self.assertEqual(plan["actions"][0]["recommendedSource"], "audit_required")
+
+    def test_clear_external_image_beats_watermarked_existing_match_before_quality(self):
+        existing = [row(
+            "catalogo/frente-watermark.jpg",
+            "a" * 64,
+            "0000000000000000",
+            98,
+            width=3000,
+            height=4000,
+            watermark="watermarked",
+        )]
+        incoming = [row(
+            "fonte-externa/frente-clear.jpg",
+            "b" * 64,
+            "0000000000000001",
+            75,
+            width=1600,
+            height=2200,
+            watermark="clear",
+            external=True,
+        )]
+
+        plan = plan_gallery_merge(existing, incoming)
+
+        action = plan["actions"][0]
+        self.assertEqual(action["action"], "review_visual_candidate")
+        self.assertEqual(action["recommendedSource"], "incoming")
+        self.assertEqual(action["reason"], "clear_incoming_beats_watermarked_match")
+        self.assertEqual(plan["counts"]["review_prefers_incoming"], 1)
+
+    def test_verified_clear_external_is_recommended_over_unverified_legacy_even_if_lower_score(self):
+        existing = [row(
+            "catalogo/frente-legado.png",
+            "a" * 64,
+            "0000000000000000",
+            99,
+            width=3000,
+            height=4000,
+        )]
+        incoming = [row(
+            "fonte-externa/frente-clear.jpg",
+            "b" * 64,
+            "0000000000000001",
+            70,
+            width=1400,
+            height=2000,
+            watermark="clear",
+            external=True,
+        )]
+
+        plan = plan_gallery_merge(existing, incoming)
+
+        action = plan["actions"][0]
+        self.assertEqual(action["action"], "review_visual_candidate")
+        self.assertEqual(action["recommendedSource"], "incoming")
+        self.assertEqual(
+            action["reason"],
+            "verified_clear_incoming_beats_unverified_legacy_match",
+        )
 
 
 if __name__ == "__main__":

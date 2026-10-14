@@ -8,6 +8,7 @@ dist/
 Thumbs.db
 *.log
 .catalog-ingest/
+.external-ingest/
 .publish-bundle/
 .wrangler.deploy.jsonc
 .wrangler/

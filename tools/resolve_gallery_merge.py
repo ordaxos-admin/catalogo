@@ -15,6 +15,13 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from media_quality_policy import (
+    PROMOTABLE_WATERMARK_STATUSES,
+    WATERMARK_UNKNOWN,
+    WATERMARK_WATERMARKED,
+    compact_watermark_status,
+)
+
 ALLOWED_DECISIONS = {"keep_existing", "add_view", "replace_existing"}
 
 
@@ -89,6 +96,7 @@ def resolve_gallery_merge(
     promotions: list[dict[str, Any]] = []
     kept_existing: list[dict[str, Any]] = []
     skipped_exact: list[dict[str, Any]] = []
+    rejected_watermarked: list[dict[str, Any]] = []
     counts: Counter[str] = Counter()
 
     for action in plan["actions"]:
@@ -103,6 +111,7 @@ def resolve_gallery_merge(
         model = str(action.get("model") or "").strip()
         source_model = str(action.get("sourceModel") or model).strip()
         incoming = action["incoming"]
+        watermark = compact_watermark_status(incoming.get("watermarkStatus"))
         if not model:
             raise RuntimeError(f"ação sem modelo público: {key[0]}")
 
@@ -116,7 +125,35 @@ def resolve_gallery_merge(
             counts["skip_exact"] += 1
             continue
 
+        if kind == "reject_watermarked":
+            if watermark != WATERMARK_WATERMARKED:
+                raise RuntimeError(
+                    f"ação reject_watermarked sem evidência watermarked: {key[0]} ({watermark})"
+                )
+            rejected_watermarked.append({
+                "model": model,
+                "sourceModel": source_model,
+                "incoming": incoming,
+                "reason": "incoming_watermarked",
+            })
+            counts["reject_watermarked"] += 1
+            continue
+
+        if kind == "review_watermark_required":
+            if watermark != WATERMARK_UNKNOWN:
+                raise RuntimeError(
+                    f"ação review_watermark_required com status divergente: {key[0]} ({watermark})"
+                )
+            raise RuntimeError(
+                "imagem externa sem auditoria conclusiva de marca d'água; "
+                f"reexecute o manifesto com --media-audit: {key[0]}"
+            )
+
         if kind == "add_view":
+            if watermark not in PROMOTABLE_WATERMARK_STATUSES:
+                raise RuntimeError(
+                    f"add_view bloqueado por watermarkStatus={watermark}: {key[0]}"
+                )
             promotions.append({
                 "model": model,
                 "sourceModel": source_model,
@@ -129,6 +166,10 @@ def resolve_gallery_merge(
 
         if kind != "review_visual_candidate":
             raise RuntimeError(f"ação desconhecida no plano de galeria: {kind!r}")
+        if watermark not in PROMOTABLE_WATERMARK_STATUSES:
+            raise RuntimeError(
+                f"candidato visual bloqueado por watermarkStatus={watermark}: {key[0]}"
+            )
 
         decision = decision_map.get(key)
         if decision is None:
@@ -197,6 +238,8 @@ def resolve_gallery_merge(
         "ready": True,
         "policy": {
             "perceptualCandidatesRequireExplicitDecision": True,
+            "unknownWatermarkRequiresUpstreamAudit": True,
+            "watermarkedIncomingPromoted": 0,
             "sourceFilesModified": 0,
             "destructiveDeletes": 0,
         },
@@ -204,6 +247,7 @@ def resolve_gallery_merge(
         "promotions": promotions,
         "keptExisting": kept_existing,
         "skippedExact": skipped_exact,
+        "rejectedWatermarked": rejected_watermarked,
     }
 
 
