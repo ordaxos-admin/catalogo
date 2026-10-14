@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-003-media.jsonl",
+  "expectedProducts": 1,
+  "expectedImages": 5,
+  "products": [
+    {
+      "productId": 12095,
+      "displayName": "Yoruichi Shihōin 2",
+      "publicModelKey": "yoruichi-shihoin-2",
+      "sourceFolders": ["Animes & Desenhos", "Animes", "Bleach", "Yoruichi Shihōin 2"],
+      "expectedImages": 5,
+      "expectedIdentityKey": "Animes & Desenhos / Animes / Bleach / Yoruichi Shihōin 2 / yoruichi-shihoin-2",
+      "expectedModelId": "mdl_7caa86c9c8b81279cede",
+      "expectedSlug": "bleach-yoruichi-shihoin-2",
+      "expectedCode": "TS-7CAA86C9C8B8"
+    }
+  ]
+}
