@@ -518,6 +518,19 @@ export function CatalogHome({ catalog, searchInputRef, favorites, quoteList, onO
             )}
           </section>
 
+          <section className="storefront-commandbar" aria-label="Acesso rápido ao catálogo">
+            <div className="storefront-commandbar__stats">
+              <span><strong>{formatter.format(catalogTotal)}</strong><small>modelos</small></span>
+              <span><strong>{formatter.format(catalog.franchises.length)}</strong><small>franquias carregadas</small></span>
+              <span><strong>{formatter.format(publicCategories.length)}</strong><small>categorias</small></span>
+            </div>
+            <div className="storefront-commandbar__actions">
+              <button type="button" onClick={showCatalogPage}><Icon name="grid" /> Ver catálogo completo</button>
+              <button type="button" onClick={onOpenUpdates}><Icon name="clock" /> Recém adicionados</button>
+              <button type="button" className="is-primary" onClick={onOpenQuote}><Icon name="layers" /> Minha lista <b>{quoteList.length}</b></button>
+            </div>
+          </section>
+
           <div className="storefront-filterbar" role="group" aria-label="Categorias do catálogo">
             <div className="storefront-filterbar__rail">
               {catalog.categories.slice(0, 12).map((item) => <button type="button" key={item.id} className={catalog.category === item.id ? 'is-active' : ''} aria-pressed={catalog.category === item.id} onClick={() => selectCategory(item.id)}>{item.label}</button>)}
