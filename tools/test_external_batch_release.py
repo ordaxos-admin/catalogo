@@ -112,10 +112,10 @@ class NewOnlyPublisherTests(unittest.TestCase):
 
 class R2ReleaseVerificationTests(unittest.TestCase):
     class Response:
-        status = 200
-
-        def __init__(self, payload: bytes) -> None:
+        def __init__(self, payload: bytes, status: int = 200, headers: dict[str, str] | None = None) -> None:
             self.payload = payload
+            self.status = status
+            self.headers = headers or {}
 
         def __enter__(self):
             return self
@@ -139,6 +139,27 @@ class R2ReleaseVerificationTests(unittest.TestCase):
         request = urlopen.call_args.args[0]
         self.assertEqual(request.full_url, "https://catalog.example/media/mdl_1/img/card.webp")
         self.assertNotIn("/media/media/", request.full_url)
+
+    def test_gateway_accepts_206_only_when_range_covers_entire_object(self) -> None:
+        payload = b"media-bytes"
+        headers = {"Content-Range": f"bytes 0-{len(payload) - 1}/{len(payload)}"}
+        with patch(
+            "publish_r2_wrangler.urllib.request.urlopen",
+            return_value=self.Response(payload, status=206, headers=headers),
+        ):
+            self.assertEqual(
+                fetch_gateway("https://catalog.example", "media/mdl_1/img/card.webp"),
+                payload,
+            )
+
+    def test_gateway_rejects_partial_206(self) -> None:
+        payload = b"media"
+        with patch(
+            "publish_r2_wrangler.urllib.request.urlopen",
+            return_value=self.Response(payload, status=206, headers={"Content-Range": "bytes 0-4/10"}),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "não cobre objeto inteiro"):
+                fetch_gateway("https://catalog.example", "media/mdl_1/img/card.webp")
 
     def test_gateway_rejects_non_public_gallery_key(self) -> None:
         with self.assertRaisesRegex(RuntimeError, "chave não pública"):
