@@ -2,7 +2,7 @@
 
 > **SSOT de continuidade.** Leia este arquivo antes de continuar o projeto em outra conversa, máquina ou sessão.
 >
-> Atualizado em **2026-10-14**. Este arquivo registra somente o estado operacional necessario para a proxima execucao. Historico detalhado pertence aos runbooks e documentos de migracao; nao acumular aqui gates encerrados, PRs antigas ou bloqueios expirados.
+> Atualizado em **2026-10-11**. Este arquivo registra somente o estado operacional necessário para a próxima execução. Histórico detalhado pertence aos runbooks e documentos de migração; não acumular aqui gates encerrados, PRs antigas ou bloqueios expirados.
 
 ## Autoridade
 
@@ -190,39 +190,6 @@ O catálogo mestre operacional permanece fora do repositório público. Antes de
 `config/public-catalog-roots.json` é a fronteira pública canônica. Não voltar a auditar conteúdo privado/referência como catálogo publicável.
 
 Não reiniciar SHA V4 por conveniência. Reaproveitar hashes válidos e migrar/revalidar estado existente.
-
-## Workstream ativo — STLForge.cl / acervo físico externo
-
-Em **2026-10-13** foi iniciado um workstream isolado para materializar no computador a mídia pública exposta pela WooCommerce Store API de `stlforge.cl`, sem alterar produção.
-
-- branch: `ingest/stlforge-physical-archive-20261013`;
-- worktree: `C:\Users\TONECOS\Apps\VisualAgentLab\catalogo-stlforge-ingest`;
-- aquisição operacional fora do Git: `C:\Users\TONECOS\Documents\catalogo\.external-acquisition\stlforge-cl`;
-- produção atual permanece servindo sem depender desse processo;
-- `productionWrites=0` e `canonicalCatalogMutations=0` durante a aquisição;
-- somente metadados e imagens públicas são materializados; nenhum STL/arquivo pago entra nesse fluxo;
-- cada produto/imagem preserva IDs da origem, URL e SHA-256 local;
-- promoção será incremental após reconciliação explícita de identidade/galeria;
-- checkpoint 2026-10-14: 1.626 produtos brutos / 12.535 referências, 1.625 produtos normalizados / 12.486 imagens;
-- 36 URLs duplicadas de galeria foram saneadas no export operacional; 0 conflitos `image.id -> URL`;
-- Master Vault `product:27152` permanece preservado no staging, mas fora da fila de modelos individuais;
-- normalização atual: 1.307 `readyForMaterialization` e 318 `requiresReview`;
-- o cache físico legado chegou a ~9,071 GiB e provou que o notebook não deve ser o arquivo definitivo dessa fonte;
-- arquitetura atual usa bucket privado `tonecos-catalogo-staging`, separado do bucket público/canônico `tonecos-catalogo-media`;
-- objetos staged são content-addressed por SHA-256 em `stlforge-cl/sha256/<prefix>/<sha256>.<ext>`;
-- o transfer de staging remove cache local somente depois de `PUT` validado + `HEAD` remoto com hash/tamanho iguais e evento `remoteVerified` duravelmente anexado;
-- `tools/staging_checkpoint.py` e o SSOT versionado: baseline legado `staging-offload-state.json` somente leitura + `staging-offload-journal.jsonl` append-only com `fsync` + `staging-offload.lock` exclusivo;
-- causa raiz comprovada do antigo `WinError 5`: o processo Node.js do Desktop Commander mantinha handle de leitura no baseline; retries de `os.replace` nao corrigem esse contrato do Windows;
-- `stream -> staging` usa o mesmo journal/lease e foi revalidado com 1 upload real, `localWrites=0`, 0 erros;
-- `acquire.py` le baseline+journal, reconhece todos os `remoteVerified` e mantem piso de 15 GiB livres para impedir regressao de armazenamento;
-- `Revisao/STLForge.cl` agora é somente índice de metadata `REVIEW_ONLY_NOT_PUBLIC`, sem hardlinks/cópias de mídia;
-- Worker temporário `catalog-staging-uploader` é restrito ao IP operacional, valida SHA-256 e deve ser removido/desativado ao final da migração;
-- checkpoint pos-gate: 1.453 objetos `remoteVerified`, journal com 245 eventos, cache local 5.423 arquivos / 3,309 GiB, C: com 21,004 GiB livres e 0 imagens em `Revisao`;
-- lote de reconciliacao 001: 10 identidades resolvidas para modelos existentes; 60/60 imagens auditadas como `watermarked`, `promotable=0`, 0 writes publicos;
-- PR draft de handoff: #174;
-- upload para staging não publica nada: promoção segue incremental após reconciliação explícita, qualidade/watermark e delta aprovado.
-
-Runbook: `docs/operations/STLFORGE-PHYSICAL-ARCHIVE-2026-10-13.md`.
 
 ## Próxima sequência de conteúdo
 
