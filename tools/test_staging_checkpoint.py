@@ -13,13 +13,13 @@ import staging_checkpoint as checkpoint
 
 def row(sha: str) -> dict:
     return {
-        "sourceId": "stlforge-cl",
+        "sourceId": "external-source-001",
         "productId": 1,
         "imageIdentity": sha[:8],
         "sourceUrl": "https://example.invalid/image.jpg",
         "size": 123,
         "sha256": sha,
-        "remoteKey": f"stlforge-cl/sha256/{sha[:2]}/{sha}.jpg",
+        "remoteKey": f"external-source-001/sha256/{sha[:2]}/{sha}.jpg",
         "remoteVerified": True,
         "verifiedAtUnix": 1,
     }
