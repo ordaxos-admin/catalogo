@@ -4,6 +4,8 @@
 This publisher is intentionally narrower than publish_d1.py. It never treats an
 incomplete candidate set as a catalog snapshot, never retires or updates an
 existing model, and commits the complete small delta in one D1 batch transaction.
+Dry-run preflight is idempotent: an already released batch is accepted only when
+its complete model and image-identity contracts still match production exactly.
 """
 from __future__ import annotations
 
@@ -24,6 +26,7 @@ from publish_d1 import (
     request_batch,
     require_env,
     validate_production_compatibility,
+    validate_production_image_identity,
 )
 from publish_r2 import default_state, discover
 
@@ -87,6 +90,30 @@ def validate_new_only(rows: list[dict[str, Any]], production_rows: list[dict[str
     return summary
 
 
+def validate_released_preflight(
+    rows: list[dict[str, Any]],
+    production_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Accept read-only preflight only for an exact, complete prior release."""
+    summary = validate_production_compatibility(rows, production_rows)
+    exact = (
+        summary.get("candidateModels") == len(rows)
+        and summary.get("existingModels") == len(rows)
+        and summary.get("newModels") == 0
+        and summary.get("productionMatches") == len(rows)
+        and summary.get("expandedGalleries") == 0
+        and summary.get("changedSameCountGalleries") == 0
+        and summary.get("reducedGalleries") == 0
+        and summary.get("unchangedGalleries") == len(rows)
+    )
+    if not exact:
+        raise RuntimeError(
+            "preflight encontrou publicação parcial ou divergente; "
+            f"não é seguro tratar como lote já publicado: {summary}"
+        )
+    return summary
+
+
 def validate_sha_new_only(production_sha_rows: list[dict[str, Any]]) -> dict[str, Any]:
     if production_sha_rows:
         sample = sorted(
@@ -100,6 +127,23 @@ def validate_sha_new_only(production_sha_rows: list[dict[str, Any]]) -> dict[str
             f"delta new-only reutiliza {len(sample)} SHA(s) já publicados: {sample[:5]}"
         )
     return {"ready": True, "productionShaMatches": 0}
+
+
+def validate_released_sha_preflight(
+    sources: list[dict[str, Any]],
+    production_sha_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Require every candidate SHA to resolve to the same effective model."""
+    summary = validate_production_image_identity(sources, production_sha_rows)
+    if (
+        summary.get("historicalMatches") != len(sources)
+        or summary.get("approvedLegacyGalleryMoves") != 0
+    ):
+        raise RuntimeError(
+            "índice SHA do lote já publicado está incompleto ou depende de remapeamento: "
+            f"{summary}"
+        )
+    return {**summary, "productionShaMatches": len(production_sha_rows)}
 
 
 def load_r2_proof(path: Path) -> dict[str, Any]:
@@ -167,16 +211,30 @@ def main() -> int:
         token = require_env("CLOUDFLARE_API_TOKEN")
 
         production_rows = fetch_production_matches(account_id, database_id, token, rows)
-        compatibility = validate_new_only(rows, production_rows)
+        if args.apply:
+            release_state = "new"
+            compatibility = validate_new_only(rows, production_rows)
+        elif production_rows:
+            release_state = "already-released"
+            compatibility = validate_released_preflight(rows, production_rows)
+        else:
+            release_state = "new"
+            compatibility = validate_new_only(rows, production_rows)
+
         sources = candidate_image_sources(args.models, rows)
         production_sha_rows = fetch_production_sha_matches(account_id, database_id, token, sources)
-        sha_gate = validate_sha_new_only(production_sha_rows)
+        if args.apply or release_state == "new":
+            sha_gate = validate_sha_new_only(production_sha_rows)
+        else:
+            sha_gate = validate_released_sha_preflight(sources, production_sha_rows)
+
         transaction = build_transaction(rows, args.models)
         model_statements = len(new_only_statements(rows))
         image_statements = len(transaction) - model_statements
 
         summary: dict[str, Any] = {
             "mode": "new-only",
+            "releaseState": release_state,
             "models": len(rows),
             "images": len(sources),
             "productionCompatibility": compatibility,
