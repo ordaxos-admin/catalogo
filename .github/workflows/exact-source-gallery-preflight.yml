@@ -12,6 +12,7 @@ on:
       - 'tools/resolve_gallery_merge.py'
       - 'tools/build_gallery_promotion_manifest.py'
       - 'tools/media_quality_policy.py'
+      - 'docs/evidence/external-source-001-artemis-preflight-2026-10-15.json'
       - 'docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json'
       - 'config/external-sources/external-source-001.json'
       - 'wrangler.jsonc'
