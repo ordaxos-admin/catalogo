@@ -66,12 +66,14 @@ def save_state(path: Path, state: dict[str, Any]) -> None:
 
 def summarize_product(product: dict[str, Any], images: list[dict[str, Any]]) -> dict[str, Any]:
     staged = [row for row in images if row["stagingVerified"]]
+    review_only = [row for row in images if row.get("reviewOnly") is True]
     return {
         "productId": int(product.get("id") or 0), "productName": str(product.get("name") or ""),
         "slug": str(product.get("slug") or ""),
         "brands": [str(row.get("name") or "") for row in (product.get("brands") or []) if row.get("name")],
         "categories": [str(row.get("name") or "") for row in (product.get("categories") or []) if row.get("name")],
         "sourceImageCount": len(images), "stagedImageCount": len(staged),
+        "reviewOnlyImageCount": len(review_only),
         "stagingCoverage": f"{len(staged)}/{len(images)}",
         "completeStaging": bool(images) and len(staged) == len(images), "images": images,
     }
@@ -114,6 +116,23 @@ def fetch_source_size(url: str, timeout: int = 30) -> int | None:
             return size if size > 0 else None
     except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, ValueError):
         return None
+
+
+def oversized_review_row(
+    image: dict[str, Any], position: int, source_path: str, extension: str,
+    *, known_size: int | None,
+) -> dict[str, Any]:
+    return {
+        "sourceImageId": str(image.get("id") or position), "position": position,
+        "sourcePath": source_path, "extension": extension, "sha256": None,
+        "bytes": known_size, "stagingKey": None, "stagingVerified": False,
+        "reviewOnly": True,
+        "hashSkippedReason": (
+            "source_exceeds_max_image_bytes"
+            if known_size is not None
+            else "source_exceeds_max_image_bytes_unknown_length"
+        ),
+    }
 
 
 def scan_page(
@@ -163,6 +182,12 @@ def scan_page(
                 known_size = fetch_size(source_url) if fetch_size is not None else None
                 eligible_sizes = staged_sizes.get(extension, set())
 
+                if known_size is not None and known_size > max_image_bytes:
+                    rows.append(oversized_review_row(
+                        image, position, source_path, extension, known_size=known_size,
+                    ))
+                    continue
+
                 if known_size is not None and known_size not in eligible_sizes:
                     rows.append({
                         "sourceImageId": str(image.get("id") or position), "position": position,
@@ -177,7 +202,15 @@ def scan_page(
                     break
 
                 target = temp_root / str(product_id) / f"{position:03d}.{extension}"
-                sha256, size = fetch_image(source_url, target, max_image_bytes)
+                try:
+                    sha256, size = fetch_image(source_url, target, max_image_bytes)
+                except RuntimeError as exc:
+                    if known_size is None and "imagem excede limite individual de" in str(exc):
+                        rows.append(oversized_review_row(
+                            image, position, source_path, extension, known_size=None,
+                        ))
+                        continue
+                    raise
                 if bytes_hashed + size > remaining_bytes:
                     bounded_stop = True
                     break
