@@ -1,0 +1,109 @@
+{
+  "version": 1,
+  "sourceId": "external-source-001",
+  "reviewType": "gallery_anchor",
+  "targetModelId": "mdl_7787007353a58149dca9",
+  "targetSlug": "standalone-laura-the-detective-diorama-standalone-principal",
+  "targetName": "Laura",
+  "identityState": "map_existing_reviewed_not_promoted",
+  "identityEvidence": {
+    "exactProductionCoverSha": true,
+    "coverSha256": "8d7e06990f56ef4b47582d7d696a7750dd5997ed5d82bbf60664e9886e85566e",
+    "sourcePagePath": "/producto/laura-the-detective-diorama-standalone/",
+    "creator": "Nerikson",
+    "creatorEvidence": [
+      {
+        "kind": "official_model_page",
+        "url": "https://www.nerikson.com/model/laura-the-detective-diorama-71"
+      }
+    ]
+  },
+  "sourceGallery": {
+    "originalRenders": 6,
+    "stagedOriginalRenders": 4,
+    "missingFromStaging": 2,
+    "stagingCoverageComplete": false
+  },
+  "productionOwnership": {
+    "exactCoverOwner": "mdl_7787007353a58149dca9",
+    "otherCandidateOwners": 0
+  },
+  "candidates": [
+    {
+      "position": 1,
+      "sourceRole": "diorama_render",
+      "sha256": "8d7e06990f56ef4b47582d7d696a7750dd5997ed5d82bbf60664e9886e85566e",
+      "bytes": 2491364,
+      "stagingVerified": true,
+      "productionOwners": 1,
+      "watermarkStatus": "legacy_accepted",
+      "promotable": false,
+      "reason": "exact_production_cover_skip_duplicate"
+    },
+    {
+      "position": 2,
+      "sourceRole": "diorama_render",
+      "sha256": "2d51906c01f4c0c3d70c357fc3ce8982312688fd8b8c9c007e0bbffd79196d2f",
+      "bytes": 2530744,
+      "stagingVerified": true,
+      "productionOwners": 0,
+      "watermarkStatus": "clear",
+      "watermarkReviewMethod": "browser_rendering_visual",
+      "promotable": true,
+      "reason": "visual_audit_clear"
+    },
+    {
+      "position": 3,
+      "sourceRole": "diorama_render",
+      "sha256": "db9298f1e0a67b38802a0143a45643e89e1c93181857d8bc742ce6d50eb9f148",
+      "bytes": 2561158,
+      "stagingVerified": true,
+      "productionOwners": 0,
+      "watermarkStatus": "clear",
+      "watermarkReviewMethod": "browser_rendering_visual",
+      "promotable": true,
+      "reason": "visual_audit_clear"
+    },
+    {
+      "position": 4,
+      "sourceRole": "standalone_render",
+      "sha256": "4bd9073d628e889f1f590765ce50b6a9bf689073c39d1d43c559ddf4c864e6cd",
+      "bytes": 2218078,
+      "stagingVerified": false,
+      "productionOwners": 0,
+      "watermarkStatus": "unknown",
+      "promotable": false,
+      "reason": "not_staged"
+    },
+    {
+      "position": 5,
+      "sourceRole": "standalone_render",
+      "sha256": "f85090f8b0adb954213ab0f47b3a747fcf94fac805d30babc5672bf883ff0191",
+      "bytes": 2271548,
+      "stagingVerified": false,
+      "productionOwners": 0,
+      "watermarkStatus": "unknown",
+      "promotable": false,
+      "reason": "not_staged"
+    },
+    {
+      "position": 6,
+      "sourceRole": "standalone_render",
+      "sha256": "13051ef48863c220c1a99097251771963232b479f3d473e40c6ee724d24f8da1",
+      "bytes": 2335236,
+      "stagingVerified": true,
+      "productionOwners": 0,
+      "watermarkStatus": "clear",
+      "watermarkReviewMethod": "browser_rendering_visual",
+      "promotable": true,
+      "reason": "visual_audit_clear"
+    }
+  ],
+  "decision": {
+    "identityDecision": "map_existing",
+    "mapExistingApproved": true,
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "nextGate": "complete_source_gallery_staging_then_revalidate_all_source_shas"
+  }
+}
