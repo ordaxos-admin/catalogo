@@ -6,7 +6,8 @@ import unittest
 from pathlib import Path
 
 from index_external_staging_products import (
-    empty_state, load_state, scan_page, save_state, summarize_product,
+    empty_state, inventory_sizes_by_extension, load_state, scan_page, save_state,
+    summarize_product,
 )
 
 
@@ -50,6 +51,75 @@ class StagedProductIndexerTests(unittest.TestCase):
         self.assertEqual(returned, 1)
         self.assertEqual(matched[0]["stagingCoverage"], "1/2")
         self.assertFalse(matched[0]["completeStaging"])
+
+    def test_size_prefilter_skips_impossible_hash_without_hiding_gallery_member(self):
+        sha = "a" * 64
+        inventory = {f"src/sha256/aa/{sha}.webp": 10}
+        products = [{"id": 8, "name": "Prefiltered", "images": [
+            {"id": 1, "src": "https://example.com/match.webp"},
+            {"id": 2, "src": "https://example.com/impossible.webp"},
+        ]}]
+        sizes = {
+            "https://example.com/match.webp": 10,
+            "https://example.com/impossible.webp": 999,
+        }
+        fetched: list[str] = []
+
+        def fetch_image(url, _path, _limit):
+            fetched.append(url)
+            return sha, 10
+
+        matched, returned, count, total, stopped = scan_page(
+            origin="https://example.com", page=2, per_page=20, inventory=inventory,
+            staging_prefix="src", max_image_bytes=1000, remaining_bytes=1000,
+            fetch_products=lambda _url: products,
+            fetch_image=fetch_image,
+            fetch_size=lambda url: sizes[url],
+        )
+        self.assertEqual(returned, 1)
+        self.assertEqual(fetched, ["https://example.com/match.webp"])
+        self.assertEqual(count, 1)
+        self.assertEqual(total, 10)
+        self.assertFalse(stopped)
+        self.assertEqual(matched[0]["stagingCoverage"], "1/2")
+        skipped = matched[0]["images"][1]
+        self.assertIsNone(skipped["sha256"])
+        self.assertEqual(skipped["bytes"], 999)
+        self.assertEqual(skipped["hashSkippedReason"], "size_not_present_in_staging")
+
+    def test_unknown_size_falls_back_to_full_hash(self):
+        sha = "d" * 64
+        inventory = {f"src/sha256/dd/{sha}.webp": 15}
+        products = [{"id": 9, "name": "Fallback", "images": [
+            {"id": 1, "src": "https://example.com/fallback.webp"},
+        ]}]
+        fetched: list[str] = []
+
+        def fetch_image(url, _path, _limit):
+            fetched.append(url)
+            return sha, 15
+
+        matched, returned, count, total, stopped = scan_page(
+            origin="https://example.com", page=2, per_page=20, inventory=inventory,
+            staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
+            fetch_products=lambda _url: products,
+            fetch_image=fetch_image,
+            fetch_size=lambda _url: None,
+        )
+        self.assertEqual(fetched, ["https://example.com/fallback.webp"])
+        self.assertEqual((returned, count, total, stopped), (1, 1, 15, False))
+        self.assertTrue(matched[0]["completeStaging"])
+
+    def test_inventory_size_filter_is_extension_specific(self):
+        sha_a, sha_b = "a" * 64, "b" * 64
+        sizes = inventory_sizes_by_extension({
+            f"src/sha256/aa/{sha_a}.webp": 100,
+            f"src/sha256/bb/{sha_b}.jpg": 200,
+            "src/sha256/cc/ignored.jpeg": 300,
+            "src/sha256/dd/zero.webp": 0,
+        })
+        self.assertEqual(sizes["webp"], {100})
+        self.assertEqual(sizes["jpg"], {200, 300})
 
     def test_byte_bound_stops_before_committing_partial_product(self):
         sha = "a" * 64
