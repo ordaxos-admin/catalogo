@@ -135,7 +135,13 @@ WHERE m.id=? ORDER BY s.position""",
     if not rows:
         raise RuntimeError("modelo alvo sem índice SHA atual")
     model = rows[0]
-    cover_rows = [row for row in rows if int(row.get("position") or -1) == 0 and row.get("role") == "cover"]
+    cover_rows = [
+        row
+        for row in rows
+        if row.get("position") is not None
+        and int(row["position"]) == 0
+        and row.get("role") == "cover"
+    ]
     if len(cover_rows) != 1:
         raise RuntimeError("modelo alvo sem âncora de capa única")
     return {**model, "source_sha256": cover_rows[0]["source_sha256"]}
