@@ -1,0 +1,114 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13210,
+  "sourceProductKey": "external-source-001:product:13210",
+  "incomingModel": "external-source-001 / product:13210",
+  "sourcePage": "https://stlforge.cl/producto/momo-ayase-stl-8-extras-dandadan/",
+  "sourceApi": "https://stlforge.cl/wp-json/wc/store/v1/products/13210",
+  "targetModelId": "mdl_a0260baa442770c09f14",
+  "targetSlug": "dandadan-momo-ayase-com-maos-psiquicas",
+  "sourceGallery": {
+    "imageCount": 7,
+    "providerImageIdsRecovered": 7,
+    "stagedOriginalRenders": 6,
+    "missingFromStaging": 1,
+    "stagingCoverageComplete": false
+  },
+  "images": [
+    {
+      "position": 1,
+      "providerImageId": 19354,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/9-scaled-1.webp",
+      "sourceName": "Momo Ayase STL",
+      "sourceAlt": "Momo Ayase STL Cover",
+      "sha256": "67310ee14e22341ec572f6a311669e5a710c1c34c4814368169d3482fe31be95",
+      "bytes": 546858,
+      "stagingVerified": false,
+      "stagingPrefixLookupObjects": 0,
+      "watermarkStatus": "unknown",
+      "promotable": false,
+      "reason": "not_staged"
+    },
+    {
+      "position": 2,
+      "providerImageId": 13218,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/1-2-scaled.webp",
+      "sourceName": "1 (2)",
+      "sha256": "65fcbb7ff77aee96d4028c20ab3cba5eb24c6233f34db3e3984dabb9797b9400",
+      "bytes": 3568308,
+      "stagingVerified": true,
+      "watermarkStatus": "legacy_accepted",
+      "promotable": false,
+      "reason": "exact_production_cover_skip_duplicate"
+    },
+    {
+      "position": 3,
+      "providerImageId": 13217,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/5-scaled.webp",
+      "sourceName": "5",
+      "sha256": "db07c301bd0b5e57494f0573a0cc705fc6b2915a7d32abf1681f1c10688c5039",
+      "bytes": 3235316,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotable": false,
+      "reason": "third_party_promotional_branding"
+    },
+    {
+      "position": 4,
+      "providerImageId": 13216,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/7-1-scaled.webp",
+      "sourceName": "7 (1)",
+      "sha256": "0cf3a3b0f19fcbd12f57b74ec433691f10086df21d11ee3df6e1be90c0280926",
+      "bytes": 3164910,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotable": false,
+      "reason": "third_party_promotional_branding"
+    },
+    {
+      "position": 5,
+      "providerImageId": 13215,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/17-scaled.webp",
+      "sourceName": "17",
+      "sha256": "4ae60dd44dc2ece968cd64b0cafe691d31dd116d4b422530046dbf615670d0a5",
+      "bytes": 2617058,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotable": false,
+      "reason": "third_party_promotional_branding"
+    },
+    {
+      "position": 6,
+      "providerImageId": 13214,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/19-scaled.webp",
+      "sourceName": "19",
+      "sha256": "b53c4f02b69a7547a3a9a0b00017d1b91cc1d038a3e771cfb981440d345f348a",
+      "bytes": 2649446,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotable": false,
+      "reason": "third_party_promotional_branding"
+    },
+    {
+      "position": 7,
+      "providerImageId": 13213,
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2025/06/16-scaled.webp",
+      "sourceName": "16",
+      "sha256": "0022a51006c9b3c7a8303584cf86275c08c0fd26a88c9cca1546c155ab758aa4",
+      "bytes": 3149162,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotable": false,
+      "reason": "third_party_promotional_branding"
+    }
+  ],
+  "decision": {
+    "identityDecision": "map_existing",
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "reason": "source gallery remains incomplete in staging; five staged extras are independently blocked by unrelated third-party promotional branding",
+    "nextGate": "stage and visually audit only provider image 19354; do not revisit or promote the five already-blocked extras unless their exact source bytes change"
+  }
+}
