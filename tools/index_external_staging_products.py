@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Build a resumable reverse index from private staged SHA-256 objects to source products.
 
-Read-only by design: the tool lists staging, reads the public Store API and hashes
-source images. It never writes R2/D1 and never authorizes publication. Only products
-with at least one exact staged SHA are retained in the checkpoint/report.
+Read-only by design: lists staging, reads the public Store API and hashes source
+images. It never writes R2/D1 and never authorizes publication. Only products
+with at least one exact staged SHA are retained in checkpoint/report.
 """
 from __future__ import annotations
 
@@ -16,14 +16,8 @@ from pathlib import Path
 from typing import Any, Callable
 
 from discover_external_staging_candidates import (
-    decode_b64_text,
-    extension_from_path,
-    fetch_source_image,
-    list_staging_inventory,
-    load_json,
-    request_json,
-    safe_source_path,
-    staging_key,
+    decode_b64_text, extension_from_path, fetch_source_image,
+    list_staging_inventory, load_json, request_json, safe_source_path, staging_key,
 )
 
 STATE_VERSION = 1
@@ -31,16 +25,10 @@ STATE_VERSION = 1
 
 def empty_state(source_id: str, staging_objects: int) -> dict[str, Any]:
     return {
-        "version": STATE_VERSION,
-        "sourceId": source_id,
-        "stagingInventoryObjects": staging_objects,
-        "pagesCompleted": [],
-        "productsScanned": 0,
-        "imagesHashed": 0,
-        "sourceBytesHashed": 0,
-        "matchedProducts": {},
-        "productionWrites": 0,
-        "stagingWrites": 0,
+        "version": STATE_VERSION, "sourceId": source_id,
+        "stagingInventoryObjects": staging_objects, "pagesCompleted": [],
+        "productsScanned": 0, "imagesHashed": 0, "sourceBytesHashed": 0,
+        "matchedProducts": {}, "productionWrites": 0, "stagingWrites": 0,
     }
 
 
@@ -62,47 +50,37 @@ def load_state(path: Path, source_id: str, staging_objects: int) -> dict[str, An
 
 def save_state(path: Path, state: dict[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
-    temporary = path.with_suffix(path.suffix + ".tmp")
-    temporary.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    temporary.replace(path)
+    temp = path.with_suffix(path.suffix + ".tmp")
+    temp.write_text(json.dumps(state, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    temp.replace(path)
 
 
 def summarize_product(product: dict[str, Any], images: list[dict[str, Any]]) -> dict[str, Any]:
     staged = [row for row in images if row["stagingVerified"]]
     return {
-        "productId": int(product.get("id") or 0),
-        "productName": str(product.get("name") or ""),
+        "productId": int(product.get("id") or 0), "productName": str(product.get("name") or ""),
         "slug": str(product.get("slug") or ""),
         "brands": [str(row.get("name") or "") for row in (product.get("brands") or []) if row.get("name")],
         "categories": [str(row.get("name") or "") for row in (product.get("categories") or []) if row.get("name")],
-        "sourceImageCount": len(images),
-        "stagedImageCount": len(staged),
+        "sourceImageCount": len(images), "stagedImageCount": len(staged),
         "stagingCoverage": f"{len(staged)}/{len(images)}",
-        "completeStaging": bool(images) and len(staged) == len(images),
-        "images": images,
+        "completeStaging": bool(images) and len(staged) == len(images), "images": images,
     }
 
 
 def scan_page(
-    *,
-    origin: str,
-    page: int,
-    per_page: int,
-    inventory: dict[str, int],
-    staging_prefix: str,
-    max_image_bytes: int,
-    remaining_bytes: int,
+    *, origin: str, page: int, per_page: int, inventory: dict[str, int],
+    staging_prefix: str, max_image_bytes: int, remaining_bytes: int,
     fetch_products: Callable[[str], Any] = request_json,
     fetch_image: Callable[[str, Path, int], tuple[str, int]] = fetch_source_image,
-) -> tuple[list[dict[str, Any]], int, int, bool]:
+) -> tuple[list[dict[str, Any]], int, int, int, bool]:
     query = urllib.parse.urlencode({"per_page": per_page, "page": page})
     products = fetch_products(origin.rstrip("/") + "/wp-json/wc/store/v1/products?" + query)
     if not isinstance(products, list):
         raise RuntimeError("Store API não retornou lista")
-
+    products_returned = len(products)
     matched: list[dict[str, Any]] = []
-    images_hashed = 0
-    bytes_hashed = 0
+    images_hashed = bytes_hashed = 0
     bounded_stop = False
     with tempfile.TemporaryDirectory(prefix=f"staging-product-index-{page}-") as temp_dir:
         temp_root = Path(temp_dir)
@@ -126,20 +104,16 @@ def scan_page(
                 key = staging_key(staging_prefix, sha256, extension)
                 staged_size = inventory.get(key)
                 rows.append({
-                    "sourceImageId": str(image.get("id") or position),
-                    "position": position,
-                    "sourcePath": source_path,
-                    "extension": extension,
-                    "sha256": sha256,
-                    "bytes": size,
-                    "stagingKey": key if staged_size == size else None,
+                    "sourceImageId": str(image.get("id") or position), "position": position,
+                    "sourcePath": source_path, "extension": extension, "sha256": sha256,
+                    "bytes": size, "stagingKey": key if staged_size == size else None,
                     "stagingVerified": staged_size == size,
                 })
             if bounded_stop:
                 break
             if any(row["stagingVerified"] for row in rows):
                 matched.append(summarize_product(product, rows))
-    return matched, images_hashed, bytes_hashed, bounded_stop
+    return matched, products_returned, images_hashed, bytes_hashed, bounded_stop
 
 
 def build_index(args: argparse.Namespace) -> dict[str, Any]:
@@ -150,14 +124,13 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
     bucket = str(descriptor.get("stagingBucket") or "").strip()
     if not source_id or not bucket:
         raise RuntimeError("descriptor sem sourceId/stagingBucket")
-
     account_id = str(os.environ.get("CLOUDFLARE_ACCOUNT_ID") or "").strip()
     token = str(os.environ.get("CLOUDFLARE_API_TOKEN") or "").strip()
     if not account_id or not token:
         raise RuntimeError("bindings Cloudflare ausentes")
 
-    start_page = max(1, int(args.start_page))
-    end_page = max(start_page, int(args.end_page))
+    start_page, end_page = max(1, int(args.start_page)), max(1, int(args.end_page))
+    end_page = max(start_page, end_page)
     if end_page - start_page + 1 > int(args.max_pages):
         raise RuntimeError("intervalo excede --max-pages")
     per_page = min(max(int(args.per_page), 1), 20)
@@ -169,7 +142,6 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
     checkpoint = Path(args.checkpoint)
     state = load_state(checkpoint, source_id, len(inventory))
     completed = {int(page) for page in state["pagesCompleted"]}
-
     for page in range(start_page, end_page + 1):
         if page in completed:
             continue
@@ -177,18 +149,13 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
         if remaining <= 0:
             state["boundedStop"] = "max_total_bytes"
             break
-        matched, image_count, byte_count, stopped = scan_page(
-            origin=origin,
-            page=page,
-            per_page=per_page,
-            inventory=inventory,
-            staging_prefix=prefix,
-            max_image_bytes=int(args.max_image_bytes),
-            remaining_bytes=remaining,
+        matched, products_returned, image_count, byte_count, stopped = scan_page(
+            origin=origin, page=page, per_page=per_page, inventory=inventory,
+            staging_prefix=prefix, max_image_bytes=int(args.max_image_bytes), remaining_bytes=remaining,
         )
+        state["productsScanned"] += products_returned
         state["imagesHashed"] += image_count
         state["sourceBytesHashed"] += byte_count
-        state["productsScanned"] += per_page
         for product in matched:
             state["matchedProducts"][str(product["productId"])] = product
         if stopped:
@@ -199,26 +166,23 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
         state["pagesCompleted"] = sorted({int(value) for value in state["pagesCompleted"]})
         state.pop("boundedStop", None)
         save_state(checkpoint, state)
+        if products_returned == 0:
+            state["sourceExhaustedAtPage"] = page
+            save_state(checkpoint, state)
+            break
 
-    matched_products = list(state["matchedProducts"].values())
-    matched_products.sort(key=lambda row: (not row["completeStaging"], -row["stagedImageCount"], row["productId"]))
-    report = {
-        **state,
-        "matchedProductCount": len(matched_products),
-        "completeStagingProducts": sum(1 for row in matched_products if row["completeStaging"]),
-        "products": matched_products,
-    }
+    products = list(state["matchedProducts"].values())
+    products.sort(key=lambda row: (not row["completeStaging"], -row["stagedImageCount"], row["productId"]))
+    report = {**state, "matchedProductCount": len(products),
+              "completeStagingProducts": sum(1 for row in products if row["completeStaging"]),
+              "products": products}
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({
-        "pagesCompleted": state["pagesCompleted"],
-        "matchedProducts": len(matched_products),
-        "completeStagingProducts": report["completeStagingProducts"],
-        "sourceBytesHashed": state["sourceBytesHashed"],
-        "productionWrites": 0,
-        "stagingWrites": 0,
-    }, ensure_ascii=False))
+    print(json.dumps({"pagesCompleted": state["pagesCompleted"], "productsScanned": state["productsScanned"],
+                      "matchedProducts": len(products), "completeStagingProducts": report["completeStagingProducts"],
+                      "sourceBytesHashed": state["sourceBytesHashed"], "productionWrites": 0, "stagingWrites": 0},
+                     ensure_ascii=False))
     return report
 
 
