@@ -126,6 +126,38 @@ class OversizedReverseIndexTests(unittest.TestCase):
         self.assertEqual(query["orderby"], ["id"])
         self.assertEqual(query["order"], ["asc"])
 
+    def test_unicode_source_path_is_percent_encoded_before_size_and_download(self):
+        sha = "e" * 64
+        products = [{
+            "id": 45,
+            "name": "Unicode media",
+            "images": [{"id": 1, "src": "https://example.com/uploads/ação.webp"}],
+        }]
+        requested_sizes: list[str] = []
+        downloaded: list[str] = []
+
+        def fetch_size(url):
+            requested_sizes.append(url)
+            return None
+
+        def fetch_image(url, _path, _limit):
+            downloaded.append(url)
+            return sha, 10
+
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
+            origin="https://example.com", page=1, per_page=20,
+            inventory={f"src/sha256/ee/{sha}.webp": 10},
+            staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
+            fetch_products=lambda _url: products,
+            fetch_image=fetch_image,
+            fetch_size=fetch_size,
+        )
+        expected = "https://example.com/uploads/a%C3%A7%C3%A3o.webp"
+        self.assertEqual(requested_sizes, [expected])
+        self.assertEqual(downloaded, [expected])
+        self.assertTrue(matched[0]["completeStaging"])
+        self.assertEqual((completed, returned, count, total, stopped, next_offset), (1, 1, 1, 10, False, 1))
+
 
 if __name__ == "__main__":
     unittest.main()
