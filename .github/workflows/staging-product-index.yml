@@ -6,12 +6,12 @@ on:
       start_page:
         description: First Store API page to scan
         required: true
-        default: '38'
+        default: '40'
         type: string
       end_page:
         description: Last Store API page to scan (max 10 pages per run)
         required: true
-        default: '40'
+        default: '42'
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -30,8 +30,8 @@ concurrency:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '38' }}
-  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '40' }}
+  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '40' }}
+  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '42' }}
 
 jobs:
   index:
