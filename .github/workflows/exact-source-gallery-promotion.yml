@@ -1,0 +1,140 @@
+name: Exact source gallery promotion
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/exact-source-gallery-promotion.yml'
+      - 'tools/apply_exact_source_gallery_promotion.py'
+      - 'tools/test_apply_exact_source_gallery_promotion.py'
+      - 'tools/preflight_exact_source_gallery_evidence.py'
+      - 'tools/test_preflight_exact_source_gallery_evidence.py'
+      - 'tools/apply_existing_gallery_promotion.py'
+      - 'docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json'
+      - 'docs/evidence/external-source-001-artemis-canonical-preflight-2026-10-15.json'
+      - 'config/external-sources/external-source-001.json'
+      - 'wrangler.jsonc'
+  workflow_dispatch:
+    inputs:
+      evidence:
+        description: Exact-source gallery review evidence
+        required: true
+        default: docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json
+        type: string
+      authorization:
+        description: Canonical exact-source preflight authorization
+        required: true
+        default: docs/evidence/external-source-001-artemis-canonical-preflight-2026-10-15.json
+        type: string
+      apply:
+        description: Write new R2 objects and atomically update D1
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: exact-source-gallery-promotion-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  CATALOG_API_URL: ${{ vars.CATALOG_API_URL }}
+  GALLERY_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || 'docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json' }}
+  GALLERY_AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.authorization || 'docs/evidence/external-source-001-artemis-canonical-preflight-2026-10-15.json' }}
+  APPLY_GALLERY: ${{ github.event_name == 'workflow_dispatch' && inputs.apply || false }}
+
+jobs:
+  promote:
+    name: Exact-source gallery promotion gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - name: Install ingestion dependencies
+        run: python -m pip install -r tools/requirements.txt
+      - name: Resolve D1 database binding
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::CLOUDFLARE_ACCOUNT_ID ausente'; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
+          database_id="$(node tools/read_wrangler_d1_id.mjs)"
+          test -n "$database_id" || { echo '::error::D1 database id ausente'; exit 1; }
+          echo "CLOUDFLARE_D1_DATABASE_ID=$database_id" >> "$GITHUB_ENV"
+      - name: Test exact-source promotion guards
+        working-directory: tools
+        run: >-
+          python -m unittest -v
+          test_apply_exact_source_gallery_promotion.py
+          test_preflight_exact_source_gallery_evidence.py
+          test_plan_gallery_merge.py
+          test_resolve_gallery_merge.py
+          test_build_gallery_promotion_manifest.py
+      - name: Rebuild authorization and plan exact-source production delta
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            "$GALLERY_EVIDENCE"
+            --authorization "$GALLERY_AUTHORIZATION"
+            --source-contract config/external-sources/external-source-001.json
+            --production-bucket tonecos-catalogo-media
+            --summary "$RUNNER_TEMP/exact-source-gallery-promotion-summary.json"
+          )
+          if [[ "$APPLY_GALLERY" == "true" ]]; then
+            args+=(--apply)
+          fi
+          python tools/apply_exact_source_gallery_promotion.py "${args[@]}"
+      - name: Assert exact-source promotion result
+        shell: bash
+        run: |
+          python - "$RUNNER_TEMP/exact-source-gallery-promotion-summary.json" "$APPLY_GALLERY" <<'PY'
+          import json, sys
+          from pathlib import Path
+          summary=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          applying=sys.argv[2].lower() == 'true'
+          assert summary['targetModelId'] == 'mdl_e0af8379e806a3d5b8b8'
+          assert summary['resolutionSha256'] == '0bdbcc27f01f5805fd1dba6ec6458b827f960aeadb6bef82a229edca825c8963'
+          assert summary['productionDeletes'] == 0
+          candidate=summary['candidate']
+          assert candidate['imageCount'] == 7
+          assert candidate['reusedCoverSourceSha256'] == 'd5b99bc20d2a9576af6332720c1321472e8e7541dba282fb34b61c9acc764dd2'
+          if summary['state'] != 'already_applied':
+              assert summary['before']['coverStorageKey'] == candidate['coverStorageKey']
+          if applying:
+              assert summary['state'] in {'applied_verified','already_applied'}
+          else:
+              assert summary['state'] in {'dry_run_ready','already_applied'}
+              assert summary['d1Writes'] == 0
+              if summary['state'] == 'dry_run_ready':
+                  assert summary['r2']['planned'] == 19
+                  assert summary['r2']['written'] == 0
+          print(json.dumps(summary, ensure_ascii=False))
+          PY
+      - name: Verify public catalog after apply
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CATALOG_API_URL" || { echo '::error::CATALOG_API_URL ausente'; exit 1; }
+          python tools/verify_public_catalog.py --api-base "$CATALOG_API_URL"
+      - name: Upload exact-source promotion evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: exact-source-gallery-promotion-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/exact-source-gallery-promotion-summary.json
+          if-no-files-found: error
+          retention-days: 7
