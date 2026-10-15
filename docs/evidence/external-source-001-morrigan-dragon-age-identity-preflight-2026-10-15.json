@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 36978,
+  "productName": "Morrigan STL – Dragon Age",
+  "scope": "identity_only",
+  "sourceMetadata": {
+    "franchise": "Dragon Age",
+    "franchiseEvidence": "source_catalog_category",
+    "creator": null,
+    "creatorCorroborated": false
+  },
+  "productionNameCandidates": [
+    {
+      "modelId": "mdl_a848bb44f9d98aad0fe1",
+      "name": "Morrigan",
+      "slug": "darkstalkers-morrigan",
+      "franchise": "DarkStalkers",
+      "published": true,
+      "imageCount": 1
+    }
+  ],
+  "identityReview": {
+    "decision": "new_model",
+    "reason": "same_display_name_but_different_franchise",
+    "candidateCount": 1,
+    "allCandidatesRejectedForIdentity": true,
+    "visualComparisonRequiredForRejectedCandidate": false,
+    "notes": "The only exact-name published candidate belongs to DarkStalkers, while source product 36978 is explicitly categorized as Dragon Age. They are different fictional characters sharing a display name, so name equality cannot authorize map_existing."
+  },
+  "mediaReview": {
+    "visualAuditComplete": false,
+    "watermarkStatus": "unreviewed",
+    "stagingCoverage": "unknown",
+    "promotableMedia": false
+  },
+  "decision": {
+    "newModelIdentityAuthorized": true,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "resolve creator attribution and exact source-media/staging coverage, then perform full visual watermark audit before any batch is created"
+  }
+}
