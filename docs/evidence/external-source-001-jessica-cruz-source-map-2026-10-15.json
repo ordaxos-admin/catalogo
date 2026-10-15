@@ -2,6 +2,7 @@
   "version": 1,
   "reviewedAt": "2026-10-15",
   "sourceId": "external-source-001",
+  "sourceProductId": 13612,
   "sourcePage": "https://stlforge.cl/producto/jessica-cruz-stl-dc/",
   "targetModelId": "mdl_5cb1a7c25d077cd52209",
   "targetSlug": "lanterna-verde-jessica-cruz-com-machado-de-energia-verde",
@@ -9,24 +10,35 @@
   "creator": "3Dmoonn",
   "sourceGallery": {
     "imageCount": 6,
+    "sourceImagesReviewed": 6,
+    "sourceReviewComplete": true,
     "currentHtmlStructuredDataConfirmed": true,
     "currentBytesRehashedInBrowserRendering": true,
-    "sourceChangedSincePriorAudit": false
+    "sourceChangedSincePriorAudit": false,
+    "eligiblePublicImages": 4,
+    "rejectedPublicImages": 2
   },
   "images": [
-    {"position":1,"sourcePath":"/wp-content/uploads/2025/07/5-1-scaled-1.webp","extension":"webp","sha256":"d8d8f0fe38ee58465302a96e227b879be0739bf591428bf84a40a7e5c305923e","bytes":358806,"stagingVerified":false,"reviewState":"visual_review_required"},
-    {"position":2,"sourcePath":"/wp-content/uploads/2025/07/6-1-scaled.webp","extension":"webp","sha256":"08c1a48f83889cf817bf45a88530a1c6481735b2dfe2d9d9382fa7301b904be3","bytes":2833396,"stagingVerified":true,"watermarkStatus":"clear"},
-    {"position":3,"sourcePath":"/wp-content/uploads/2025/07/1-1-scaled.webp","extension":"webp","sha256":"1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1","bytes":2751280,"stagingVerified":true,"watermarkStatus":"legacy_accepted","role":"exact_production_cover"},
-    {"position":4,"sourcePath":"/wp-content/uploads/2025/07/3-2-scaled.webp","extension":"webp","sha256":"8737fbe1be928bd199efe7e7a40eb332b179f9573f275d9dc02d785be0b6ce95","bytes":2431770,"stagingVerified":true,"watermarkStatus":"clear"},
-    {"position":5,"sourcePath":"/wp-content/uploads/2025/07/4-1-scaled.webp","extension":"webp","sha256":"621cd7aaec131756f23ac14e2feb947e63b809d245586fd5fc8890d19f3551eb","bytes":2834744,"stagingVerified":true,"watermarkStatus":"clear"},
-    {"position":6,"sourcePath":"/wp-content/uploads/2025/07/8-1-scaled.webp","extension":"webp","sha256":"c86b5cfd14f0cc96a3ae7f6f2eb34fafdd5d90251e88ec244dfc34a229560bdc","bytes":2413406,"stagingVerified":true,"watermarkStatus":"watermarked","reason":"unrelated Lychee Slicer Ambassador promotional badge"}
+    {"position":1,"sourcePath":"/wp-content/uploads/2025/07/5-1-scaled-1.webp","extension":"webp","sha256":"d8d8f0fe38ee58465302a96e227b879be0739bf591428bf84a40a7e5c305923e","bytes":358806,"width":1200,"height":1456,"stagingVerified":false,"watermarkStatus":"watermarked","reviewState":"rejected","watermarkNotes":"Legitimate 3Dmoonn creator branding/Patreon/Gumroad is present, but the same render also carries an unrelated Lychee Slicer Ambassador promotional badge.","promotable":false},
+    {"position":2,"sourcePath":"/wp-content/uploads/2025/07/6-1-scaled.webp","extension":"webp","sha256":"08c1a48f83889cf817bf45a88530a1c6481735b2dfe2d9d9382fa7301b904be3","bytes":2833396,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"clear","promotable":true},
+    {"position":3,"sourcePath":"/wp-content/uploads/2025/07/1-1-scaled.webp","extension":"webp","sha256":"1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1","bytes":2751280,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"legacy_accepted","role":"exact_production_cover","promotable":false},
+    {"position":4,"sourcePath":"/wp-content/uploads/2025/07/3-2-scaled.webp","extension":"webp","sha256":"8737fbe1be928bd199efe7e7a40eb332b179f9573f275d9dc02d785be0b6ce95","bytes":2431770,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"clear","promotable":true},
+    {"position":5,"sourcePath":"/wp-content/uploads/2025/07/4-1-scaled.webp","extension":"webp","sha256":"621cd7aaec131756f23ac14e2feb947e63b809d245586fd5fc8890d19f3551eb","bytes":2834744,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"clear","promotable":true},
+    {"position":6,"sourcePath":"/wp-content/uploads/2025/07/8-1-scaled.webp","extension":"webp","sha256":"c86b5cfd14f0cc96a3ae7f6f2eb34fafdd5d90251e88ec244dfc34a229560bdc","bytes":2413406,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"watermarked","reviewState":"rejected","watermarkNotes":"Legitimate 3Dmoonn creator attribution is present, but the render also carries an unrelated Lychee Slicer Ambassador promotional badge.","promotable":false}
   ],
-  "missingSource": {
-    "position": 1,
-    "sourcePath": "/wp-content/uploads/2025/07/5-1-scaled-1.webp",
-    "sha256": "d8d8f0fe38ee58465302a96e227b879be0739bf591428bf84a40a7e5c305923e",
-    "bytes": 358806,
-    "nextGate": "materialize exact source bytes read-only and visually classify watermark status before any staging write"
+  "missingSource": null,
+  "reviewArtifact": {
+    "workflowRunId": 38767127763,
+    "artifactId": 11990481702,
+    "artifactSha256": "84bce1e83bee15568c0b36971110350b724cdd526eaaf7ac0e22f088d0dcc5b1",
+    "reviewedSha256": "d8d8f0fe38ee58465302a96e227b879be0739bf591428bf84a40a7e5c305923e"
+  },
+  "decision": {
+    "sourceReviewComplete": true,
+    "stageRejectedMedia": false,
+    "eligibleStagingCoverage": "4/4",
+    "publicGalleryCandidates": "exact cover + 3 clean add_view",
+    "nextGate": "run canonical exact-source preflight using only eligible public media while preserving both rejected source renders as explicit exclusions"
   },
   "writes": {"production":0,"staging":0}
 }
