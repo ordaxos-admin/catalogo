@@ -11,12 +11,14 @@ import argparse
 import json
 import os
 import tempfile
+import urllib.error
 import urllib.parse
+import urllib.request
 from pathlib import Path
 from typing import Any, Callable
 
 from discover_external_staging_candidates import (
-    decode_b64_text, extension_from_path, fetch_source_image,
+    DEFAULT_USER_AGENT, decode_b64_text, extension_from_path, fetch_source_image,
     list_staging_inventory, load_json, request_json, safe_source_path, staging_key,
 )
 
@@ -68,11 +70,51 @@ def summarize_product(product: dict[str, Any], images: list[dict[str, Any]]) -> 
     }
 
 
+def inventory_sizes_by_extension(inventory: dict[str, int]) -> dict[str, set[int]]:
+    result: dict[str, set[int]] = {}
+    for key, raw_size in inventory.items():
+        size = int(raw_size or 0)
+        if size < 1:
+            continue
+        extension = Path(key).suffix.lower().lstrip(".")
+        if extension == "jpeg":
+            extension = "jpg"
+        if extension:
+            result.setdefault(extension, set()).add(size)
+    return result
+
+
+def fetch_source_size(url: str, timeout: int = 30) -> int | None:
+    """Return exact identity-encoded Content-Length when safely available.
+
+    Missing/ambiguous metadata is not an error: callers must fall back to the
+    full SHA-256 path so this optimization cannot create false negatives.
+    """
+    request = urllib.request.Request(
+        url,
+        method="HEAD",
+        headers={"User-Agent": DEFAULT_USER_AGENT, "Accept-Encoding": "identity"},
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=timeout) as response:
+            encoding = str(response.headers.get("Content-Encoding") or "").strip().casefold()
+            if encoding not in {"", "identity"}:
+                return None
+            raw = str(response.headers.get("Content-Length") or "").strip()
+            if not raw:
+                return None
+            size = int(raw)
+            return size if size > 0 else None
+    except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, ValueError):
+        return None
+
+
 def scan_page(
     *, origin: str, page: int, per_page: int, inventory: dict[str, int],
     staging_prefix: str, max_image_bytes: int, remaining_bytes: int,
     fetch_products: Callable[[str], Any] = request_json,
     fetch_image: Callable[[str, Path, int], tuple[str, int]] = fetch_source_image,
+    fetch_size: Callable[[str], int | None] | None = None,
 ) -> tuple[list[dict[str, Any]], int, int, int, bool]:
     query = urllib.parse.urlencode({"per_page": per_page, "page": page})
     products = fetch_products(origin.rstrip("/") + "/wp-json/wc/store/v1/products?" + query)
@@ -82,6 +124,7 @@ def scan_page(
     matched: list[dict[str, Any]] = []
     images_hashed = bytes_hashed = 0
     bounded_stop = False
+    staged_sizes = inventory_sizes_by_extension(inventory)
     with tempfile.TemporaryDirectory(prefix=f"staging-product-index-{page}-") as temp_dir:
         temp_root = Path(temp_dir)
         for product in products:
@@ -94,6 +137,16 @@ def scan_page(
                 source_url = str(image.get("src") or "")
                 source_path = safe_source_path(origin, source_url)
                 extension = extension_from_path(source_path)
+                known_size = fetch_size(source_url) if fetch_size is not None else None
+                eligible_sizes = staged_sizes.get(extension, set())
+                if known_size is not None and known_size not in eligible_sizes:
+                    rows.append({
+                        "sourceImageId": str(image.get("id") or position), "position": position,
+                        "sourcePath": source_path, "extension": extension, "sha256": None,
+                        "bytes": known_size, "stagingKey": None, "stagingVerified": False,
+                        "hashSkippedReason": "size_not_present_in_staging",
+                    })
+                    continue
                 target = temp_root / str(product_id) / f"{position:03d}.{extension}"
                 sha256, size = fetch_image(source_url, target, max_image_bytes)
                 if bytes_hashed + size > remaining_bytes:
@@ -152,6 +205,7 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
         matched, products_returned, image_count, byte_count, stopped = scan_page(
             origin=origin, page=page, per_page=per_page, inventory=inventory,
             staging_prefix=prefix, max_image_bytes=int(args.max_image_bytes), remaining_bytes=remaining,
+            fetch_size=fetch_source_size,
         )
         state["productsScanned"] += products_returned
         state["imagesHashed"] += image_count
