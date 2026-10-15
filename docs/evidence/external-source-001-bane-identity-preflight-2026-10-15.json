@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12186,
+  "productName": "Bane STL + Bust + Extras – DC",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"10/10","completeStaging":true,"reverseIndexRunId":38825218195,"productionWrites":0,"stagingWrites":0},
+  "productionSearch": {
+    "exactOrTextualCandidateCount": 3,
+    "candidateModelIds": ["mdl_64fc898cc82a674f0f0e","mdl_8162a74fdab68ca50cc9","mdl_c2879806ea423c421029"],
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "multiple_same_character_candidates_require_visual_sculpture_review",
+    "notes": "Production contains three published Bane sculptures. Name or character equality cannot choose a canonical model; the 10/10 staged source gallery must be visually compared before map_existing or new_model is authorized."
+  },
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual comparison against all three published Bane sculptures"}
+}
