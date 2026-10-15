@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 11856,
+  "productName": "Squirrel Girl – Marvel",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {
+    "franchise": "Marvel",
+    "franchiseEvidence": "source_catalog_category"
+  },
+  "stagingEvidence": {
+    "coverage": "5/5",
+    "completeStaging": true,
+    "reviewOnlyImageCount": 0,
+    "reverseIndexRunId": 38823546575,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "productionSearch": {
+    "exactNameCandidates": 0,
+    "nameSlugSearchTextMatches": 0,
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_production_candidate_found_but_visual_identity_gate_not_completed",
+    "notes": "No published model matched Squirrel Girl, Garota Esquilo or Esquilo in name, slug or search_text. Source metadata identifies the Marvel character, but absence of a textual match is not sufficient proof against a renamed historical record."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "complete visual/catalog identity review against renamed historical records; if clear, authorize new_model and then run watermark/creator review"
+  }
+}
