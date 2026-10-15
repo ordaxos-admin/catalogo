@@ -122,9 +122,9 @@ A ausência de marca d'água não é inferida por heurística frágil de pixels.
 {"version":1,"sourceProductKey":"vendor-a:product:42","sourceImageId":"1001","sha256":"<64 hex>","watermarkStatus":"clear","reviewMethod":"manual_visual"}
 ```
 
-`watermarkStatus` aceita somente `clear` ou `watermarked`. Sem linha correspondente, a imagem fica `watermark_status=unknown`; se o SHA mudou desde a revisão, o build falha fechado; auditoria sobrando ou apontando para outra mídia também falha. O resumo informa contagens `clear/watermarked/unknown` e `watermarkAuditComplete`.
+`watermarkStatus` aceita somente `clear`, `creator_attribution` ou `watermarked`. `creator_attribution` representa assinatura, logo ou handle do próprio modelador/estúdio, com autoria explicitamente corroborada; handles desconhecidos e branding de terceiros continuam bloqueantes. Sem linha correspondente, a imagem fica `watermark_status=unknown`; se o SHA mudou desde a revisão, o build falha fechado; auditoria sobrando ou apontando para outra mídia também falha. O resumo informa contagens `clear/creator_attribution/watermarked/unknown` e `watermarkAuditComplete`.
 
-Esse gate é proposital: mídia externa `watermarked` nunca é promovida, e `unknown` não pode avançar como nova vista nem substituir mídia existente até ser auditada.
+Esse gate é proposital: mídia externa `watermarked` nunca é promovida, e `unknown` não pode avançar como nova vista nem substituir mídia existente até ser auditada. `creator_attribution` é elegível somente quando a autoria do modelador/estúdio foi corroborada; ela não transforma branding de terceiro em mídia aceitável.
 
 ## 4. Reconciliar com o catálogo atual
 
@@ -185,11 +185,11 @@ Depois que a identidade do modelo é explicitamente reconciliada, a seleção de
 2. mídia externa `watermarked` é rejeitada mesmo que tenha resolução ou `quality_score` maior;
 3. mídia externa `unknown` bloqueia a promoção até existir auditoria ligada ao SHA atual;
 4. entre vistas equivalentes elegíveis, dimensões, nitidez, formato e `quality_score` determinam a recomendação técnica;
-5. uma externa comprovadamente `clear` é recomendada antes de uma vista equivalente `watermarked` **ou de legado sem auditoria específica de watermark**; entre duas mídias explicitamente elegíveis/limpas, vence a qualidade técnica;
-6. uma vista realmente distinta e `clear` é adicionada à galeria, em vez de substituir outra vista;
+5. uma externa comprovadamente elegível (`clear` ou `creator_attribution`) é recomendada antes de uma vista equivalente `watermarked` **ou de legado sem auditoria específica de watermark**; entre duas mídias explicitamente elegíveis, vence a qualidade técnica;
+6. uma vista realmente distinta e elegível (`clear` ou `creator_attribution`) é adicionada à galeria, em vez de substituir outra vista;
 7. qualquer substituição por similaridade perceptual continua exigindo decisão explícita; não existe delete automático do master.
 
-Assim, duas fontes podem conter o mesmo personagem/modelo sem criar duas fichas públicas e sem fazer a fonte externa vencer apenas por ser nova: vence a mídia comprovadamente limpa e tecnicamente melhor para aquela vista.
+Assim, duas fontes podem conter o mesmo personagem/modelo sem criar duas fichas públicas e sem fazer a fonte externa vencer apenas por ser nova: vence a mídia comprovadamente elegível e tecnicamente melhor para aquela vista.
 
 ## Política NSFW
 
