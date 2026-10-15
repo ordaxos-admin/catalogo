@@ -1,0 +1,138 @@
+name: External media staging acquisition
+
+on:
+  pull_request:
+    paths:
+      - '.github/workflows/external-media-staging.yml'
+      - 'config/external-sources/**'
+      - 'tools/stage_external_media.py'
+      - 'tools/staging_checkpoint.py'
+      - 'tools/test_stage_external_media.py'
+      - 'tools/test_staging_checkpoint.py'
+  workflow_dispatch:
+    inputs:
+      evidence:
+        description: Reviewed evidence JSON with sourceObjectPath/SHA/bytes/watermark decisions
+        required: true
+        default: docs/evidence/external-source-001-laura-gallery-review-2026-10-15.json
+        type: string
+      shas:
+        description: Comma-separated reviewed SHA-256 values to stage
+        required: true
+        type: string
+      apply:
+        description: Write the verified bytes to private staging
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-media-staging-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  contract-tests:
+    name: Staging contract tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Run focused staging tests
+        working-directory: tools
+        run: python -m unittest -v test_staging_checkpoint.py test_stage_external_media.py
+
+  stage:
+    name: Bounded private staging
+    if: ${{ github.event_name == 'workflow_dispatch' }}
+    needs: contract-tests
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Resolve bounded SHA arguments
+        id: selection
+        shell: bash
+        env:
+          INPUT_SHAS: ${{ inputs.shas }}
+        run: |
+          set -euo pipefail
+          python - <<'PY'
+          import os
+          values=[part.strip().lower() for part in os.environ['INPUT_SHAS'].split(',') if part.strip()]
+          if not values or len(set(values)) != len(values):
+              raise SystemExit('SHAs ausentes ou duplicados')
+          for sha in values:
+              if len(sha) != 64 or any(ch not in '0123456789abcdef' for ch in sha):
+                  raise SystemExit(f'SHA inválido: {sha}')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
+              handle.write('json=' + __import__('json').dumps(values, separators=(',', ':')) + '\n')
+          PY
+      - name: Dry-run exact evidence selection
+        shell: bash
+        env:
+          SELECTED_SHAS: ${{ steps.selection.outputs.json }}
+        run: |
+          set -euo pipefail
+          mapfile -t shas < <(python -c "import json,os; print('\\n'.join(json.loads(os.environ['SELECTED_SHAS'])))")
+          args=()
+          for sha in "${shas[@]}"; do args+=(--sha "$sha"); done
+          python tools/stage_external_media.py "${{ inputs.evidence }}" \
+            --source-contract config/external-sources/external-source-001.json \
+            "${args[@]}" \
+            --summary "$RUNNER_TEMP/staging-plan.json"
+      - name: Setup Node for Wrangler
+        if: ${{ inputs.apply == true }}
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - name: Install locked Wrangler
+        if: ${{ inputs.apply == true }}
+        run: npm ci --ignore-scripts
+      - name: Assert Cloudflare staging credentials
+        if: ${{ inputs.apply == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::CLOUDFLARE_ACCOUNT_ID ausente'; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
+      - name: Download, verify, stage and read back selected bytes
+        if: ${{ inputs.apply == true }}
+        shell: bash
+        env:
+          SELECTED_SHAS: ${{ steps.selection.outputs.json }}
+        run: |
+          set -euo pipefail
+          mapfile -t shas < <(python -c "import json,os; print('\\n'.join(json.loads(os.environ['SELECTED_SHAS'])))")
+          args=()
+          for sha in "${shas[@]}"; do args+=(--sha "$sha"); done
+          python tools/stage_external_media.py "${{ inputs.evidence }}" \
+            --source-contract config/external-sources/external-source-001.json \
+            "${args[@]}" \
+            --checkpoint-root "$RUNNER_TEMP/staging-checkpoint" \
+            --summary "$RUNNER_TEMP/staging-result.json" \
+            --apply
+      - name: Upload staging proof
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: external-media-staging-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            ${{ runner.temp }}/staging-plan.json
+            ${{ runner.temp }}/staging-result.json
+            ${{ runner.temp }}/staging-checkpoint/staging-offload-journal.jsonl
+          if-no-files-found: warn
+          retention-days: 7
