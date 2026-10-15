@@ -128,6 +128,10 @@ This is source isolation, not loss of provenance: `sourceOriginB64 + sourcePath`
 
 ## Current release state
 
+The reviewed additive line has advanced through batches 002, 003 and 004. All three descriptors are versioned and their published models are visible through the canonical production API.
+
+### Batch 002
+
 `external-source-001-batch-002` is published and publicly verified.
 
 Production proof is versioned in `docs/evidence/external-source-001-batch-002-release-2026-10-14.md`. The closed delta is:
@@ -141,28 +145,55 @@ Production proof is versioned in `docs/evidence/external-source-001-batch-002-re
 - no deletes;
 - no updates to pre-existing models.
 
-Final public verification confirmed gallery counts `6 / 5 / 12 / 6` and canonical covers through the Worker media gateway. Post-release preflight now returns `releaseState=already-released`, with 4 existing compatible models, 29/29 source SHA matches, identity drift 0 and no mutation intent. A repeated `--apply` remains intentionally blocked.
+Final public verification confirmed gallery counts `6 / 5 / 12 / 6` and canonical covers through the Worker media gateway. Post-release preflight returns `releaseState=already-released`; repeated `--apply` remains intentionally blocked.
 
-The `production-release` label was removed after promotion so the PR is not left armed for another production action.
+### Batch 003
 
-## Next gate — batch 003
+`external-source-001-batch-003` is published. Its descriptor is `config/external-batches/external-source-001-batch-003.json` and it contains one explicit `new_model`: Yoruichi Shihōin 2 with 5 reviewed source images. The earlier page-39 candidate record is historical evidence only and must not be treated as an unconsumed candidate.
 
-No `external-source-001-batch-003` descriptor exists yet. Do not synthesize one from stale local cache or redownload the historical archive.
+### Batch 004
 
-A batch 003 may be created only after all of the following are true:
+`external-source-001-batch-004` is published and publicly verified. Its release proof is versioned in `docs/evidence/external-source-001-batch-004-release-2026-10-15.md`.
 
-1. a durable remote staging checkpoint/inventory is recovered or reconstructed from authoritative remote state;
-2. selected products have 100% of their gallery bytes present in private staging with SHA-256 + size evidence;
-3. watermark/quality review is explicit per source SHA;
+The closed delta is:
+
+- 1 published model: DigiDestined Diorama;
+- 6 canonical source images;
+- 18 public WebP variants;
+- 1 private gallery manifest;
+- 19 production R2 objects total;
+- no updates to existing models;
+- no retirements;
+- no deletes.
+
+The `production-release` label is removed after successful promotion so the draft PR is not left armed for another production action.
+
+## Local archive loss / recovery rule
+
+The historical local acquisition tree is not an authority and does not need to be recreated after accidental deletion. The private staging checkpoint, committed evidence and production state are the authoritative sources for continuation.
+
+Only recreate `Documents/Catalogo` when a local tool strictly requires a cache path, and then create only the minimum disposable subset needed for the active batch. Never rebuild the historical multi-gigabyte archive merely to restore the old folder shape.
+
+If a remote checkpoint must be reconstructed, inspect authoritative private staging metadata and rebuild a read-only inventory from remote object metadata. Do not redownload the entire historical source archive.
+
+## Next gate — batch 005
+
+No `external-source-001-batch-005` descriptor or approved evidence set exists yet.
+
+The tracked candidate evidence currently contains no unconsumed `promotable=true` product: Yoruichi Shihōin 2 was consumed by batch 003, DigiDestined Diorama by batch 004, and the other reviewed candidates are blocked by watermark/promotional branding or incomplete staging. Therefore batch 005 must not be synthesized from names, current website order, stale cache or partial evidence.
+
+A batch 005 may be created only after all of the following are true:
+
+1. the selected product is discovered from authoritative private staging inventory or acquired as a bounded stream directly into private staging;
+2. 100% of the selected gallery bytes are present in private staging with SHA-256 + byte-count evidence;
+3. watermark/quality review is explicit for every source SHA and every promoted image is clear;
 4. production SHA ownership is checked globally before identity resolution;
-5. identity is resolved explicitly as `map_existing` or `new_model`; no name/SHA/visual similarity becomes an automatic mapping;
-6. `map_existing` media is promoted only through the existing-gallery rules, never through the strict new-model publisher;
-7. `new_model` items receive a new versioned descriptor/evidence pair and pass the same reconstruction, identity, R2 and D1 preflight gates used by batch 002;
-8. no production write occurs while the candidate set is incomplete, partially reviewed or dependent on unavailable local files.
+5. identity is resolved explicitly as `map_existing` or `new_model`; name, folder, SHA or visual similarity never becomes an automatic mapping;
+6. `map_existing` media uses the existing-gallery promotion rules, never the strict new-model publisher;
+7. `new_model` items receive a new immutable descriptor/evidence pair and pass the same reconstruction, identity, R2 and D1 preflight gates as prior batches;
+8. the release is additive and bounded: no production write occurs while the candidate set is incomplete, partially reviewed or dependent on unavailable local files.
 
-If the durable checkpoint cannot be recovered from the notebook, inspect the private staging bucket itself and reconstruct a read-only inventory from remote object metadata rather than recreating the full local acquisition tree.
-
-If another chat continues this work, it must first re-read the current PR head, descriptor, workflow, release evidence and latest CI. Multiple workstreams may legitimately update the same PR branch; never force-push or discard an unfamiliar commit.
+If another chat continues this work, it must first re-read the current PR head, descriptors 002-004, release evidence, workflow and latest CI. Multiple workstreams may legitimately update the same PR branch; never force-push or discard an unfamiliar commit.
 
 ## Do not do
 
