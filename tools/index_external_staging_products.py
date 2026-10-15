@@ -145,11 +145,19 @@ def scan_page(
 ) -> tuple[list[dict[str, Any]], int, int, int, bool, int, int]:
     """Scan one Store API page from a zero-based product offset.
 
+    Source pages are ordered by ascending immutable product id so newly-created
+    products append after already-scanned pages instead of shifting the cursor.
+
     Returns matched, products_completed, images_hashed, bytes_hashed,
     bounded_stop, next_product_offset and products_returned. A product interrupted
     by the byte ceiling is not committed and its own offset is returned.
     """
-    query = urllib.parse.urlencode({"per_page": per_page, "page": page})
+    query = urllib.parse.urlencode({
+        "per_page": per_page,
+        "page": page,
+        "orderby": "id",
+        "order": "asc",
+    })
     products = fetch_products(origin.rstrip("/") + "/wp-json/wc/store/v1/products?" + query)
     if not isinstance(products, list):
         raise RuntimeError("Store API não retornou lista")
