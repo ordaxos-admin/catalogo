@@ -47,6 +47,14 @@ class ExactSourceGalleryPreflightTests(unittest.TestCase):
         self.assertEqual(len(images), 2)
         self.assertEqual(anchor["sourceSha256"], "a" * 64)
 
+    def test_accepts_legacy_status_only_for_exact_anchor(self):
+        data = self.evidence()
+        data["images"][0]["watermarkStatus"] = "legacy_accepted"
+        validate_evidence(data)
+        data["images"][1]["watermarkStatus"] = "legacy_accepted"
+        with self.assertRaisesRegex(RuntimeError, "add_view bloqueado"):
+            validate_evidence(data)
+
     def test_cover_position_zero_is_not_treated_as_missing(self):
         rows = [{
             "id": "mdl_existing",
