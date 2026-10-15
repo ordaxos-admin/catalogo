@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13546,
+  "productName": "Johnny Silverhand STL + Extras – Cyberpunk",
+  "creator": "CA3D Studios",
+  "creatorCorroborated": true,
+  "visualAuditComplete": true,
+  "watermarkStatus": "clear",
+  "stagingCoverage": "6/6",
+  "sourceSha256": [
+    "3275fa81acebd0b385c33d2ae0fba473ec524b666661b04b87e5e4e65ed300aa",
+    "7046db5edaf13a7aadd5afbff40b8cc73d71f75d96c3eed9661659dbd8cf79eb",
+    "f928c79bfdc80a0cd286f2ad6d72f280040803af5b8fb763aaa86636e766ce4d",
+    "db25abd8930414945bf6961e9a39390972ff3ea374e60cec7fc8d5a6a8d6a58a",
+    "330b9d5ed71b83eb7d77f2fd836755ac6a453448465405a34e936815d94433a8",
+    "5b2d8c38ec0e01de82e12236bd88ddf560830c8826b0905d7d9c62fcc099a3f8"
+  ],
+  "creatorEvidence": {
+    "state": "corroborated_public_creator_channels",
+    "notes": "Public CA3D creator channels and independent listings identify CA3D as the sculptor/designer of a Johnny Silverhand Cyberpunk figure matching the reviewed standing pose with cigarette and guitar."
+  },
+  "mediaReview": {
+    "uniqueSourceImages": 6,
+    "perceptualPairsAtOrBelowThreshold": 0,
+    "minimumPairDhashDistance": 19,
+    "visualThreshold": 6,
+    "blockingThirdPartyBrandingObserved": false,
+    "notes": "All six exact staged renders are distinct views of the same standing Johnny Silverhand figure. No unrelated third-party promotional badge, Telegram/group branding, reseller URL, QR code, repost handle or source watermark was observed. Cyberpunk/Samurai marks visible on the sculpt/base are part of the depicted model design, not an overlay watermark."
+  },
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 1,
+    "candidateModelIds": ["mdl_7f346517153d7c99dcd8"],
+    "allCandidatesVisuallyDistinct": true,
+    "minimumCandidateDhashDistance": 24,
+    "visualThreshold": 6,
+    "notes": "The only published Johnny Silverhand candidate is a seated chair diorama. The reviewed CA3D model is standing on a circular Cyberpunk base with guitar; pose, base and composition are materially different."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38805709840,
+    "artifactId": 12006007042,
+    "artifactSha256": "538d56a46b93d3eed3b3e0de2856b56d6a37aaca4d8d023b27a6d5b2c65e166b"
+  },
+  "decision": {
+    "newModelAuthorized": true,
+    "clearMediaPromotable": true,
+    "productionWrites": 0,
+    "nextGate": "validate batch 009 exact deterministic identity and six clear staged images in release preflight; production apply remains explicitly gated"
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-009-media.jsonl",
+  "expectedProducts": 1,
+  "expectedImages": 6,
+  "products": [
+    {
+      "productId": 13546,
+      "displayName": "Johnny Silverhand",
+      "publicModelKey": "johnny-silverhand",
+      "sourceFolders": ["Games", "Cyberpunk", "Johnny Silverhand"],
+      "expectedImages": 6,
+      "expectedIdentityKey": "Games / Cyberpunk / Johnny Silverhand / johnny-silverhand",
+      "expectedModelId": "mdl_913b1d55a4eaa5c8b6a8",
+      "expectedSlug": "cyberpunk-johnny-silverhand",
+      "expectedCode": "TS-913B1D55A4EA"
+    }
+  ]
+}
