@@ -2,11 +2,10 @@
 """Discover bounded external-media candidates without authorizing publication.
 
 This tool is intentionally read-only with respect to Cloudflare storage and D1.
-It fetches a small source API page, hashes source images one product at a time,
-checks whether the exact SHA-derived object already exists in private staging,
-and checks global production SHA ownership. Complete staged products are kept
-only as short-lived review material; nothing here resolves identity or watermark
-status and nothing here creates a release batch.
+It fetches either one exact Store API product or a small source API page, hashes
+source images, checks exact private-staging ownership, and checks global
+production SHA ownership. Nothing here resolves identity or watermark status and
+nothing here creates or applies a release batch.
 """
 from __future__ import annotations
 
@@ -210,6 +209,18 @@ def select_products(
     return matches
 
 
+def validate_exact_product(product: Any, product_id: int) -> dict[str, Any]:
+    target = int(product_id)
+    if target < 1:
+        raise RuntimeError("product-id deve ser positivo")
+    if not isinstance(product, dict):
+        raise RuntimeError("Store API de produto exato não retornou objeto")
+    found = int(product.get("id") or 0)
+    if found != target:
+        raise RuntimeError(f"endpoint exato retornou product-id {found}; esperado={target}")
+    return product
+
+
 def discover(args: argparse.Namespace) -> dict[str, Any]:
     descriptor = load_json(Path(args.descriptor))
     origin = decode_b64_text(descriptor.get("sourceOriginB64"), "sourceOriginB64").rstrip("/")
@@ -227,11 +238,18 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
 
     per_page = min(max(int(args.per_page), 1), 20)
     max_products = min(max(int(args.max_products), 1), per_page)
-    api_query = urllib.parse.urlencode({"per_page": per_page, "page": int(args.page)})
-    raw_products = request_json(origin + "/wp-json/wc/store/v1/products?" + api_query)
-    if not isinstance(raw_products, list):
-        raise RuntimeError("Store API não retornou lista")
-    products = select_products(raw_products, max_products, args.product_id)
+    selection_mode = "bounded_page"
+    if args.product_id is not None:
+        target = int(args.product_id)
+        raw_product = request_json(origin + f"/wp-json/wc/store/v1/products/{target}")
+        products = [validate_exact_product(raw_product, target)]
+        selection_mode = "exact_product_endpoint"
+    else:
+        api_query = urllib.parse.urlencode({"per_page": per_page, "page": int(args.page)})
+        raw_products = request_json(origin + "/wp-json/wc/store/v1/products?" + api_query)
+        if not isinstance(raw_products, list):
+            raise RuntimeError("Store API não retornou lista")
+        products = select_products(raw_products, max_products)
 
     inventory = list_staging_inventory(account_id, token, bucket, prefix)
     output = Path(args.output)
@@ -331,6 +349,7 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
         "sourceId": source_id,
         "page": int(args.page),
         "perPage": per_page,
+        "selectionMode": selection_mode,
         "requestedProductId": args.product_id,
         "productsScanned": len(product_rows),
         "sourceBytesHashed": total_source_bytes,
@@ -341,6 +360,7 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
     }
     (output / "discovery-report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     summary = {
+        "selectionMode": selection_mode,
         "requestedProductId": args.product_id,
         "productsScanned": len(product_rows),
         "completeStaging": sum(1 for row in product_rows if str(row.get("stagingCoverage", "")).split("/")[0:1] == str(row.get("sourceImageCount"))),

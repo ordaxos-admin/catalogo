@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       page:
-        description: Bounded Store API page to inspect
+        description: Bounded Store API page used only when product_id is empty
         required: true
         default: '43'
         type: string
       per_page:
-        description: Products requested from the source page (max 20)
+        description: Products requested from the bounded source page (max 20)
         required: true
         default: '20'
         type: string
@@ -19,7 +19,7 @@ on:
         default: '10'
         type: string
       product_id:
-        description: Optional exact product id that must exist on the declared page
+        description: Optional exact Store API product id; bypasses unstable pagination
         required: false
         default: '13687'
         type: string
@@ -108,6 +108,7 @@ jobs:
           assert report['productionWrites'] == 0
           assert report['stagingWrites'] == 0
           if target:
+              assert report.get('selectionMode') == 'exact_product_endpoint'
               assert report.get('requestedProductId') == int(target)
               assert report['productsScanned'] == 1
               assert report['products'][0]['productId'] == int(target)
@@ -118,6 +119,7 @@ jobs:
               for match in product.get('identityReviewCandidates') or []:
                   assert match.get('matchBasis') == 'name_or_search_hint_review_only'
           print(json.dumps({
+              'selectionMode': report.get('selectionMode'),
               'requestedProductId': report.get('requestedProductId'),
               'productsScanned': report['productsScanned'],
               'sourceBytesHashed': report['sourceBytesHashed'],

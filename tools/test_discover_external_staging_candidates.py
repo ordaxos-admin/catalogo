@@ -8,6 +8,7 @@ from discover_external_staging_candidates import (
     safe_source_path,
     select_products,
     staging_key,
+    validate_exact_product,
 )
 
 
@@ -56,6 +57,22 @@ class DiscoverExternalStagingCandidatesTests(unittest.TestCase):
         products = [{"id": 3}, {"id": 3}]
         with self.assertRaisesRegex(RuntimeError, "encontrado=2"):
             select_products(products, 2, product_id=3)
+
+    def test_validate_exact_product_accepts_requested_id(self):
+        product = {"id": 13687, "name": "Zoro"}
+        self.assertIs(validate_exact_product(product, 13687), product)
+
+    def test_validate_exact_product_rejects_non_object(self):
+        with self.assertRaisesRegex(RuntimeError, "não retornou objeto"):
+            validate_exact_product([], 13687)
+
+    def test_validate_exact_product_rejects_wrong_id(self):
+        with self.assertRaisesRegex(RuntimeError, "esperado=13687"):
+            validate_exact_product({"id": 13688}, 13687)
+
+    def test_validate_exact_product_rejects_non_positive_id(self):
+        with self.assertRaisesRegex(RuntimeError, "deve ser positivo"):
+            validate_exact_product({"id": 1}, 0)
 
     def test_candidate_state_fails_closed_for_incomplete_staging(self):
         images = [
