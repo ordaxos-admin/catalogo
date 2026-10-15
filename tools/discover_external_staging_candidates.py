@@ -23,6 +23,11 @@ from typing import Any
 
 ALLOWED_EXTS = {"jpg", "jpeg", "png", "webp", "gif", "avif"}
 DEFAULT_USER_AGENT = "catalog-external-candidate-discovery/1.0"
+REVIEW_ARTIFACT_STATES = {
+    "visual_review_required",
+    "identity_review_required_exact_sha_overlap",
+    "incomplete_staging",
+}
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -55,6 +60,12 @@ def safe_source_path(origin: str, url: str) -> str:
     if parsed.query or parsed.fragment:
         raise RuntimeError("URL de mídia canônica não pode conter query/fragment")
     return parsed.path
+
+
+def canonical_source_url(origin: str, source_path: str) -> str:
+    if not source_path.startswith("/") or ".." in source_path.split("/"):
+        raise RuntimeError("sourcePath inseguro")
+    return origin.rstrip("/") + urllib.parse.quote(source_path, safe="/%:@")
 
 
 def extension_from_path(path: str) -> str:
@@ -191,6 +202,11 @@ def candidate_state(images: list[dict[str, Any]]) -> str:
     return "visual_review_required"
 
 
+def review_artifact_eligible(state: str) -> bool:
+    """Keep exact pixels for read-only review even when staging is incomplete."""
+    return str(state or "") in REVIEW_ARTIFACT_STATES
+
+
 def select_products(
     products: list[dict[str, Any]],
     max_products: int,
@@ -273,8 +289,9 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
             image_rows: list[dict[str, Any]] = []
             bounded_stop = False
             for position, image in enumerate(source_images, 1):
-                source_url = str(image.get("src") or "")
-                source_path = safe_source_path(origin, source_url)
+                raw_source_url = str(image.get("src") or "")
+                source_path = safe_source_path(origin, raw_source_url)
+                source_url = canonical_source_url(origin, source_path)
                 ext = extension_from_path(source_path)
                 target = product_dir / f"{position:02d}.{ext}"
                 sha, size = fetch_source_image(source_url, target, max_image_bytes)
@@ -333,10 +350,7 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
             product["watermarkReview"] = "required"
             product["identityDecision"] = "unresolved"
             product["promotable"] = False
-            if (
-                all(row["stagingVerified"] for row in product["images"])
-                and review_kept < int(args.max_review_products)
-            ):
+            if review_artifact_eligible(str(product["state"])) and review_kept < int(args.max_review_products):
                 source_dir = temp_root / str(product["productId"])
                 destination = review_root / f"product-{product['productId']}"
                 if source_dir.exists():
@@ -345,7 +359,7 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
                     review_kept += 1
 
     report = {
-        "version": 1,
+        "version": 2,
         "sourceId": source_id,
         "page": int(args.page),
         "perPage": per_page,
@@ -354,19 +368,22 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
         "productsScanned": len(product_rows),
         "sourceBytesHashed": total_source_bytes,
         "stagingInventoryObjects": len(inventory),
+        "reviewArtifactPolicy": "complete_or_incomplete_read_only",
         "productionWrites": 0,
         "stagingWrites": 0,
         "products": product_rows,
     }
     (output / "discovery-report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    complete_states = {"visual_review_required", "identity_review_required_exact_sha_overlap"}
     summary = {
         "selectionMode": selection_mode,
         "requestedProductId": args.product_id,
         "productsScanned": len(product_rows),
-        "completeStaging": sum(1 for row in product_rows if str(row.get("stagingCoverage", "")).split("/")[0:1] == str(row.get("sourceImageCount"))),
+        "completeStaging": sum(1 for row in product_rows if row.get("state") in complete_states),
         "visualReviewRequired": sum(1 for row in product_rows if row.get("state") == "visual_review_required"),
         "identityReviewRequired": sum(1 for row in product_rows if row.get("state") == "identity_review_required_exact_sha_overlap"),
         "incompleteStaging": sum(1 for row in product_rows if row.get("state") == "incomplete_staging"),
+        "reviewArtifacts": sum(1 for row in product_rows if row.get("reviewArtifactPath")),
         "productionWrites": 0,
         "stagingWrites": 0,
     }

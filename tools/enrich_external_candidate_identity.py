@@ -2,9 +2,9 @@
 """Attach read-only production identity-review candidates to discovery evidence.
 
 Name/search matches are review hints only. This tool never maps identity and never writes
-Cloudflare state. For complete staged products it queries possible production name matches
-and materializes their public cover objects into the short-lived review artifact so a human
-can compare sculptures directly.
+Cloudflare state. For complete or incomplete staged products it queries possible production
+name matches and materializes their production cover objects into the short-lived review
+artifact so a human can compare sculptures directly before any missing media is staged.
 """
 from __future__ import annotations
 
@@ -20,6 +20,11 @@ from typing import Any
 
 USER_AGENT = "catalog-external-identity-review/1.0"
 MAX_REVIEW_CANDIDATES = 100
+IDENTITY_REVIEW_STATES = {
+    "visual_review_required",
+    "identity_review_required_exact_sha_overlap",
+    "incomplete_staging",
+}
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -50,6 +55,10 @@ def subject_hint(value: str) -> str:
     if len(text) >= 3:
         return text
     return html.unescape(str(value or "")).strip()
+
+
+def identity_review_state_supported(state: str) -> bool:
+    return str(state or "") in IDENTITY_REVIEW_STATES
 
 
 def post_json(url: str, payload: dict[str, Any], token: str) -> Any:
@@ -123,9 +132,10 @@ def enrich(report_path: Path, descriptor_path: Path, review_root: Path) -> dict[
         raise RuntimeError("bindings de revisão ausentes")
 
     materialized = 0
+    reviewed_products = 0
     for product in report.get("products") or []:
         state = str(product.get("state") or "")
-        if state not in {"visual_review_required", "identity_review_required_exact_sha_overlap"}:
+        if not identity_review_state_supported(state):
             continue
         hint = subject_hint(str(product.get("productName") or ""))
         matches = find_candidates(account_id, token, database_id, hint)
@@ -156,12 +166,20 @@ def enrich(report_path: Path, descriptor_path: Path, review_root: Path) -> dict[
         product["identityReviewCandidates"] = review_candidates
         product["identityDecision"] = "unresolved"
         product["promotable"] = False
+        reviewed_products += 1
 
+    report["identityReviewProducts"] = reviewed_products
     report["productionCoverReviewObjects"] = materialized
     report["productionWrites"] = 0
     report["stagingWrites"] = 0
     report_path.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(json.dumps({"productionCoverReviewObjects": materialized, "identityDecisions": 0}, ensure_ascii=False))
+    print(json.dumps({
+        "identityReviewProducts": reviewed_products,
+        "productionCoverReviewObjects": materialized,
+        "identityDecisions": 0,
+        "productionWrites": 0,
+        "stagingWrites": 0,
+    }, ensure_ascii=False))
     return report
 
 

@@ -19,7 +19,7 @@ on:
         default: '7'
         type: string
       product_id:
-        description: Optional exact Store API product id; bypasses unstable pagination
+        description: Optional exact Store API product id; bypasses pagination
         required: false
         default: ''
         type: string
@@ -31,6 +31,7 @@ on:
       - 'tools/test_discover_external_staging_candidates.py'
       - 'tools/enrich_external_candidate_identity.py'
       - 'tools/test_enrich_external_candidate_identity.py'
+      - 'tools/test_incomplete_identity_review.py'
 
 permissions:
   contents: read
@@ -45,7 +46,7 @@ env:
   DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '44' }}
   DISCOVERY_PER_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.per_page || '20' }}
   DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '7' }}
-  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '' }}
+  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || (github.event_name == 'pull_request' && '12803') || '' }}
 
 jobs:
   discover:
@@ -77,6 +78,7 @@ jobs:
           python -m unittest -v
           test_discover_external_staging_candidates.py
           test_enrich_external_candidate_identity.py
+          test_incomplete_identity_review.py
       - name: Discover candidates without writes
         shell: bash
         run: |
@@ -107,6 +109,7 @@ jobs:
           target=str(sys.argv[2] or '').strip()
           assert report['productionWrites'] == 0
           assert report['stagingWrites'] == 0
+          assert report.get('reviewArtifactPolicy') == 'complete_or_incomplete_read_only'
           if target:
               assert report.get('selectionMode') == 'exact_product_endpoint'
               assert report.get('requestedProductId') == int(target)
@@ -116,6 +119,12 @@ jobs:
               assert product.get('promotable') is not True
               assert product.get('identityDecision') != 'map_existing'
               assert product.get('identityDecision') != 'new_model'
+              if product.get('state') in {
+                  'visual_review_required',
+                  'identity_review_required_exact_sha_overlap',
+                  'incomplete_staging',
+              }:
+                  assert product.get('reviewArtifactPath')
               for match in product.get('identityReviewCandidates') or []:
                   assert match.get('matchBasis') == 'name_or_search_hint_review_only'
           print(json.dumps({

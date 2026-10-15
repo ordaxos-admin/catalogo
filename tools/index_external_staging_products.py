@@ -14,6 +14,7 @@ import tempfile
 import urllib.error
 import urllib.parse
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any, Callable
 
@@ -24,6 +25,7 @@ from discover_external_staging_candidates import (
 
 STATE_VERSION = 3
 SOURCE_ORDERING = "id_asc"
+SIZE_PROBE_WORKERS = 6
 
 
 def empty_state(source_id: str, staging_objects: int) -> dict[str, Any]:
@@ -129,6 +131,42 @@ def fetch_source_size(url: str, timeout: int = 30) -> int | None:
         return None
 
 
+def prefetch_source_sizes(
+    products: list[dict[str, Any]],
+    *,
+    origin: str,
+    product_offset: int,
+    fetch_size: Callable[[str], int | None],
+    max_workers: int = SIZE_PROBE_WORKERS,
+) -> dict[str, int | None]:
+    """Probe source lengths concurrently without weakening SHA verification.
+
+    The prefilter remains metadata-only: it only answers whether a source byte
+    length can possibly exist in staging. All possible matches still go through
+    the full source download + SHA-256 proof in ``scan_page``.
+    """
+    urls: list[str] = []
+    seen: set[str] = set()
+    for product in products[product_offset:]:
+        product_id = int(product.get("id") or 0)
+        raw_images = product.get("images") or []
+        if product_id < 1 or not isinstance(raw_images, list):
+            continue
+        for image in raw_images:
+            raw_source_url = str(image.get("src") or "")
+            source_path = safe_source_path(origin, raw_source_url)
+            source_url = canonical_source_url(origin, source_path)
+            if source_url not in seen:
+                seen.add(source_url)
+                urls.append(source_url)
+    if not urls:
+        return {}
+    workers = min(max(1, int(max_workers)), SIZE_PROBE_WORKERS, len(urls))
+    with ThreadPoolExecutor(max_workers=workers, thread_name_prefix="source-size") as pool:
+        sizes = list(pool.map(fetch_size, urls))
+    return dict(zip(urls, sizes, strict=True))
+
+
 def oversized_review_row(
     image: dict[str, Any], position: int, source_path: str, extension: str,
     *, known_size: int | None,
@@ -181,6 +219,16 @@ def scan_page(
     bounded_stop = False
     next_product_offset = product_offset
     staged_sizes = inventory_sizes_by_extension(inventory)
+    size_cache = (
+        prefetch_source_sizes(
+            products,
+            origin=origin,
+            product_offset=product_offset,
+            fetch_size=fetch_size,
+        )
+        if fetch_size is not None
+        else {}
+    )
 
     with tempfile.TemporaryDirectory(prefix=f"staging-product-index-{page}-") as temp_dir:
         temp_root = Path(temp_dir)
@@ -199,7 +247,7 @@ def scan_page(
                 source_path = safe_source_path(origin, raw_source_url)
                 source_url = canonical_source_url(origin, source_path)
                 extension = extension_from_path(source_path)
-                known_size = fetch_size(source_url) if fetch_size is not None else None
+                known_size = size_cache.get(source_url) if fetch_size is not None else None
                 eligible_sizes = staged_sizes.get(extension, set())
 
                 if known_size is not None and known_size > max_image_bytes:

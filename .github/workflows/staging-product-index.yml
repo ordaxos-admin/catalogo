@@ -6,7 +6,7 @@ on:
       start_page:
         description: First stable ID-ordered Store API page to scan
         required: true
-        default: '11'
+        default: '21'
         type: string
       start_product_offset:
         description: Zero-based product offset within the first stable page
@@ -14,9 +14,9 @@ on:
         default: '0'
         type: string
       end_page:
-        description: Last Store API page to scan (max 10 pages per run)
+        description: Last Store API page to scan (max 25 pages per run)
         required: true
-        default: '20'
+        default: '45'
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -25,6 +25,7 @@ on:
       - 'tools/index_external_staging_products.py'
       - 'tools/test_index_external_staging_products.py'
       - 'tools/test_index_external_staging_products_oversize.py'
+      - 'tools/test_index_external_staging_products_prefetch.py'
 
 permissions:
   contents: read
@@ -36,9 +37,9 @@ concurrency:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '11' }}
+  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '21' }}
   START_PRODUCT_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.start_product_offset || '0' }}
-  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '20' }}
+  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '45' }}
 
 jobs:
   index:
@@ -63,15 +64,16 @@ jobs:
           python -m unittest -v
           test_index_external_staging_products.py
           test_index_external_staging_products_oversize.py
+          test_index_external_staging_products_prefetch.py
       - name: Build bounded reverse index
         run: >-
           python tools/index_external_staging_products.py
           --start-page "$START_PAGE"
           --start-product-offset "$START_PRODUCT_OFFSET"
           --end-page "$END_PAGE"
-          --max-pages 10
+          --max-pages 25
           --per-page 20
-          --max-total-bytes 134217728
+          --max-total-bytes 268435456
           --checkpoint "$RUNNER_TEMP/staging-product-index/checkpoint.json"
           --output "$RUNNER_TEMP/staging-product-index/report.json"
       - name: Assert index remained read-only and resumable
