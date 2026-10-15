@@ -22,12 +22,13 @@ from discover_external_staging_candidates import (
     list_staging_inventory, load_json, request_json, safe_source_path, staging_key,
 )
 
-STATE_VERSION = 2
+STATE_VERSION = 3
+SOURCE_ORDERING = "id_asc"
 
 
 def empty_state(source_id: str, staging_objects: int) -> dict[str, Any]:
     return {
-        "version": STATE_VERSION, "sourceId": source_id,
+        "version": STATE_VERSION, "sourceId": source_id, "sourceOrdering": SOURCE_ORDERING,
         "stagingInventoryObjects": staging_objects, "pagesCompleted": [],
         "productsScanned": 0, "imagesHashed": 0, "sourceBytesHashed": 0,
         "matchedProducts": {}, "productionWrites": 0, "stagingWrites": 0,
@@ -43,6 +44,8 @@ def load_state(path: Path, source_id: str, staging_objects: int) -> dict[str, An
         raise RuntimeError("checkpoint de índice inválido")
     if data.get("sourceId") != source_id:
         raise RuntimeError("checkpoint pertence a outra fonte")
+    if data.get("sourceOrdering") != SOURCE_ORDERING:
+        raise RuntimeError("checkpoint usa ordenação de fonte incompatível")
     if data.get("productionWrites") != 0 or data.get("stagingWrites") != 0:
         raise RuntimeError("checkpoint viola contrato read-only")
     if not isinstance(data.get("pagesCompleted"), list) or not isinstance(data.get("matchedProducts"), dict):
@@ -333,6 +336,7 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(json.dumps({
+        "sourceOrdering": state["sourceOrdering"],
         "pagesCompleted": state["pagesCompleted"],
         "productsScanned": state["productsScanned"],
         "matchedProducts": len(products),
