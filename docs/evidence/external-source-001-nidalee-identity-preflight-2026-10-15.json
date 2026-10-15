@@ -7,7 +7,14 @@
   "scope": "identity_preflight_only",
   "sourceMetadata": {
     "franchise": "League of Legends",
-    "franchiseEvidence": "source_catalog_category"
+    "franchiseEvidence": "source_catalog_category",
+    "sourcePageVerified": true,
+    "sourcePageScale": "1/4",
+    "sourcePageDimensionsCm": {
+      "height": 41.1,
+      "width": 22.4,
+      "depth": 17.4
+    }
   },
   "stagingEvidence": {
     "coverage": "6/6",
@@ -27,7 +34,7 @@
   "identityReview": {
     "decision": "unresolved",
     "reason": "no_production_candidate_found_but_visual_identity_gate_not_completed",
-    "notes": "Production contains 27 published League of Legends models, but none matched Nidalee in name, slug or search_text. Source metadata confirms Nidalee / League of Legends, yet the policy still requires the visual/catalog identity gate before authorizing a new model."
+    "notes": "Production contains 27 published League of Legends models, but none matched Nidalee in name, slug or search_text. The source page independently confirms Nidalee / League of Legends and the 1/4-scale figure metadata. The policy still requires the visual/catalog identity gate before authorizing a new model."
   },
   "decision": {
     "identityResolved": false,
