@@ -85,7 +85,7 @@ class BuildExternalImageManifestTests(unittest.TestCase):
             self.assertEqual(summary["images"], 2)
             self.assertEqual(summary["networkDownloads"], 0)
             self.assertTrue(summary["completeGalleryCoverage"])
-            self.assertEqual(summary["watermarkStatus"], {"clear": 0, "watermarked": 0, "unknown": 2})
+            self.assertEqual(summary["watermarkStatus"], {"clear": 0, "creator_attribution": 0, "watermarked": 0, "unknown": 2})
             self.assertFalse(summary["watermarkAuditComplete"])
             self.assertTrue(all(row["watermark_status"] == "unknown" for row in rows))
 
@@ -227,7 +227,40 @@ class BuildExternalImageManifestTests(unittest.TestCase):
 
             self.assertEqual(rows[0]["watermark_status"], "clear")
             self.assertEqual(rows[0]["watermark_audit"]["sha256"], digest)
-            self.assertEqual(summary["watermarkStatus"], {"clear": 1, "watermarked": 0, "unknown": 0})
+            self.assertEqual(summary["watermarkStatus"], {"clear": 1, "creator_attribution": 0, "watermarked": 0, "unknown": 0})
+            self.assertTrue(summary["watermarkAuditComplete"])
+
+    def test_creator_attribution_is_counted_as_audited_eligible_media(self) -> None:
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            target_dir = root / self.SOURCE_ID / "product-42"
+            target_dir.mkdir(parents=True)
+            image_path = target_dir / "101.webp"
+            Image.new("RGB", (160, 120), (20, 40, 60)).save(image_path, "WEBP")
+            digest = module.sha256_file(image_path)
+            audit = [{
+                "version": 1,
+                "sourceProductKey": self.PRODUCT_KEY,
+                "sourceImageId": "101",
+                "sha256": digest,
+                "watermarkStatus": "creator_attribution",
+                "reviewMethod": "manual_visual",
+                "note": "verified creator signature",
+            }]
+
+            rows, summary = build_manifest(
+                [self.product(image_count=1)],
+                [self.plan(1, "001.webp")],
+                images_root=root,
+                media_audit=audit,
+            )
+
+            self.assertEqual(rows[0]["watermark_status"], "creator_attribution")
+            self.assertEqual(rows[0]["watermark_audit"]["note"], "verified creator signature")
+            self.assertEqual(
+                summary["watermarkStatus"],
+                {"clear": 0, "creator_attribution": 1, "watermarked": 0, "unknown": 0},
+            )
             self.assertTrue(summary["watermarkAuditComplete"])
 
     def test_media_audit_hash_mismatch_fails_closed(self) -> None:
