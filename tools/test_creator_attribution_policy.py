@@ -88,7 +88,10 @@ class CreatorAttributionPolicyTests(unittest.TestCase):
         action = plan["actions"][0]
         self.assertEqual(action["action"], "review_visual_candidate")
         self.assertEqual(action["recommendedSource"], "incoming")
-        self.assertEqual(action["reason"], "audited_incoming_beats_blocking_watermark")
+        self.assertEqual(
+            action["reason"],
+            "creator_attribution_incoming_beats_watermarked_match",
+        )
 
     def test_blocking_watermark_is_rejected_even_when_quality_is_higher(self):
         existing = [row(
