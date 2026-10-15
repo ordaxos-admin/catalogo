@@ -59,7 +59,7 @@ class ExternalSourceReviewTests(unittest.TestCase):
     def test_rejects_duplicate_review_position(self):
         data = self.multi_source_map()
         data["reviewSources"][1]["position"] = 1
-        with self.assertRaisesRegex(RuntimeError, "posição inválida/duplicada"):
+        with self.assertRaisesRegex(RuntimeError, "position inválida/duplicada"):
             selected_reviews(data)
 
     def test_safe_source_url_preserves_authorized_origin(self):
