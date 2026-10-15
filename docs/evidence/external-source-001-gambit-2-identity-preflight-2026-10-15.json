@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12379,
+  "productName": "Gambit 2 + Bust",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"8/8","completeStaging":true,"reverseIndexRunId":38825743609,"productionWrites":0,"stagingWrites":0},
+  "productionSearch": {
+    "exactOrTextualCandidateCount": 7,
+    "candidateModelIds": ["mdl_209e99cf0f6d2edfc188","mdl_671406d754e5e2483430","mdl_6db837300a44422962a3","mdl_79fcc826f423486f599d","mdl_a080ec5d85ffdfc35944","mdl_bfc3295a0b7670d2b2ab","mdl_c7ecf45ad8689d738f49"],
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "multiple_same_character_candidates_require_visual_sculpture_review",
+    "notes": "Seven published Gambit candidates exist. Name equality cannot determine which sculpture, if any, matches the fully staged source product."
+  },
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual comparison against all published Gambit sculptures"}
+}
