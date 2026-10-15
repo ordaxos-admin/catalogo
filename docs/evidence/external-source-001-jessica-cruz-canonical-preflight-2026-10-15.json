@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13612,
+  "targetModelId": "mdl_5cb1a7c25d077cd52209",
+  "targetSlug": "lanterna-verde-jessica-cruz-com-machado-de-energia-verde",
+  "sourceEvidence": "docs/evidence/external-source-001-jessica-cruz-gallery-review-2026-10-15.json",
+  "sourceMapEvidence": "docs/evidence/external-source-001-jessica-cruz-source-map-2026-10-15.json",
+  "workflow": {
+    "name": "Exact source gallery preflight",
+    "runId": 38767833893,
+    "artifactId": 11988444723,
+    "artifactSha256": "ddd47e38226339df3aa91ed741856c4a480a5c0afd36be62fa8ed0cc49d8a5ea",
+    "headSha": "e74404affce80301b9a8f6197e09b98c33b30ce5",
+    "conclusion": "success"
+  },
+  "canonicalPipeline": [
+    "plan_gallery_merge",
+    "resolve_gallery_merge",
+    "build_gallery_promotion_manifest"
+  ],
+  "sourceReview": {
+    "sourceImagesReviewed": 6,
+    "eligiblePublicImages": 4,
+    "rejectedWatermarked": 2,
+    "stageRejectedMedia": false,
+    "partialPromotion": false
+  },
+  "plan": {
+    "incomingEligibleImages": 4,
+    "skipExact": 1,
+    "automaticAddView": 3,
+    "reviewVisualCandidate": 0,
+    "visualThreshold": 6
+  },
+  "resolution": {
+    "ready": true,
+    "resolutionSha256": "39344088e04007f438681fcb407931abc3af98c58c0ce9d663bdace4f56eae14",
+    "promotions": 3,
+    "addView": 3,
+    "replaceExisting": 0,
+    "skipExact": 1,
+    "anchorSourceSha256": "1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1",
+    "sourceFilesModified": 0,
+    "destructiveDeletes": 0
+  },
+  "writes": {
+    "production": 0,
+    "staging": 0
+  },
+  "decision": {
+    "identity": "map_existing_exact_source",
+    "canonicalPromotionAuthorizationReady": true,
+    "productionApplyApprovedByThisEvidence": false,
+    "nextGate": "run exact-source existing-gallery apply dry-run; reuse the current cover unchanged, render only the three clean authorized views, exclude both Lychee-branded source renders, and keep production untouched unless explicit apply=true is invoked"
+  }
+}
