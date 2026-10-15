@@ -1,0 +1,69 @@
+name: External source visual review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/external-source-review.yml'
+      - 'tools/materialize_external_source_review.py'
+      - 'tools/test_materialize_external_source_review.py'
+      - 'docs/evidence/external-source-001-jessica-cruz-source-map-2026-10-15.json'
+      - 'config/external-sources/external-source-001.json'
+  workflow_dispatch:
+    inputs:
+      source_map:
+        description: Versioned external source review map
+        required: true
+        default: docs/evidence/external-source-001-jessica-cruz-source-map-2026-10-15.json
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-source-review-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_MAP: ${{ github.event_name == 'workflow_dispatch' && inputs.source_map || 'docs/evidence/external-source-001-jessica-cruz-source-map-2026-10-15.json' }}
+
+jobs:
+  review:
+    name: Materialize exact source review bytes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Test source review guards
+        working-directory: tools
+        run: python -m unittest -v test_materialize_external_source_review.py
+      - name: Materialize exact reviewed source
+        run: >-
+          python tools/materialize_external_source_review.py "$SOURCE_MAP"
+          --source-contract config/external-sources/external-source-001.json
+          --output "$RUNNER_TEMP/external-source-review"
+      - name: Assert read-only result
+        shell: bash
+        run: |
+          python - "$RUNNER_TEMP/external-source-review/review-manifest.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          data=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          assert data['visualDecisionMade'] is False
+          assert data['productionWrites'] == 0
+          assert data['stagingWrites'] == 0
+          assert data['sha256'] == 'd8d8f0fe38ee58465302a96e227b879be0739bf591428bf84a40a7e5c305923e'
+          assert data['bytes'] == 358806
+          print(json.dumps(data, ensure_ascii=False))
+          PY
+      - name: Upload short-lived source review artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: external-source-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/external-source-review
+          if-no-files-found: error
+          retention-days: 1
