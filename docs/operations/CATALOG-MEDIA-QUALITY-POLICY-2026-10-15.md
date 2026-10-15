@@ -22,7 +22,7 @@ Media similarity never authorizes model identity by itself.
 4. Existing source files and masters are never destructively deleted by the reconciliation step.
 5. Source preference is not enough to win. Eligibility and technical quality decide the recommendation.
 
-## STLForge/source preference
+## Preferred external-source-001 media
 
 `external-source-001` media is expected to often have stronger source renders than the legacy one-image catalog. Prefer the incoming source for an equivalent view only when:
 
@@ -32,7 +32,7 @@ Media similarity never authorizes model identity by itself.
 - technical evidence (quality score, dimensions, sharpness and format) makes it the better representation, or the existing equivalent is blocked/unverified by the watermark policy;
 - perceptual replacement still receives an explicit reviewer decision.
 
-The source name alone never overrides these gates.
+The source identity alone never overrides these gates.
 
 ## Watermark states
 
@@ -104,7 +104,7 @@ Those four anchors are priority reconciliation candidates. They do **not** autho
 5. Run production SHA ownership globally before identity resolution.
 6. Resolve identity explicitly as `map_existing` or `new_model`.
 7. For `map_existing`, run gallery planning: exact duplicates skipped, visual candidates reviewed, distinct eligible views added.
-8. Prefer technically superior eligible STLForge views where they improve an existing view.
+8. Prefer technically superior eligible external-source-001 views where they improve an existing view.
 9. Publish only the bounded approved delta.
 
 No batch should be promoted merely to keep sequence numbers moving. Gallery enrichment of existing models is currently a higher-value content priority than adding more one-image models.
