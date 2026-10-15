@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 15600,
+  "targetModelId": "mdl_5ba45786af72f943f3b5",
+  "sourceEvidence": "docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json",
+  "purpose": "bounded_private_staging_only",
+  "images": [
+    {
+      "sourcePosition": 1,
+      "sourceObjectPath": "/wp-content/uploads/2025/09/Sora_TanukiFigures_02.webp",
+      "sha256": "c42d6a378c794a4ff6752a4211900b879c4bb79d6f2d0ecd5cf3eec26d9276bc",
+      "bytes": 873870,
+      "watermarkStatus": "creator_attribution"
+    }
+  ],
+  "decision": {
+    "sourceReviewComplete": true,
+    "stagingAcquisitionReady": true,
+    "selected": 1,
+    "productionPublicationAuthorized": false,
+    "productionWrites": 0,
+    "nextGate": "bounded private staging dry-run, then explicit workflow_dispatch apply=true for this exact SHA only"
+  }
+}
