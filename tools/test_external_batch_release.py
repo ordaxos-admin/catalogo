@@ -252,7 +252,7 @@ class MaterializeEvidenceTests(unittest.TestCase):
             validate_evidence(rows, descriptor, products)
         rows = self.evidence()
         rows[0]["review"] = "unknown"
-        with self.assertRaisesRegex(RuntimeError, "clear/stagingVerified"):
+        with self.assertRaisesRegex(RuntimeError, "revisão promotable"):
             validate_evidence(rows, descriptor, products)
 
     def test_staging_key_is_derived_only_from_prefix_sha_and_extension(self) -> None:
