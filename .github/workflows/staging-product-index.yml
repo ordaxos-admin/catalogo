@@ -6,12 +6,17 @@ on:
       start_page:
         description: First Store API page to scan
         required: true
-        default: '42'
+        default: '43'
+        type: string
+      start_product_offset:
+        description: Zero-based product offset within the first page
+        required: true
+        default: '4'
         type: string
       end_page:
         description: Last Store API page to scan (max 10 pages per run)
         required: true
-        default: '44'
+        default: '45'
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -30,8 +35,9 @@ concurrency:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '42' }}
-  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '44' }}
+  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '43' }}
+  START_PRODUCT_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.start_product_offset || '4' }}
+  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '45' }}
 
 jobs:
   index:
@@ -57,13 +63,14 @@ jobs:
         run: >-
           python tools/index_external_staging_products.py
           --start-page "$START_PAGE"
+          --start-product-offset "$START_PRODUCT_OFFSET"
           --end-page "$END_PAGE"
           --max-pages 10
           --per-page 20
           --max-total-bytes 134217728
           --checkpoint "$RUNNER_TEMP/staging-product-index/checkpoint.json"
           --output "$RUNNER_TEMP/staging-product-index/report.json"
-      - name: Assert index remained read-only
+      - name: Assert index remained read-only and resumable
         shell: bash
         run: |
           python - "$RUNNER_TEMP/staging-product-index/report.json" <<'PY'
@@ -73,6 +80,8 @@ jobs:
           assert report['productionWrites'] == 0
           assert report['stagingWrites'] == 0
           assert report['stagingInventoryObjects'] > 0
+          assert report.get('nextPage') is None or int(report['nextPage']) >= 1
+          assert int(report.get('nextProductOffset', 0)) >= 0
           for product in report['products']:
               assert product['stagedImageCount'] > 0
               assert product['sourceImageCount'] >= product['stagedImageCount']
@@ -85,6 +94,8 @@ jobs:
               'matchedProductCount': report['matchedProductCount'],
               'completeStagingProducts': report['completeStagingProducts'],
               'sourceBytesHashed': report['sourceBytesHashed'],
+              'nextPage': report.get('nextPage'),
+              'nextProductOffset': report.get('nextProductOffset', 0),
           }, ensure_ascii=False))
           PY
       - name: Upload reverse-index evidence

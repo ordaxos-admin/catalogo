@@ -20,7 +20,7 @@ class StagedProductIndexerTests(unittest.TestCase):
             {"id": 2, "name": "Ignored", "slug": "ignored", "images": [{"id": 22, "src": "https://example.com/b.webp"}]},
         ]
         hashes = {"https://example.com/a.webp": (sha_a, 10), "https://example.com/b.webp": (sha_b, 12)}
-        matched, returned, count, total, stopped = scan_page(
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
             origin="https://example.com", page=1, per_page=20, inventory=inventory,
             staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
             fetch_products=lambda _url: products,
@@ -29,10 +29,8 @@ class StagedProductIndexerTests(unittest.TestCase):
         self.assertEqual([row["productId"] for row in matched], [1])
         self.assertEqual(matched[0]["stagingCoverage"], "1/1")
         self.assertTrue(matched[0]["completeStaging"])
-        self.assertEqual(returned, 2)
-        self.assertEqual(count, 2)
-        self.assertEqual(total, 22)
-        self.assertFalse(stopped)
+        self.assertEqual((completed, returned), (2, 2))
+        self.assertEqual((count, total, stopped, next_offset), (2, 22, False, 2))
 
     def test_partial_product_is_preserved_but_not_complete(self):
         sha_a, sha_b = "a" * 64, "b" * 64
@@ -42,13 +40,13 @@ class StagedProductIndexerTests(unittest.TestCase):
             {"id": 2, "src": "https://example.com/b.webp"},
         ]}]
         hashes = {"https://example.com/a.webp": (sha_a, 10), "https://example.com/b.webp": (sha_b, 11)}
-        matched, returned, *_ = scan_page(
+        matched, completed, *_ = scan_page(
             origin="https://example.com", page=2, per_page=20, inventory=inventory,
             staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
             fetch_products=lambda _url: products,
             fetch_image=lambda url, _path, _limit: hashes[url],
         )
-        self.assertEqual(returned, 1)
+        self.assertEqual(completed, 1)
         self.assertEqual(matched[0]["stagingCoverage"], "1/2")
         self.assertFalse(matched[0]["completeStaging"])
 
@@ -59,28 +57,22 @@ class StagedProductIndexerTests(unittest.TestCase):
             {"id": 1, "src": "https://example.com/match.webp"},
             {"id": 2, "src": "https://example.com/impossible.webp"},
         ]}]
-        sizes = {
-            "https://example.com/match.webp": 10,
-            "https://example.com/impossible.webp": 999,
-        }
+        sizes = {"https://example.com/match.webp": 10, "https://example.com/impossible.webp": 999}
         fetched: list[str] = []
 
         def fetch_image(url, _path, _limit):
             fetched.append(url)
             return sha, 10
 
-        matched, returned, count, total, stopped = scan_page(
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
             origin="https://example.com", page=2, per_page=20, inventory=inventory,
             staging_prefix="src", max_image_bytes=1000, remaining_bytes=1000,
-            fetch_products=lambda _url: products,
-            fetch_image=fetch_image,
+            fetch_products=lambda _url: products, fetch_image=fetch_image,
             fetch_size=lambda url: sizes[url],
         )
-        self.assertEqual(returned, 1)
+        self.assertEqual((completed, returned), (1, 1))
         self.assertEqual(fetched, ["https://example.com/match.webp"])
-        self.assertEqual(count, 1)
-        self.assertEqual(total, 10)
-        self.assertFalse(stopped)
+        self.assertEqual((count, total, stopped, next_offset), (1, 10, False, 1))
         self.assertEqual(matched[0]["stagingCoverage"], "1/2")
         skipped = matched[0]["images"][1]
         self.assertIsNone(skipped["sha256"])
@@ -90,24 +82,21 @@ class StagedProductIndexerTests(unittest.TestCase):
     def test_unknown_size_falls_back_to_full_hash(self):
         sha = "d" * 64
         inventory = {f"src/sha256/dd/{sha}.webp": 15}
-        products = [{"id": 9, "name": "Fallback", "images": [
-            {"id": 1, "src": "https://example.com/fallback.webp"},
-        ]}]
+        products = [{"id": 9, "name": "Fallback", "images": [{"id": 1, "src": "https://example.com/fallback.webp"}]}]
         fetched: list[str] = []
 
         def fetch_image(url, _path, _limit):
             fetched.append(url)
             return sha, 15
 
-        matched, returned, count, total, stopped = scan_page(
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
             origin="https://example.com", page=2, per_page=20, inventory=inventory,
             staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
-            fetch_products=lambda _url: products,
-            fetch_image=fetch_image,
+            fetch_products=lambda _url: products, fetch_image=fetch_image,
             fetch_size=lambda _url: None,
         )
         self.assertEqual(fetched, ["https://example.com/fallback.webp"])
-        self.assertEqual((returned, count, total, stopped), (1, 1, 15, False))
+        self.assertEqual((completed, returned, count, total, stopped, next_offset), (1, 1, 1, 15, False, 1))
         self.assertTrue(matched[0]["completeStaging"])
 
     def test_inventory_size_filter_is_extension_specific(self):
@@ -121,13 +110,13 @@ class StagedProductIndexerTests(unittest.TestCase):
         self.assertEqual(sizes["webp"], {100})
         self.assertEqual(sizes["jpg"], {200, 300})
 
-    def test_byte_bound_stops_before_committing_partial_product(self):
+    def test_byte_bound_stops_before_committing_partial_product_and_returns_same_offset(self):
         sha = "a" * 64
         products = [{"id": 9, "name": "Too large", "images": [
             {"id": 1, "src": "https://example.com/a.webp"},
             {"id": 2, "src": "https://example.com/b.webp"},
         ]}]
-        matched, returned, count, total, stopped = scan_page(
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
             origin="https://example.com", page=3, per_page=20,
             inventory={f"src/sha256/aa/{sha}.webp": 8}, staging_prefix="src",
             max_image_bytes=100, remaining_bytes=10,
@@ -135,32 +124,97 @@ class StagedProductIndexerTests(unittest.TestCase):
             fetch_image=lambda _url, _path, _limit: (sha, 8),
         )
         self.assertEqual(matched, [])
-        self.assertEqual(returned, 1)
-        self.assertEqual(count, 1)
-        self.assertEqual(total, 8)
-        self.assertTrue(stopped)
+        self.assertEqual((completed, returned, count, total, stopped, next_offset), (0, 1, 1, 8, True, 0))
+
+    def test_resume_offset_skips_completed_products(self):
+        sha = "a" * 64
+        products = [
+            {"id": 1, "name": "Already done", "images": [{"id": 11, "src": "https://example.com/a.webp"}]},
+            {"id": 2, "name": "Resume here", "images": [{"id": 22, "src": "https://example.com/b.webp"}]},
+            {"id": 3, "name": "Then here", "images": [{"id": 33, "src": "https://example.com/c.webp"}]},
+        ]
+        fetched: list[str] = []
+
+        def fetch_image(url, _path, _limit):
+            fetched.append(url)
+            return sha, 10
+
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
+            origin="https://example.com", page=43, per_page=20, product_offset=1,
+            inventory={f"src/sha256/aa/{sha}.webp": 10}, staging_prefix="src",
+            max_image_bytes=100, remaining_bytes=1000,
+            fetch_products=lambda _url: products, fetch_image=fetch_image,
+        )
+        self.assertEqual(fetched, ["https://example.com/b.webp", "https://example.com/c.webp"])
+        self.assertEqual([row["productId"] for row in matched], [2, 3])
+        self.assertEqual((completed, returned, count, total, stopped, next_offset), (2, 3, 2, 20, False, 3))
+
+    def test_known_size_budget_stop_happens_before_download(self):
+        sha = "a" * 64
+        products = [
+            {"id": 1, "name": "First", "images": [{"id": 11, "src": "https://example.com/a.webp"}]},
+            {"id": 2, "name": "Second", "images": [{"id": 22, "src": "https://example.com/b.webp"}]},
+        ]
+        fetched: list[str] = []
+
+        def fetch_image(url, _path, _limit):
+            fetched.append(url)
+            return sha, 8
+
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
+            origin="https://example.com", page=43, per_page=20,
+            inventory={f"src/sha256/aa/{sha}.webp": 8}, staging_prefix="src",
+            max_image_bytes=100, remaining_bytes=10,
+            fetch_products=lambda _url: products, fetch_image=fetch_image,
+            fetch_size=lambda _url: 8,
+        )
+        self.assertEqual(fetched, ["https://example.com/a.webp"])
+        self.assertEqual([row["productId"] for row in matched], [1])
+        self.assertEqual((completed, returned, count, total, stopped, next_offset), (1, 2, 1, 8, True, 1))
+
+    def test_invalid_resume_offset_fails_closed(self):
+        with self.assertRaisesRegex(RuntimeError, "product_offset"):
+            scan_page(
+                origin="https://example.com", page=1, per_page=20, product_offset=2,
+                inventory={}, staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
+                fetch_products=lambda _url: [{"id": 1, "images": []}],
+                fetch_image=lambda *_args: self.fail("should not fetch"),
+            )
 
     def test_empty_source_page_reports_zero_products(self):
-        matched, returned, count, total, stopped = scan_page(
+        matched, completed, count, total, stopped, next_offset, returned = scan_page(
             origin="https://example.com", page=99, per_page=20, inventory={},
             staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
             fetch_products=lambda _url: [],
             fetch_image=lambda *_args: self.fail("no image should be fetched"),
         )
-        self.assertEqual((matched, returned, count, total, stopped), ([], 0, 0, 0, False))
+        self.assertEqual((matched, completed, count, total, stopped, next_offset, returned), ([], 0, 0, 0, False, 0, 0))
 
     def test_checkpoint_roundtrip_and_source_guard(self):
         with tempfile.TemporaryDirectory() as tmp:
             path = Path(tmp) / "index.json"
             state = empty_state("source-a", 1440)
             state["pagesCompleted"] = [4, 5]
+            state["nextPage"] = 6
+            state["nextProductOffset"] = 7
             state["matchedProducts"]["10"] = {"productId": 10}
             save_state(path, state)
             restored = load_state(path, "source-a", 1441)
             self.assertEqual(restored["pagesCompleted"], [4, 5])
+            self.assertEqual(restored["nextPage"], 6)
+            self.assertEqual(restored["nextProductOffset"], 7)
             self.assertEqual(restored["stagingInventoryObjects"], 1441)
             with self.assertRaisesRegex(RuntimeError, "outra fonte"):
                 load_state(path, "source-b", 1441)
+
+    def test_checkpoint_rejects_invalid_resume_marker(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            path = Path(tmp) / "index.json"
+            state = empty_state("source-a", 10)
+            state["nextProductOffset"] = -1
+            path.write_text(json.dumps(state), encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "nextProductOffset"):
+                load_state(path, "source-a", 10)
 
     def test_read_only_checkpoint_is_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:

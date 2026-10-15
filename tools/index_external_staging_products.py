@@ -22,7 +22,7 @@ from discover_external_staging_candidates import (
     list_staging_inventory, load_json, request_json, safe_source_path, staging_key,
 )
 
-STATE_VERSION = 1
+STATE_VERSION = 2
 
 
 def empty_state(source_id: str, staging_objects: int) -> dict[str, Any]:
@@ -31,6 +31,7 @@ def empty_state(source_id: str, staging_objects: int) -> dict[str, Any]:
         "stagingInventoryObjects": staging_objects, "pagesCompleted": [],
         "productsScanned": 0, "imagesHashed": 0, "sourceBytesHashed": 0,
         "matchedProducts": {}, "productionWrites": 0, "stagingWrites": 0,
+        "nextPage": None, "nextProductOffset": 0,
     }
 
 
@@ -46,6 +47,12 @@ def load_state(path: Path, source_id: str, staging_objects: int) -> dict[str, An
         raise RuntimeError("checkpoint viola contrato read-only")
     if not isinstance(data.get("pagesCompleted"), list) or not isinstance(data.get("matchedProducts"), dict):
         raise RuntimeError("checkpoint incompleto")
+    offset = data.get("nextProductOffset", 0)
+    if not isinstance(offset, int) or offset < 0:
+        raise RuntimeError("checkpoint com nextProductOffset inválido")
+    next_page = data.get("nextPage")
+    if next_page is not None and (not isinstance(next_page, int) or next_page < 1):
+        raise RuntimeError("checkpoint com nextPage inválido")
     data["stagingInventoryObjects"] = staging_objects
     return data
 
@@ -112,26 +119,42 @@ def fetch_source_size(url: str, timeout: int = 30) -> int | None:
 def scan_page(
     *, origin: str, page: int, per_page: int, inventory: dict[str, int],
     staging_prefix: str, max_image_bytes: int, remaining_bytes: int,
+    product_offset: int = 0,
     fetch_products: Callable[[str], Any] = request_json,
     fetch_image: Callable[[str, Path, int], tuple[str, int]] = fetch_source_image,
     fetch_size: Callable[[str], int | None] | None = None,
-) -> tuple[list[dict[str, Any]], int, int, int, bool]:
+) -> tuple[list[dict[str, Any]], int, int, int, bool, int, int]:
+    """Scan one Store API page from a zero-based product offset.
+
+    Returns matched, products_completed, images_hashed, bytes_hashed,
+    bounded_stop, next_product_offset and products_returned. A product interrupted
+    by the byte ceiling is not committed and its own offset is returned.
+    """
     query = urllib.parse.urlencode({"per_page": per_page, "page": page})
     products = fetch_products(origin.rstrip("/") + "/wp-json/wc/store/v1/products?" + query)
     if not isinstance(products, list):
         raise RuntimeError("Store API não retornou lista")
     products_returned = len(products)
+    if product_offset < 0 or product_offset > products_returned:
+        raise RuntimeError("product_offset fora da página retornada")
+
     matched: list[dict[str, Any]] = []
-    images_hashed = bytes_hashed = 0
+    images_hashed = bytes_hashed = products_completed = 0
     bounded_stop = False
+    next_product_offset = product_offset
     staged_sizes = inventory_sizes_by_extension(inventory)
+
     with tempfile.TemporaryDirectory(prefix=f"staging-product-index-{page}-") as temp_dir:
         temp_root = Path(temp_dir)
-        for product in products:
+        for product_index in range(product_offset, products_returned):
+            product = products[product_index]
             product_id = int(product.get("id") or 0)
             raw_images = product.get("images") or []
             if product_id < 1 or not isinstance(raw_images, list) or not raw_images:
+                products_completed += 1
+                next_product_offset = product_index + 1
                 continue
+
             rows: list[dict[str, Any]] = []
             for position, image in enumerate(raw_images, 1):
                 source_url = str(image.get("src") or "")
@@ -139,6 +162,7 @@ def scan_page(
                 extension = extension_from_path(source_path)
                 known_size = fetch_size(source_url) if fetch_size is not None else None
                 eligible_sizes = staged_sizes.get(extension, set())
+
                 if known_size is not None and known_size not in eligible_sizes:
                     rows.append({
                         "sourceImageId": str(image.get("id") or position), "position": position,
@@ -147,6 +171,11 @@ def scan_page(
                         "hashSkippedReason": "size_not_present_in_staging",
                     })
                     continue
+
+                if known_size is not None and bytes_hashed + known_size > remaining_bytes:
+                    bounded_stop = True
+                    break
+
                 target = temp_root / str(product_id) / f"{position:03d}.{extension}"
                 sha256, size = fetch_image(source_url, target, max_image_bytes)
                 if bytes_hashed + size > remaining_bytes:
@@ -162,11 +191,20 @@ def scan_page(
                     "bytes": size, "stagingKey": key if staged_size == size else None,
                     "stagingVerified": staged_size == size,
                 })
+
             if bounded_stop:
+                next_product_offset = product_index
                 break
+
+            products_completed += 1
+            next_product_offset = product_index + 1
             if any(row["stagingVerified"] for row in rows):
                 matched.append(summarize_product(product, rows))
-    return matched, products_returned, images_hashed, bytes_hashed, bounded_stop
+
+    return (
+        matched, products_completed, images_hashed, bytes_hashed,
+        bounded_stop, next_product_offset, products_returned,
+    )
 
 
 def build_index(args: argparse.Namespace) -> dict[str, Any]:
@@ -187,6 +225,9 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
     if end_page - start_page + 1 > int(args.max_pages):
         raise RuntimeError("intervalo excede --max-pages")
     per_page = min(max(int(args.per_page), 1), 20)
+    start_product_offset = int(args.start_product_offset)
+    if start_product_offset < 0 or start_product_offset >= per_page:
+        raise RuntimeError("--start-product-offset deve estar entre 0 e per_page-1")
     max_total_bytes = int(args.max_total_bytes)
     if max_total_bytes < 1:
         raise RuntimeError("--max-total-bytes deve ser positivo")
@@ -195,48 +236,72 @@ def build_index(args: argparse.Namespace) -> dict[str, Any]:
     checkpoint = Path(args.checkpoint)
     state = load_state(checkpoint, source_id, len(inventory))
     completed = {int(page) for page in state["pagesCompleted"]}
+
     for page in range(start_page, end_page + 1):
         if page in completed:
             continue
         remaining = max_total_bytes - int(state["sourceBytesHashed"])
         if remaining <= 0:
             state["boundedStop"] = "max_total_bytes"
+            state["nextPage"] = page
+            state["nextProductOffset"] = start_product_offset if page == start_page else 0
             break
-        matched, products_returned, image_count, byte_count, stopped = scan_page(
+
+        page_offset = start_product_offset if page == start_page else 0
+        matched, products_completed, image_count, byte_count, stopped, next_offset, products_returned = scan_page(
             origin=origin, page=page, per_page=per_page, inventory=inventory,
             staging_prefix=prefix, max_image_bytes=int(args.max_image_bytes), remaining_bytes=remaining,
-            fetch_size=fetch_source_size,
+            product_offset=page_offset, fetch_size=fetch_source_size,
         )
-        state["productsScanned"] += products_returned
+        state["productsScanned"] += products_completed
         state["imagesHashed"] += image_count
         state["sourceBytesHashed"] += byte_count
         for product in matched:
             state["matchedProducts"][str(product["productId"])] = product
+
         if stopped:
             state["boundedStop"] = "max_total_bytes"
+            state["nextPage"] = page
+            state["nextProductOffset"] = next_offset
             save_state(checkpoint, state)
             break
+
         state["pagesCompleted"].append(page)
         state["pagesCompleted"] = sorted({int(value) for value in state["pagesCompleted"]})
+        state["nextPage"] = page + 1
+        state["nextProductOffset"] = 0
         state.pop("boundedStop", None)
         save_state(checkpoint, state)
+
         if products_returned == 0:
             state["sourceExhaustedAtPage"] = page
+            state["nextPage"] = None
+            state["nextProductOffset"] = 0
             save_state(checkpoint, state)
             break
 
     products = list(state["matchedProducts"].values())
     products.sort(key=lambda row: (not row["completeStaging"], -row["stagedImageCount"], row["productId"]))
-    report = {**state, "matchedProductCount": len(products),
-              "completeStagingProducts": sum(1 for row in products if row["completeStaging"]),
-              "products": products}
+    report = {
+        **state,
+        "matchedProductCount": len(products),
+        "completeStagingProducts": sum(1 for row in products if row["completeStaging"]),
+        "products": products,
+    }
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-    print(json.dumps({"pagesCompleted": state["pagesCompleted"], "productsScanned": state["productsScanned"],
-                      "matchedProducts": len(products), "completeStagingProducts": report["completeStagingProducts"],
-                      "sourceBytesHashed": state["sourceBytesHashed"], "productionWrites": 0, "stagingWrites": 0},
-                     ensure_ascii=False))
+    print(json.dumps({
+        "pagesCompleted": state["pagesCompleted"],
+        "productsScanned": state["productsScanned"],
+        "matchedProducts": len(products),
+        "completeStagingProducts": report["completeStagingProducts"],
+        "sourceBytesHashed": state["sourceBytesHashed"],
+        "nextPage": state.get("nextPage"),
+        "nextProductOffset": state.get("nextProductOffset", 0),
+        "productionWrites": 0,
+        "stagingWrites": 0,
+    }, ensure_ascii=False))
     return report
 
 
@@ -244,6 +309,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Indexa produtos da fonte por SHA staged, sem writes.")
     parser.add_argument("--descriptor", default="config/external-batches/external-source-001-batch-004.json")
     parser.add_argument("--start-page", type=int, required=True)
+    parser.add_argument("--start-product-offset", type=int, default=0)
     parser.add_argument("--end-page", type=int, required=True)
     parser.add_argument("--max-pages", type=int, default=10)
     parser.add_argument("--per-page", type=int, default=20)
