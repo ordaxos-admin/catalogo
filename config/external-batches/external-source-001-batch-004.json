@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-004-media.jsonl",
+  "expectedProducts": 1,
+  "expectedImages": 6,
+  "products": [
+    {
+      "productId": 11876,
+      "displayName": "DigiDestined Diorama",
+      "publicModelKey": "digidestined-diorama",
+      "sourceFolders": ["Animes & Desenhos", "Animes", "Digimon", "DigiDestined Diorama"],
+      "expectedImages": 6,
+      "expectedIdentityKey": "Animes & Desenhos / Animes / Digimon / DigiDestined Diorama / digidestined-diorama",
+      "expectedModelId": "mdl_9813b8c1eb0a33cdf7f4",
+      "expectedSlug": "digimon-digidestined-diorama",
+      "expectedCode": "TS-9813B8C1EB0A"
+    }
+  ]
+}
