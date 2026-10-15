@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 11967,
+  "productName": "Nidalee – League of Legends",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {
+    "franchise": "League of Legends",
+    "franchiseEvidence": "source_catalog_category"
+  },
+  "stagingEvidence": {
+    "coverage": "6/6",
+    "completeStaging": true,
+    "reviewOnlyImageCount": 0,
+    "reverseIndexRunId": 38823546575,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "productionSearch": {
+    "exactNameCandidates": 0,
+    "nameSlugSearchTextMatches": 0,
+    "publishedModelsInFranchiseReviewed": 27,
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_production_candidate_found_but_visual_identity_gate_not_completed",
+    "notes": "Production contains 27 published League of Legends models, but none matched Nidalee in name, slug or search_text. Source metadata confirms Nidalee / League of Legends, yet the policy still requires the visual/catalog identity gate before authorizing a new model."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "complete visual/catalog identity review; if no renamed historical record represents the same sculpture, authorize new_model and then run watermark/creator review"
+  }
+}
