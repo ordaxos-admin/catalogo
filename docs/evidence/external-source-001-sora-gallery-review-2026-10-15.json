@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 15600,
+  "productName": "Sora STL + Bust – Kingdom Hearts",
+  "sourceSlug": "sora-stl-kingdom-hearts",
+  "creator": "Tanuki Figures",
+  "categories": ["Kingdom Hearts", "Videogames"],
+  "stagingCoverage": "4/5",
+  "identityReview": {
+    "decision": "new_model_candidate",
+    "exactProductionShaOwners": 0,
+    "sameNameIsNotDuplicateProof": true,
+    "productionNameSearch": {
+      "matches": 1,
+      "onlyMatch": {
+        "modelId": "mdl_95ce1da0b1e7d37db5a1",
+        "name": "Sora e biyomon",
+        "slug": "digimon-sora-e-biyomon",
+        "franchise": "digimon",
+        "relation": "unrelated_character_same_first_name"
+      }
+    },
+    "state": "taxonomy_and_visual_review_required_before_new_model_authorization"
+  },
+  "images": [
+    {
+      "sourceImageId": "15604",
+      "position": 1,
+      "sourcePath": "/wp-content/uploads/2025/09/Sora_TanukiFigures_02.webp",
+      "sha256": "c42d6a378c794a4ff6752a4211900b879c4bb79d6f2d0ecd5cf3eec26d9276bc",
+      "bytes": 873870,
+      "stagingVerified": false,
+      "watermarkStatus": "unknown",
+      "reviewState": "visual_review_required"
+    },
+    {
+      "sourceImageId": "15605",
+      "position": 2,
+      "sourcePath": "/wp-content/uploads/2025/09/Sora_TanukiFigures_03-scaled.webp",
+      "sha256": "c90a6e89621a3e3234fc1ff6979c086829552a78dbcbb9b1db193455684b04ff",
+      "bytes": 4961124,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "reviewState": "visual_review_required"
+    },
+    {
+      "sourceImageId": "15607",
+      "position": 3,
+      "sourcePath": "/wp-content/uploads/2025/09/Sora_TanukiFigures_06-scaled.webp",
+      "sha256": "51cb1dc8698320c4dbe25cc26bae6fe23d200fd78e3b35277b6fc8b84c70dbb1",
+      "bytes": 4146312,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "reviewState": "visual_review_required"
+    },
+    {
+      "sourceImageId": "15606",
+      "position": 4,
+      "sourcePath": "/wp-content/uploads/2025/09/Sora_TanukiFigures_04-scaled.webp",
+      "sha256": "b9961b2788352f926c3d81cc74363dd3ac9273c73e2c6432a8899bfa2cc9f23d",
+      "bytes": 4702690,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "reviewState": "visual_review_required"
+    },
+    {
+      "sourceImageId": "15608",
+      "position": 5,
+      "sourcePath": "/wp-content/uploads/2025/09/Sora_TanukiFigures_08-scaled.webp",
+      "sha256": "bfeed2b7b17ee41fbc6af5eefedc95b8fd9bb67fafa102e39dbd480bfcf0b634",
+      "bytes": 4330862,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "reviewState": "visual_review_required"
+    }
+  ],
+  "decision": {
+    "sourceReviewComplete": false,
+    "galleryMediaReviewApproved": false,
+    "batchApproved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "materialize all five exact source images into a short-lived artifact and perform visual watermark review before staging the missing position 1"
+  }
+}
