@@ -3,7 +3,8 @@
 
 This report is intentionally conservative. A product is counted as confirmed present only
 when versioned review evidence explicitly maps it to an existing model, or when a reviewed
-new model's deterministic model id is already published. Name similarity is review-only.
+new model's deterministic model id is already published. Name similarity and candidate
+metadata are review-only and never authorize identity resolution by themselves.
 """
 from __future__ import annotations
 
@@ -79,7 +80,13 @@ def fetch_json(url: str, *, token: str | None = None, body: dict[str, Any] | Non
 def fetch_source_products(origin: str, *, per_page: int = 100, max_pages: int = 100) -> tuple[list[dict[str, Any]], dict[str, int]]:
     if per_page < 1 or per_page > 100:
         raise CoverageError("per_page deve ficar entre 1 e 100")
-    params = {"per_page": per_page, "page": 1, "_fields": "id,name,slug"}
+    params = {
+        "per_page": per_page,
+        "page": 1,
+        "orderby": "id",
+        "order": "asc",
+        "_fields": "id,name,slug,categories",
+    }
     first_url = f"{origin}/wp-json/wc/store/v1/products?{urllib.parse.urlencode(params)}"
     first, headers = fetch_json(first_url)
     if not isinstance(first, list):
@@ -101,7 +108,12 @@ def fetch_source_products(origin: str, *, per_page: int = 100, max_pages: int = 
     ids = [int(item.get("id") or 0) for item in products]
     if any(value <= 0 for value in ids) or len(ids) != len(set(ids)):
         raise CoverageError("IDs de produto inválidos/duplicados")
-    return products, {"reportedTotal": total, "totalPages": total_pages, "productsFetched": len(products)}
+    return products, {
+        "reportedTotal": total,
+        "totalPages": total_pages,
+        "productsFetched": len(products),
+        "ordering": "id_asc",
+    }
 
 
 def fetch_published_models(account_id: str, token: str, database_id: str) -> list[dict[str, Any]]:
@@ -109,7 +121,14 @@ def fetch_published_models(account_id: str, token: str, database_id: str) -> lis
     payload, _ = fetch_json(
         endpoint,
         token=token,
-        body={"sql": "SELECT id,name,slug,code,image_count FROM models WHERE published=1 ORDER BY id"},
+        body={
+            "sql": (
+                "SELECT m.id,m.name,m.slug,m.code,m.image_count,m.franchise_id,"
+                "f.name AS franchise_name,f.slug AS franchise_slug "
+                "FROM models m LEFT JOIN franchises f ON f.id=m.franchise_id "
+                "WHERE m.published=1 ORDER BY m.id"
+            )
+        },
     )
     if not isinstance(payload, dict) or payload.get("success") is not True:
         raise CoverageError(f"consulta D1 falhou: {payload.get('errors') if isinstance(payload, dict) else payload}")
@@ -153,7 +172,7 @@ def review_states(root: Path) -> dict[int, set[str]]:
         if decision in {"map_existing", "new_model", "unresolved"}:
             states[product_id].add(decision)
         top_decision = payload.get("decision") or {}
-        if top_decision.get("newModelAuthorized") is True:
+        if top_decision.get("newModelAuthorized") is True or top_decision.get("newModelIdentityAuthorized") is True:
             states[product_id].add("new_model")
         if top_decision.get("identityResolved") is False:
             states[product_id].add("unresolved")
@@ -164,6 +183,31 @@ def review_states(root: Path) -> dict[int, set[str]]:
     return states
 
 
+def category_names(product: dict[str, Any]) -> list[str]:
+    values: list[str] = []
+    for row in product.get("categories") or []:
+        if isinstance(row, dict):
+            name = str(row.get("name") or "").strip()
+        else:
+            name = str(row or "").strip()
+        if name and name not in values:
+            values.append(name)
+    return values
+
+
+def candidate_metadata(model: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "modelId": str(model.get("id") or ""),
+        "name": str(model.get("name") or ""),
+        "slug": str(model.get("slug") or ""),
+        "code": str(model.get("code") or ""),
+        "imageCount": int(model.get("image_count") or 0),
+        "franchiseId": model.get("franchise_id"),
+        "franchiseName": str(model.get("franchise_name") or ""),
+        "franchiseSlug": str(model.get("franchise_slug") or ""),
+    }
+
+
 def classify(
     products: list[dict[str, Any]],
     models: list[dict[str, Any]],
@@ -171,9 +215,9 @@ def classify(
     batch_ids: dict[int, str],
 ) -> dict[str, Any]:
     published_ids = {str(row.get("id") or "") for row in models}
-    names: dict[str, list[str]] = defaultdict(list)
+    names: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for row in models:
-        names[normalize(row.get("name"))].append(str(row.get("id") or ""))
+        names[normalize(row.get("name"))].append(candidate_metadata(row))
 
     rows: list[dict[str, Any]] = []
     counts: Counter[str] = Counter()
@@ -182,6 +226,7 @@ def classify(
         name = str(product.get("name") or "")
         states = reviews.get(product_id, set())
         expected_id = batch_ids.get(product_id)
+        candidates = names.get(normalize(subject_hint(name)), [])
         if "map_existing" in states:
             state = "confirmed_present_map_existing"
         elif "new_model" in states and expected_id and expected_id in published_ids:
@@ -190,23 +235,24 @@ def classify(
             state = "reviewed_new_model_not_published"
         elif states:
             state = "reviewed_unresolved"
+        elif not candidates:
+            state = "unreviewed_no_exact_name_candidate"
+        elif len(candidates) == 1:
+            state = "unreviewed_single_exact_name_candidate"
         else:
-            candidates = names.get(normalize(subject_hint(name)), [])
-            if not candidates:
-                state = "unreviewed_no_exact_name_candidate"
-            elif len(candidates) == 1:
-                state = "unreviewed_single_exact_name_candidate"
-            else:
-                state = "unreviewed_multiple_exact_name_candidates"
+            state = "unreviewed_multiple_exact_name_candidates"
         counts[state] += 1
         rows.append(
             {
                 "sourceProductId": product_id,
                 "sourceName": name,
                 "sourceSlug": str(product.get("slug") or ""),
+                "sourceCategories": category_names(product),
                 "state": state,
                 "expectedModelId": expected_id,
                 "reviewStates": sorted(states),
+                "exactNameCandidates": candidates,
+                "candidateMetadataSemantics": "review_only",
             }
         )
 
@@ -220,6 +266,7 @@ def classify(
             "confirmedReviewedNewModelsNotPublished": confirmed_missing,
             "coverage100Proven": bool(products) and confirmed == len(products),
             "states": dict(sorted(counts.items())),
+            "candidateMetadataSemantics": "review_only",
             "productionWrites": 0,
             "stagingWrites": 0,
         },
@@ -253,7 +300,7 @@ def main() -> None:
         review_states(Path(args.evidence_root)),
         batch_model_ids(Path(args.batch_root)),
     )
-    report["version"] = 1
+    report["version"] = 2
     report["sourceId"] = str(descriptor.get("sourceId") or "")
     report["source"] = source_meta
     Path(args.output).write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
