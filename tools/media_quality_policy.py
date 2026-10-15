@@ -2,8 +2,10 @@
 """Shared media-quality policy used by catalog reconciliation gates.
 
 Watermark state is intentionally explicit. External media without a conclusive
-visual audit remains unknown and cannot be promoted. Legacy/internal manifests
-created before this contract keep their previous accepted-baseline behavior.
+visual audit remains unknown and cannot be promoted. A legitimate creator/modeler
+signature is tracked separately from blocking repost/piracy/promotional branding.
+Legacy/internal manifests created before this contract keep their previous
+accepted-baseline behavior.
 """
 from __future__ import annotations
 
@@ -11,16 +13,24 @@ from typing import Any
 
 AUTHORIZED_EXTERNAL_PROVENANCE = "AUTHORIZED_EXTERNAL_MEDIA"
 WATERMARK_CLEAR = "clear"
+WATERMARK_CREATOR_ATTRIBUTION = "creator_attribution"
 WATERMARK_WATERMARKED = "watermarked"
 WATERMARK_UNKNOWN = "unknown"
 WATERMARK_LEGACY_ACCEPTED = "legacy_accepted"
 
-AUDITED_WATERMARK_STATUSES = frozenset({WATERMARK_CLEAR, WATERMARK_WATERMARKED})
+AUDITED_WATERMARK_STATUSES = frozenset(
+    {WATERMARK_CLEAR, WATERMARK_CREATOR_ATTRIBUTION, WATERMARK_WATERMARKED}
+)
 MANIFEST_WATERMARK_STATUSES = frozenset(
-    {WATERMARK_CLEAR, WATERMARK_WATERMARKED, WATERMARK_UNKNOWN}
+    {
+        WATERMARK_CLEAR,
+        WATERMARK_CREATOR_ATTRIBUTION,
+        WATERMARK_WATERMARKED,
+        WATERMARK_UNKNOWN,
+    }
 )
 PROMOTABLE_WATERMARK_STATUSES = frozenset(
-    {WATERMARK_CLEAR, WATERMARK_LEGACY_ACCEPTED}
+    {WATERMARK_CLEAR, WATERMARK_CREATOR_ATTRIBUTION, WATERMARK_LEGACY_ACCEPTED}
 )
 COMPACT_WATERMARK_STATUSES = MANIFEST_WATERMARK_STATUSES | {
     WATERMARK_LEGACY_ACCEPTED
@@ -32,11 +42,17 @@ class MediaQualityPolicyError(RuntimeError):
 
 
 def audited_watermark_status(value: Any) -> str:
-    """Validate a conclusive visual-audit result."""
+    """Validate a conclusive visual-audit result.
+
+    `creator_attribution` is reserved for a legitimate signature/handle/logo of
+    the actual modeler/creator and remains eligible for promotion. Repost,
+    piracy, membership, Telegram/group, store/source branding, QR codes and
+    promotional URLs must be recorded as `watermarked` and remain blocked.
+    """
     status = str(value or "").strip().lower()
     if status not in AUDITED_WATERMARK_STATUSES:
         raise MediaQualityPolicyError(
-            "watermarkStatus inválido; use 'clear' ou 'watermarked'"
+            "watermarkStatus inválido; use 'clear', 'creator_attribution' ou 'watermarked'"
         )
     return status
 
