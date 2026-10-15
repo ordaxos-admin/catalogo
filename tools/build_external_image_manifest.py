@@ -35,6 +35,7 @@ from ingest_catalog import (
 from media_quality_policy import (
     MediaQualityPolicyError,
     WATERMARK_CLEAR,
+    WATERMARK_CREATOR_ATTRIBUTION,
     WATERMARK_UNKNOWN,
     WATERMARK_WATERMARKED,
     audited_watermark_status,
@@ -429,7 +430,7 @@ def build_manifest(
 
     watermark_counts = {
         status: sum(1 for row in rows if row.get("watermark_status") == status)
-        for status in (WATERMARK_CLEAR, WATERMARK_WATERMARKED, WATERMARK_UNKNOWN)
+        for status in (WATERMARK_CLEAR, WATERMARK_CREATOR_ATTRIBUTION, WATERMARK_WATERMARKED, WATERMARK_UNKNOWN)
     }
     summary = {
         "version": 1,
