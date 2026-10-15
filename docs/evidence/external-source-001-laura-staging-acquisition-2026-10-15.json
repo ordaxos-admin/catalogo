@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 25190,
+  "targetModelId": "mdl_7787007353a58149dca9",
+  "sourceEvidence": "docs/evidence/external-source-001-laura-source-map-2026-10-15.json",
+  "purpose": "bounded_private_staging_only",
+  "images": [
+    {
+      "sourcePosition": 1,
+      "sourceObjectPath": "/wp-content/uploads/2026/03/LauraDiorama_beauty-1440x1920-1.webp",
+      "sha256": "7b60763cc347f8a8420046c4a7e1bb5a5a999db41081ec278d89f2f3776094bc",
+      "bytes": 848954,
+      "watermarkStatus": "clear"
+    },
+    {
+      "sourcePosition": 6,
+      "sourceObjectPath": "/wp-content/uploads/2026/03/LauraStandalone_beauty-1440x1920-1.webp",
+      "sha256": "9ea41ce330445e746c5a558fe09dbac8a81c5d2534c7442413ea39bde8bd4a8d",
+      "bytes": 736332,
+      "watermarkStatus": "clear"
+    },
+    {
+      "sourcePosition": 7,
+      "sourceObjectPath": "/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_001-1440x1920-1.webp",
+      "sha256": "4bd9073d628e889f1f590765ce50b6a9bf689073c39d1d43c559ddf4c864e6cd",
+      "bytes": 2218078,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "sourcePosition": 8,
+      "sourceObjectPath": "/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_005-1440x1920-1.webp",
+      "sha256": "f85090f8b0adb954213ab0f47b3a747fcf94fac805d30babc5672bf883ff0191",
+      "bytes": 2271548,
+      "watermarkStatus": "creator_attribution"
+    }
+  ],
+  "decision": {
+    "sourceReviewComplete": true,
+    "stagingAcquisitionReady": true,
+    "selected": 4,
+    "productionPublicationAuthorized": false,
+    "productionWrites": 0,
+    "nextGate": "bounded private staging dry-run, then explicit workflow_dispatch apply=true for these four exact SHAs only"
+  }
+}
