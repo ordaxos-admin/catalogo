@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12803,
+  "targetModelId": "mdl_7bfe8d533eec570cffb1",
+  "sourceEvidence": "docs/evidence/external-source-001-azula-gallery-review-2026-10-15.json",
+  "purpose": "bounded_private_staging_only",
+  "images": [
+    {
+      "sourcePosition": 1,
+      "sourceObjectPath": "/wp-content/uploads/2025/06/Close-scaled-1.webp",
+      "sha256": "fa54eacc5af90338fb6c5899c360ec768dafd06b3627f1b913419729b3aa2871",
+      "bytes": 311948,
+      "watermarkStatus": "clear"
+    }
+  ],
+  "decision": {
+    "sourceReviewComplete": true,
+    "stagingAcquisitionReady": true,
+    "selected": 1,
+    "productionPublicationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "bounded private staging dry-run, then explicit workflow_dispatch apply=true for this exact SHA only; after staging completes, run existing-gallery dry-run before any production apply"
+  }
+}

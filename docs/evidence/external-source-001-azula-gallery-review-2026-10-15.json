@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12803,
+  "sourceProductKey": "external-source-001:product:12803",
+  "incomingModel": "external-source-001 / product:12803",
+  "targetName": "Azula",
+  "sourceSlug": "azula-stl-avatar-the-last-airbender",
+  "creator": "CA3D",
+  "creatorEvidence": {
+    "state": "source_brand_metadata_only",
+    "creatorCorroborated": false,
+    "notes": "Source catalog metadata names CA3D. Creator corroboration is not used to approve these images because the four reviewed renders are classified clear rather than creator_attribution."
+  },
+  "sourceGallery": {
+    "imageCount": 4,
+    "stagedOriginalRenders": 3,
+    "stagingCoverageComplete": false,
+    "productionExactShaOwners": 0,
+    "reviewArtifactRunId": 38823546504,
+    "reviewArtifactProductPath": "review/product-12803"
+  },
+  "visualReview": {
+    "method": "manual_full_pixel_review_from_short_lived_exact_product_artifact",
+    "result": "clear",
+    "sourceImagesReviewed": 4,
+    "sourceReviewComplete": true,
+    "blockingWatermarks": 0,
+    "notes": "All four exact source renders were inspected. No QR code, URL, Telegram/group branding, reseller/download branding, membership promotion, unrelated third-party badge or other blocking promotional watermark is visible."
+  },
+  "metricReview": {
+    "engine": "canonical_pil_parity",
+    "dhash": "grayscale_9x8_lanczos_left_greater_than_right",
+    "visualThreshold": 6,
+    "existingCandidate": {
+      "modelId": "mdl_7bfe8d533eec570cffb1",
+      "slug": "avatar-last-airbender-azula-avatar-the-last-airbender",
+      "code": "TS-7BFE8D533EEC",
+      "storageKey": "media/mdl_7bfe8d533eec570cffb1/img_752eea619242f138179b/card.webp",
+      "bytes": 60470,
+      "width": 800,
+      "height": 800,
+      "dhash": "04031311331f1703"
+    },
+    "sameViewSource": {
+      "position": 2,
+      "sha256": "f0b588c5d0f8d2d8b0ac2957ba3feb5256ac0a570b5c3152854dfaab1c0766c6",
+      "bytes": 5187039,
+      "width": 2560,
+      "height": 2560,
+      "dhash": "04031311331f1703",
+      "dhashDistance": 0,
+      "visualDecision": "same_sculpture_same_view_higher_resolution_source",
+      "recommendedResolution": "replace_existing"
+    },
+    "rejectedCandidate": {
+      "modelId": "mdl_45da11761f9ef39b2a7d",
+      "slug": "avatar-last-airbender-zuko-e-azula-avatar-zuko-and-azula-diorama-avatar-the-last-airbender-principal",
+      "dhash": "c327270d5b8d5785",
+      "nearestSourceDistance": 22,
+      "visualDecision": "different_diorama_two_characters_not_same_sculpture"
+    }
+  },
+  "images": [
+    {"position":1,"imageId":"19457","sourcePath":"/wp-content/uploads/2025/06/Close-scaled-1.webp","extension":"webp","sha256":"fa54eacc5af90338fb6c5899c360ec768dafd06b3627f1b913419729b3aa2871","bytes":311948,"width":1200,"height":1200,"dhash":"05270d2939816366","stagingVerified":false,"productionOwners":[],"watermarkStatus":"clear","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":2,"imageId":"12806","sourcePath":"/wp-content/uploads/2025/06/Frente-scaled.jpg","extension":"jpg","sha256":"f0b588c5d0f8d2d8b0ac2957ba3feb5256ac0a570b5c3152854dfaab1c0766c6","bytes":5187039,"width":2560,"height":2560,"dhash":"04031311331f1703","stagingVerified":true,"productionOwners":[],"watermarkStatus":"clear","promotableMedia":true,"proposedAction":"replace_existing"},
+    {"position":3,"imageId":"12807","sourcePath":"/wp-content/uploads/2025/06/Lado-scaled.jpg","extension":"jpg","sha256":"e8a3342cc09340a13f162128730cef1f3b59dfc9bfb0fc59b269f880a51b94e0","bytes":5255240,"width":2560,"height":2560,"dhash":"25cbc387971e1f0f","stagingVerified":true,"productionOwners":[],"watermarkStatus":"clear","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":4,"imageId":"12808","sourcePath":"/wp-content/uploads/2025/06/Tras-scaled.jpg","extension":"jpg","sha256":"bb6d083f0457f3f2c04e5da480005be622d889690c1ca8d44e1c82df04d86551","bytes":3996721,"width":2560,"height":2560,"dhash":"089c171323218b1f","stagingVerified":true,"productionOwners":[],"watermarkStatus":"clear","promotableMedia":true,"proposedAction":"add_view"}
+  ],
+  "identityReview": {
+    "decision": "map_existing",
+    "sameNameIsNotDuplicateProof": true,
+    "sameSculptureVisualEvidence": true,
+    "targetModelId": "mdl_7bfe8d533eec570cffb1",
+    "targetSlug": "avatar-last-airbender-azula-avatar-the-last-airbender",
+    "targetCode": "TS-7BFE8D533EEC",
+    "targetImageCountBeforePromotion": 1,
+    "exactSourceShaOverlap": false,
+    "evidence": "Production candidate mdl_7bfe8d533eec570cffb1 and source position 2 depict the same Azula sculpture, pose, blue-flame composition and camera view. Canonical dHash is identical (distance 0). The other production candidate depicts a distinct Zuko-and-Azula two-character diorama and is rejected.",
+    "mapExistingApproved": true
+  },
+  "decision": {
+    "galleryMediaReviewApproved": true,
+    "identityDecision": "map_existing",
+    "mapExistingApproved": true,
+    "stagingAcquisitionApproved": true,
+    "stagingAcquisitionSha256": ["fa54eacc5af90338fb6c5899c360ec768dafd06b3627f1b913419729b3aa2871"],
+    "newModelApproved": false,
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "use the protected private-staging acquisition path for source position 1 only; after staging is complete, run existing-gallery dry-run with position 2 as replace_existing and positions 1, 3 and 4 as add_view. Reverify source SHA and production ownership immediately before any apply."
+  }
+}

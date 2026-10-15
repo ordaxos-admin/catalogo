@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       page:
-        description: Bounded Store API page used only when product_id is empty
+        description: Bounded Store API page used only when exact product ids are empty
         required: true
         default: '44'
         type: string
@@ -19,7 +19,12 @@ on:
         default: '7'
         type: string
       product_id:
-        description: Optional exact Store API product id; bypasses pagination
+        description: Optional single exact Store API product id
+        required: false
+        default: ''
+        type: string
+      product_ids:
+        description: Optional comma-separated exact Store API product ids (max 10)
         required: false
         default: ''
         type: string
@@ -46,7 +51,8 @@ env:
   DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '44' }}
   DISCOVERY_PER_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.per_page || '20' }}
   DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '7' }}
-  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || (github.event_name == 'pull_request' && '12803') || '' }}
+  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '' }}
+  DISCOVERY_PRODUCT_IDS: ${{ github.event_name == 'workflow_dispatch' && inputs.product_ids || (github.event_name == 'pull_request' && '10015,11967,11856') || '' }}
 
 jobs:
   discover:
@@ -93,6 +99,9 @@ jobs:
           if [[ -n "$DISCOVERY_PRODUCT_ID" ]]; then
             args+=(--product-id "$DISCOVERY_PRODUCT_ID")
           fi
+          if [[ -n "$DISCOVERY_PRODUCT_IDS" ]]; then
+            args+=(--product-ids "$DISCOVERY_PRODUCT_IDS")
+          fi
           python tools/discover_external_staging_candidates.py "${args[@]}"
       - name: Attach production covers for identity review
         run: >-
@@ -102,23 +111,28 @@ jobs:
       - name: Assert discovery remained read-only
         shell: bash
         run: |
-          python - "$RUNNER_TEMP/external-candidate-discovery/discovery-report.json" "$DISCOVERY_PRODUCT_ID" <<'PY'
+          python - "$RUNNER_TEMP/external-candidate-discovery/discovery-report.json" "$DISCOVERY_PRODUCT_ID" "$DISCOVERY_PRODUCT_IDS" <<'PY'
           import json, sys
           from pathlib import Path
           report=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
-          target=str(sys.argv[2] or '').strip()
+          single=str(sys.argv[2] or '').strip()
+          batch=[int(x.strip()) for x in str(sys.argv[3] or '').split(',') if x.strip()]
           assert report['productionWrites'] == 0
           assert report['stagingWrites'] == 0
           assert report.get('reviewArtifactPolicy') == 'complete_or_incomplete_read_only'
-          if target:
+          if single:
               assert report.get('selectionMode') == 'exact_product_endpoint'
-              assert report.get('requestedProductId') == int(target)
+              assert report.get('requestedProductId') == int(single)
+              assert report.get('requestedProductIds') == [int(single)]
               assert report['productsScanned'] == 1
-              assert report['products'][0]['productId'] == int(target)
+          if batch:
+              assert report.get('selectionMode') == ('exact_product_endpoint' if len(batch) == 1 else 'exact_product_endpoints')
+              assert report.get('requestedProductIds') == batch
+              assert [row['productId'] for row in report['products']] == batch
+              assert report['productsScanned'] == len(batch)
           for product in report['products']:
               assert product.get('promotable') is not True
-              assert product.get('identityDecision') != 'map_existing'
-              assert product.get('identityDecision') != 'new_model'
+              assert product.get('identityDecision') not in {'map_existing','new_model'}
               if product.get('state') in {
                   'visual_review_required',
                   'identity_review_required_exact_sha_overlap',
@@ -130,6 +144,7 @@ jobs:
           print(json.dumps({
               'selectionMode': report.get('selectionMode'),
               'requestedProductId': report.get('requestedProductId'),
+              'requestedProductIds': report.get('requestedProductIds'),
               'productsScanned': report['productsScanned'],
               'sourceBytesHashed': report['sourceBytesHashed'],
               'productionCoverReviewObjects': report.get('productionCoverReviewObjects', 0),

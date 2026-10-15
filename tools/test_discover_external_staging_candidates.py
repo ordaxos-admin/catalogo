@@ -4,7 +4,9 @@ import unittest
 from discover_external_staging_candidates import (
     candidate_state,
     decode_b64_text,
+    exact_product_ids,
     extension_from_path,
+    parse_product_ids,
     safe_source_path,
     select_products,
     staging_key,
@@ -36,6 +38,25 @@ class DiscoverExternalStagingCandidatesTests(unittest.TestCase):
             staging_key("external/", sha, ".jpeg"),
             f"external/sha256/aa/{sha}.jpg",
         )
+
+    def test_parse_product_ids_accepts_bounded_unique_list(self):
+        self.assertEqual(parse_product_ids("10015, 11967,11856"), [10015, 11967, 11856])
+
+    def test_parse_product_ids_rejects_duplicate_or_invalid(self):
+        with self.assertRaisesRegex(RuntimeError, "duplicado"):
+            parse_product_ids("10015,10015")
+        with self.assertRaisesRegex(RuntimeError, "inválido"):
+            parse_product_ids("10015,abc")
+        with self.assertRaisesRegex(RuntimeError, "inválido"):
+            parse_product_ids("0")
+
+    def test_exact_product_ids_preserves_single_compatibility(self):
+        self.assertEqual(exact_product_ids(13687, None), [13687])
+        self.assertEqual(exact_product_ids(None, "10015,11967"), [10015, 11967])
+
+    def test_exact_product_ids_rejects_ambiguous_flags(self):
+        with self.assertRaisesRegex(RuntimeError, "apenas --product-id ou --product-ids"):
+            exact_product_ids(13687, "10015")
 
     def test_select_products_preserves_bounded_prefix_without_exact_target(self):
         products = [{"id": 1}, {"id": 2}, {"id": 3}]

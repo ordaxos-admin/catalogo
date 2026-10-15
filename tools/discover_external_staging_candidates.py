@@ -2,7 +2,7 @@
 """Discover bounded external-media candidates without authorizing publication.
 
 This tool is intentionally read-only with respect to Cloudflare storage and D1.
-It fetches either one exact Store API product or a small source API page, hashes
+It fetches either exact Store API products or a small source API page, hashes
 source images, checks exact private-staging ownership, and checks global
 production SHA ownership. Nothing here resolves identity or watermark status and
 nothing here creates or applies a release batch.
@@ -28,6 +28,7 @@ REVIEW_ARTIFACT_STATES = {
     "identity_review_required_exact_sha_overlap",
     "incomplete_staging",
 }
+MAX_EXACT_PRODUCTS = 10
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -203,8 +204,39 @@ def candidate_state(images: list[dict[str, Any]]) -> str:
 
 
 def review_artifact_eligible(state: str) -> bool:
-    """Keep exact pixels for read-only review even when staging is incomplete."""
     return str(state or "") in REVIEW_ARTIFACT_STATES
+
+
+def parse_product_ids(value: str | None) -> list[int]:
+    raw = str(value or "").strip()
+    if not raw:
+        return []
+    values: list[int] = []
+    seen: set[int] = set()
+    for token in raw.split(","):
+        text = token.strip()
+        if not text.isdigit() or int(text) < 1:
+            raise RuntimeError(f"product-ids contém ID inválido: {text!r}")
+        product_id = int(text)
+        if product_id in seen:
+            raise RuntimeError(f"product-ids contém ID duplicado: {product_id}")
+        seen.add(product_id)
+        values.append(product_id)
+    if len(values) > MAX_EXACT_PRODUCTS:
+        raise RuntimeError(f"product-ids excede limite de {MAX_EXACT_PRODUCTS}")
+    return values
+
+
+def exact_product_ids(product_id: int | None, product_ids: str | None) -> list[int]:
+    batch = parse_product_ids(product_ids)
+    if product_id is not None and batch:
+        raise RuntimeError("use apenas --product-id ou --product-ids, não ambos")
+    if product_id is not None:
+        target = int(product_id)
+        if target < 1:
+            raise RuntimeError("product-id deve ser positivo")
+        return [target]
+    return batch
 
 
 def select_products(
@@ -254,12 +286,14 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
 
     per_page = min(max(int(args.per_page), 1), 20)
     max_products = min(max(int(args.max_products), 1), per_page)
+    requested_ids = exact_product_ids(args.product_id, args.product_ids)
     selection_mode = "bounded_page"
-    if args.product_id is not None:
-        target = int(args.product_id)
-        raw_product = request_json(origin + f"/wp-json/wc/store/v1/products/{target}")
-        products = [validate_exact_product(raw_product, target)]
-        selection_mode = "exact_product_endpoint"
+    if requested_ids:
+        products = []
+        for target in requested_ids:
+            raw_product = request_json(origin + f"/wp-json/wc/store/v1/products/{target}")
+            products.append(validate_exact_product(raw_product, target))
+        selection_mode = "exact_product_endpoint" if len(requested_ids) == 1 else "exact_product_endpoints"
     else:
         api_query = urllib.parse.urlencode({"per_page": per_page, "page": int(args.page)})
         raw_products = request_json(origin + "/wp-json/wc/store/v1/products?" + api_query)
@@ -359,12 +393,13 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
                     review_kept += 1
 
     report = {
-        "version": 2,
+        "version": 3,
         "sourceId": source_id,
         "page": int(args.page),
         "perPage": per_page,
         "selectionMode": selection_mode,
-        "requestedProductId": args.product_id,
+        "requestedProductId": requested_ids[0] if len(requested_ids) == 1 else None,
+        "requestedProductIds": requested_ids,
         "productsScanned": len(product_rows),
         "sourceBytesHashed": total_source_bytes,
         "stagingInventoryObjects": len(inventory),
@@ -377,7 +412,8 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
     complete_states = {"visual_review_required", "identity_review_required_exact_sha_overlap"}
     summary = {
         "selectionMode": selection_mode,
-        "requestedProductId": args.product_id,
+        "requestedProductId": report["requestedProductId"],
+        "requestedProductIds": requested_ids,
         "productsScanned": len(product_rows),
         "completeStaging": sum(1 for row in product_rows if row.get("state") in complete_states),
         "visualReviewRequired": sum(1 for row in product_rows if row.get("state") == "visual_review_required"),
@@ -398,6 +434,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--per-page", type=int, default=10)
     parser.add_argument("--max-products", type=int, default=10)
     parser.add_argument("--product-id", type=int)
+    parser.add_argument("--product-ids")
     parser.add_argument("--max-review-products", type=int, default=3)
     parser.add_argument("--max-image-bytes", type=int, default=16 * 1024 * 1024)
     parser.add_argument("--max-total-bytes", type=int, default=256 * 1024 * 1024)

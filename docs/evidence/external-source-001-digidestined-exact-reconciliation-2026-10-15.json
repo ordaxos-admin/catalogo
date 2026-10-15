@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 11876,
+  "productName": "DigiDestined Diorama – Digimon",
+  "scope": "exact_source_reconciliation",
+  "targetModelId": "mdl_9813b8c1eb0a33cdf7f4",
+  "targetName": "DigiDestined Diorama",
+  "targetSlug": "digimon-digidestined-diorama",
+  "targetFranchise": "Digimon",
+  "sourceGallery": {
+    "sourceImageCount": 6,
+    "stagingCoverage": "6/6",
+    "exactProductionShaOwners": 6,
+    "allSourceShasOwnedByTarget": true
+  },
+  "identityReview": {
+    "decision": "map_existing",
+    "sameNameIsNotDuplicateProof": true,
+    "exactByteOwnershipProof": true,
+    "targetModelId": "mdl_9813b8c1eb0a33cdf7f4",
+    "evidence": "All 6 source-gallery SHA-256 values are already recorded in production model_image_sources for this single published DigiDestined Diorama model. The published model also has image_count=6. Identity is proven by exact bytes.",
+    "mapExistingApproved": true
+  },
+  "mediaDecision": {
+    "action": "skip_exact_all",
+    "newMediaRequired": false,
+    "galleryPromotionRequired": false
+  },
+  "decision": {
+    "confirmedPresent": true,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "none; source product is already fully represented by exact production-owned source bytes"
+  }
+}
