@@ -5,6 +5,10 @@ import json
 import unittest
 from pathlib import Path
 
+from creator_attribution_release import (
+    load_creator_attribution_authorizations,
+    validate_creator_attribution_proof,
+)
 from materialize_external_media_batch import load_jsonl, validate_descriptor, validate_evidence
 
 
@@ -14,8 +18,14 @@ REVIEW_PATH = ROOT / "docs/evidence/external-source-001-kratos-6-identity-review
 
 
 class ExternalBatch006ContractTests(unittest.TestCase):
-    def test_kratos_identity_is_deterministic_and_visually_authorized_as_new(self) -> None:
+    def descriptor_and_evidence(self):
         descriptor = json.loads(DESCRIPTOR_PATH.read_text(encoding="utf-8"))
+        evidence = load_jsonl(ROOT / descriptor["evidence"])
+        products = validate_descriptor(descriptor, DESCRIPTOR_PATH)
+        return descriptor, evidence, products
+
+    def test_kratos_identity_is_deterministic_and_visually_authorized_as_new(self) -> None:
+        descriptor, _, _ = self.descriptor_and_evidence()
         product = descriptor["products"][0]
         identity = "Games / God of War / Kratos 6 Diorama / kratos-6-diorama"
         digest = hashlib.sha256(identity.encode("utf-8")).hexdigest()
@@ -31,8 +41,7 @@ class ExternalBatch006ContractTests(unittest.TestCase):
         self.assertTrue(review["identityReview"]["allCandidatesVisuallyDistinct"])
 
     def test_batch_has_five_unique_staged_creator_attribution_images(self) -> None:
-        descriptor = json.loads(DESCRIPTOR_PATH.read_text(encoding="utf-8"))
-        evidence = load_jsonl(ROOT / descriptor["evidence"])
+        descriptor, evidence, _ = self.descriptor_and_evidence()
         self.assertEqual(len(evidence), 5)
         self.assertEqual({row["position"] for row in evidence}, {1, 2, 3, 4, 5})
         self.assertEqual(len({row["sha256"] for row in evidence}), 5)
@@ -41,12 +50,28 @@ class ExternalBatch006ContractTests(unittest.TestCase):
         review = json.loads(REVIEW_PATH.read_text(encoding="utf-8"))
         self.assertEqual(set(review["sourceSha256"]), {row["sha256"] for row in evidence})
 
-    def test_current_release_validator_remains_fail_closed_until_creator_proof_is_integrated(self) -> None:
-        descriptor = json.loads(DESCRIPTOR_PATH.read_text(encoding="utf-8"))
-        products = validate_descriptor(descriptor, DESCRIPTOR_PATH)
-        evidence = load_jsonl(ROOT / descriptor["evidence"])
-        with self.assertRaisesRegex(RuntimeError, "clear/stagingVerified"):
+    def test_creator_attribution_requires_exact_versioned_proof(self) -> None:
+        descriptor, evidence, products = self.descriptor_and_evidence()
+        with self.assertRaisesRegex(RuntimeError, "creator_attribution sem prova autorizada"):
             validate_evidence(evidence, descriptor, products)
+        authorizations = load_creator_attribution_authorizations(ROOT, descriptor, evidence)
+        validate_evidence(evidence, descriptor, products, authorizations)
+        self.assertEqual(authorizations, {14261: {row["sha256"] for row in evidence}})
+
+    def test_mismatched_creator_attribution_sha_fails_closed(self) -> None:
+        descriptor, evidence, _ = self.descriptor_and_evidence()
+        proof = json.loads(REVIEW_PATH.read_text(encoding="utf-8"))
+        proof["sourceSha256"] = list(proof["sourceSha256"])
+        proof["sourceSha256"][0] = "0" * 64
+        with self.assertRaisesRegex(RuntimeError, "SHAs da prova"):
+            validate_creator_attribution_proof(proof, descriptor, evidence)
+
+    def test_missing_creator_proof_path_fails_closed(self) -> None:
+        descriptor, evidence, _ = self.descriptor_and_evidence()
+        descriptor = dict(descriptor)
+        descriptor.pop("creatorAttributionEvidence")
+        with self.assertRaisesRegex(RuntimeError, "exige creatorAttributionEvidence"):
+            load_creator_attribution_authorizations(ROOT, descriptor, evidence)
 
 
 if __name__ == "__main__":

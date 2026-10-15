@@ -21,6 +21,8 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Any
 
+from creator_attribution_release import load_creator_attribution_authorizations
+
 ALLOWED_EXTS = {"jpg", "jpeg", "png", "webp", "gif", "avif"}
 SHA_RE = re.compile(r"^[0-9a-f]{64}$")
 SAFE_ID_RE = re.compile(r"^[a-z0-9][a-z0-9-]{2,63}$")
@@ -155,12 +157,18 @@ def validate_descriptor(data: dict[str, Any], path: Path) -> dict[int, dict[str,
     return by_id
 
 
-def validate_evidence(rows: list[dict[str, Any]], descriptor: dict[str, Any], products: dict[int, dict[str, Any]]) -> None:
+def validate_evidence(
+    rows: list[dict[str, Any]],
+    descriptor: dict[str, Any],
+    products: dict[int, dict[str, Any]],
+    creator_attribution_authorizations: dict[int, set[str]] | None = None,
+) -> None:
     if len(rows) != int(descriptor["expectedImages"]):
         raise RuntimeError(f"evidência deve conter {descriptor['expectedImages']} imagens; recebeu {len(rows)}")
     origin = decode_b64_text(descriptor.get("sourceOriginB64"), "sourceOriginB64").rstrip("/")
     prefix = decode_b64_text(descriptor.get("stagingPrefixB64"), "stagingPrefixB64").strip("/")
     base = urllib.parse.urlsplit(origin)
+    creator_authorizations = creator_attribution_authorizations or {}
     counts: Counter[int] = Counter()
     seen_sha: set[str] = set()
     seen_image: set[tuple[int, str]] = set()
@@ -182,8 +190,16 @@ def validate_evidence(rows: list[dict[str, Any]], descriptor: dict[str, Any], pr
         parsed = urllib.parse.urlsplit(origin + source_path)
         if parsed.scheme != "https" or parsed.netloc.casefold() != base.netloc.casefold() or ".." in parsed.path.split("/"):
             raise RuntimeError(f"sourcePath escapa da origem autorizada: {source_path}")
-        if row.get("review") != "clear" or row.get("stagingVerified") is not True:
-            raise RuntimeError(f"mídia sem revisão clear/stagingVerified: {product_id}/{image_id}")
+        if row.get("stagingVerified") is not True:
+            raise RuntimeError(f"mídia sem stagingVerified: {product_id}/{image_id}")
+        review = str(row.get("review") or "").strip()
+        if review == "clear":
+            pass
+        elif review == "creator_attribution":
+            if sha not in creator_authorizations.get(product_id, set()):
+                raise RuntimeError(f"creator_attribution sem prova autorizada: {product_id}/{image_id}")
+        else:
+            raise RuntimeError(f"mídia sem revisão promotable: {product_id}/{image_id}")
         if str(row.get("publicModelKey") or "") != str(product["publicModelKey"]):
             raise RuntimeError(f"publicModelKey divergente: {product_id}/{image_id}")
         evidence_extension(row)
@@ -238,7 +254,8 @@ def materialize(descriptor_path: Path, output: Path) -> dict[str, Any]:
     if repo_root not in evidence_path.parents or not evidence_path.is_file():
         raise RuntimeError(f"evidência ausente ou fora do repositório: {evidence_path}")
     evidence = load_jsonl(evidence_path)
-    validate_evidence(evidence, descriptor, products)
+    creator_authorizations = load_creator_attribution_authorizations(repo_root, descriptor, evidence)
+    validate_evidence(evidence, descriptor, products, creator_authorizations)
 
     if output.exists():
         shutil.rmtree(output)
