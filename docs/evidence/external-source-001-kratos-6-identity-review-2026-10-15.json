@@ -1,0 +1,63 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 14261,
+  "productName": "Kratos STL 6 Diorama – God of War",
+  "creator": "Tanuki Figures",
+  "creatorCorroborated": true,
+  "visualAuditComplete": true,
+  "watermarkStatus": "creator_attribution",
+  "stagingCoverage": "5/5",
+  "sourceSha256": [
+    "f4036da85e276d9e75c31834998c70e6944f562c52e37e521d6ab4f8c8c9660a",
+    "9eeae502f655ce2097c371d9ab1aaa23e75cd7425f10ace5d7dafa39565a1b7d",
+    "d8a158bdee4f4a89dc3502188178d218cb99ebd2077e5255c1dc07ed5de589c7",
+    "7a839f35a34e3418ee91a54f41f927ec39ac941fb2c76c947dc7e4c507ee3112",
+    "fc01221cea3a27c09a4a1aa723b557a50492e293350a26d39efc1b7d8faeda88"
+  ],
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 24,
+    "candidateModelIds": [
+      "mdl_714fc32587eab6874fea",
+      "mdl_d18b73e0b76e972111ba",
+      "mdl_df616569d18d0205616a",
+      "mdl_3a8a5d8cce46d5d4c327",
+      "mdl_64140c00d156cd7b7255",
+      "mdl_e8c36ab11d489a0af322",
+      "mdl_8c4ba756ed768f5f26b0",
+      "mdl_490bf2bc1520c034f6e0",
+      "mdl_befc02b351c2833bc1bf",
+      "mdl_c70bc9580eef656ca847",
+      "mdl_e8ff9c440d11ae81de95",
+      "mdl_abc61f7d0fb324eb726a",
+      "mdl_b710ed63f3dd42f7ce38",
+      "mdl_9381ded6658dd9561555",
+      "mdl_17f2ce2faa8c0c2d0cdc",
+      "mdl_f13092499f7825060e02",
+      "mdl_95987711bef00f3cf9cc",
+      "mdl_2008706cbcb2532db493",
+      "mdl_5b070acd4ed9d5686692",
+      "mdl_be729ed0299424a18e58",
+      "mdl_8a962c832e5b51b834cc",
+      "mdl_a31a41dae1eafdd34e20",
+      "mdl_a2e23c165c143f82c26b",
+      "mdl_40441cb72417692b5816"
+    ],
+    "allCandidatesVisuallyDistinct": true,
+    "notes": "All published Kratos candidates were visually compared. The source diorama uses a distinct creature, base, pose and weapon composition; no existing cover represents the same sculpture."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38776021757,
+    "artifactId": 11993756858,
+    "artifactSha256": "10ecccdba96282e3b4cc1f6451565907bfcac53484874721fb22ef8d2645000f"
+  },
+  "decision": {
+    "newModelAuthorized": true,
+    "creatorAttributionPromotable": true,
+    "productionWrites": 0,
+    "nextGate": "validate batch 006 creator-attribution proof before release preflight"
+  }
+}

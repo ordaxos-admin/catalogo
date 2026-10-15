@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-006-media.jsonl",
+  "creatorAttributionEvidence": "docs/evidence/external-source-001-kratos-6-identity-review-2026-10-15.json",
+  "expectedProducts": 1,
+  "expectedImages": 5,
+  "products": [
+    {
+      "productId": 14261,
+      "displayName": "Kratos 6 Diorama",
+      "publicModelKey": "kratos-6-diorama",
+      "sourceFolders": ["Games", "God of War", "Kratos 6 Diorama"],
+      "expectedImages": 5,
+      "expectedIdentityKey": "Games / God of War / Kratos 6 Diorama / kratos-6-diorama",
+      "expectedModelId": "mdl_f9ddfbd1526b8898573f",
+      "expectedSlug": "god-of-war-kratos-6-diorama",
+      "expectedCode": "TS-F9DDFBD1526B"
+    }
+  ]
+}
