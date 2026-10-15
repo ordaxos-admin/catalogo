@@ -62,6 +62,14 @@ class ExactSourceGalleryApplyTests(unittest.TestCase):
                 "mdl", ["Games", "Hades"], self.cover(), "a" * 64, [duplicate]
             )
 
+    def test_rejects_duplicate_image_id(self):
+        duplicate = self.new_image()
+        duplicate["id"] = "img_cover"
+        with self.assertRaisesRegex(RuntimeError, "colide"):
+            gallery_payload_with_reused_cover(
+                "mdl", ["Games", "Hades"], self.cover(), "a" * 64, [duplicate]
+            )
+
     def test_rejects_missing_reusable_card(self):
         cover = self.cover()
         cover["variantKeys"].pop("card")
