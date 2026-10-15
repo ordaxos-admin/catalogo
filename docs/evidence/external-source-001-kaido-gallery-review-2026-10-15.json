@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 24869,
+  "targetName": "Kaido STL 2",
+  "sourceSlug": "kaido-stl-2-one-piece",
+  "creator": "Lucas Perez Studio",
+  "creatorEvidence": {
+    "state": "corroborated_official_creator_patreon",
+    "notes": "Official creator posts identify Lucas Perez Studio and describe its own presentation as STL files for 3D printing available through the creator Patreon."
+  },
+  "sourceGallery": {
+    "imageCount": 7,
+    "stagedOriginalRenders": 7,
+    "stagingCoverageComplete": true,
+    "productionExactShaOwners": 0
+  },
+  "visualReview": {
+    "method": "manual_contact_sheet_from_short_lived_discovery_artifact",
+    "result": "creator_attribution",
+    "notes": "All seven renders show Lucas Perez Studio/creator Patreon presentation, adjusted-scale information and the creator's STL-for-3D-printing presentation badge. No unrelated redistribution handle, Telegram/group branding, reseller URL, QR code or unrelated third-party promotional badge was observed."
+  },
+  "images": [
+    {"position":1,"imageId":"24871","sourcePath":"/wp-content/uploads/2026/03/001.jpg","extension":"jpg","sha256":"bd6bcb29f0a096515fec2b7336be971bd1462eed0b7bcc0e56b8d11654fa628b","bytes":3019348,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
+    {"position":2,"imageId":"24875","sourcePath":"/wp-content/uploads/2026/03/010.jpg","extension":"jpg","sha256":"73b8a377ba2e07af23e46ecc02b1fe9cfbc3559591762ecf611eb82178bc2854","bytes":2899798,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
+    {"position":3,"imageId":"24872","sourcePath":"/wp-content/uploads/2026/03/003.jpg","extension":"jpg","sha256":"0199019a27faecf48f74107ba3dccb204195d87112c1220082a678696a976b53","bytes":2829707,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
+    {"position":4,"imageId":"24873","sourcePath":"/wp-content/uploads/2026/03/006.jpg","extension":"jpg","sha256":"93ece0312dc013faaa0875b3052e8e365c7375ea97e727a64ab3ce159f1d2113","bytes":2812868,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
+    {"position":5,"imageId":"24874","sourcePath":"/wp-content/uploads/2026/03/008.jpg","extension":"jpg","sha256":"7282dd9adbc7838b7b7a875d07f270e36fa3ffb60141ddd13cf60c01341b55ab","bytes":3191385,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
+    {"position":6,"imageId":"24876","sourcePath":"/wp-content/uploads/2026/03/013.jpg","extension":"jpg","sha256":"a60d6d61d6450377fbc41063e6a6313a68ce3ae39db75f19772f81ee358e6497","bytes":3175847,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
+    {"position":7,"imageId":"24877","sourcePath":"/wp-content/uploads/2026/03/021.jpg","extension":"jpg","sha256":"59db20772d865189bfbddb157c293f0c2a754d619022bfe5bfbb3f313f3f3597","bytes":3160922,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true}
+  ],
+  "identityReview": {
+    "decision": "unresolved",
+    "sameNameIsNotDuplicateProof": true,
+    "productionNameSearchCandidates": [
+      {
+        "modelId": "mdl_7c3000129caaf2e102f9",
+        "name": "Kaido",
+        "slug": "one-piece-kaido-estatua-colorida-com-chamas",
+        "imageCount": 1,
+        "exactSourceShaOverlap": false,
+        "state": "visual_cover_comparison_required"
+      }
+    ]
+  },
+  "decision": {
+    "galleryMediaReviewApproved": true,
+    "identityDecision": "unresolved",
+    "batch005Approved": false,
+    "productionWrites": 0,
+    "nextGate": "compare the existing production Kaido cover with the seven reviewed source renders; only then resolve new_model versus map_existing"
+  }
+}
