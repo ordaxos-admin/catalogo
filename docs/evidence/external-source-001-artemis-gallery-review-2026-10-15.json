@@ -20,14 +20,17 @@
     "perceptualDecision": {
       "left": "Artemis_color-3.webp",
       "right": "Artemis_color-4.webp",
-      "dhashDistance": 3,
+      "independentPreflightDhashDistance": 3,
+      "independentPreflightEngine": "sharp-parity-preflight",
+      "canonicalDhash": "recompute_with_repository_PIL_pipeline",
       "decision": "add_both_views",
       "reason": "Same framing but materially different physical presentation: color-3 shows the large feather mantle/hood; color-4 removes that piece and exposes the hair, arm and silhouette. This is an alternate assembly/configuration, not a redundant duplicate."
     }
   },
   "metricReview": {
-    "engine": "canonical_source_identity_plus_live_cover_metrics",
+    "engine": "repository_PIL_pipeline_is_canonical",
     "visualThreshold": 6,
+    "sourceInvariants": ["sha256", "bytes", "width", "height"],
     "existingCover": {
       "modelId": "mdl_e0af8379e806a3d5b8b8",
       "storageKey": "media/mdl_e0af8379e806a3d5b8b8/img_db379943020dd3d7a24c/card.webp",
@@ -36,13 +39,13 @@
     }
   },
   "images": [
-    {"position":1,"imageId":"22862","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-1.webp","extension":"webp","sha256":"5c53b8000f2d15d84eff34d5bc6ff5de000dd99f76caac7eb4bb196e7fa97812","bytes":4903752,"width":2048,"height":2048,"dhash":"40f094d4f2f4f461","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
-    {"position":2,"imageId":"22867","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-6.webp","extension":"webp","sha256":"d5b99bc20d2a9576af6332720c1321472e8e7541dba282fb34b61c9acc764dd2","bytes":5760882,"width":2048,"height":2048,"dhash":"6077d2f0f0f03063","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"skip_exact"},
-    {"position":3,"imageId":"22864","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-3.webp","extension":"webp","sha256":"d29c7ad8bd42d946a6ed5d7d4f420172896c04eba83673c63f5f9ec39d7c3806","bytes":5530348,"width":2048,"height":2048,"dhash":"68a0b0d4d6f2e471","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
-    {"position":4,"imageId":"22865","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-4.webp","extension":"webp","sha256":"5c3cb5f959a334f1ab1038bb440b5ec18c229f5cf0718cac0aa551b6f1d29c91","bytes":4863496,"width":2048,"height":2048,"dhash":"68a0b2d4f2f2e471","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
-    {"position":5,"imageId":"22870","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-9.webp","extension":"webp","sha256":"70d929311c8559f91e37dd480124b001dfb6139e58f4e45669141ddedb5f9495","bytes":4634816,"width":2048,"height":2048,"dhash":"aa88cc55548d9d8c","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
-    {"position":6,"imageId":"22868","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-7.webp","extension":"webp","sha256":"d5a014b0c4134742b58c0ee4a617ccaef29bade7b552c46c24f2f892cad49905","bytes":5680996,"width":2048,"height":2048,"dhash":"60f0f2f4f4e07063","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
-    {"position":7,"imageId":"22872","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-11.webp","extension":"webp","sha256":"a2c9da0c9077c9b28a5afc0e08347a2696deef1b1c31eeeab2f6c260f6734a9b","bytes":5943894,"width":2048,"height":2048,"dhash":"60e8e8f070f0f071","stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"}
+    {"position":1,"imageId":"22862","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-1.webp","extension":"webp","sha256":"5c53b8000f2d15d84eff34d5bc6ff5de000dd99f76caac7eb4bb196e7fa97812","bytes":4903752,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
+    {"position":2,"imageId":"22867","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-6.webp","extension":"webp","sha256":"d5b99bc20d2a9576af6332720c1321472e8e7541dba282fb34b61c9acc764dd2","bytes":5760882,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"skip_exact"},
+    {"position":3,"imageId":"22864","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-3.webp","extension":"webp","sha256":"d29c7ad8bd42d946a6ed5d7d4f420172896c04eba83673c63f5f9ec39d7c3806","bytes":5530348,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
+    {"position":4,"imageId":"22865","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-4.webp","extension":"webp","sha256":"5c3cb5f959a334f1ab1038bb440b5ec18c229f5cf0718cac0aa551b6f1d29c91","bytes":4863496,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
+    {"position":5,"imageId":"22870","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-9.webp","extension":"webp","sha256":"70d929311c8559f91e37dd480124b001dfb6139e58f4e45669141ddedb5f9495","bytes":4634816,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
+    {"position":6,"imageId":"22868","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-7.webp","extension":"webp","sha256":"d5a014b0c4134742b58c0ee4a617ccaef29bade7b552c46c24f2f892cad49905","bytes":5680996,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"},
+    {"position":7,"imageId":"22872","sourcePath":"/wp-content/uploads/2026/01/Artemis_color-11.webp","extension":"webp","sha256":"a2c9da0c9077c9b28a5afc0e08347a2696deef1b1c31eeeab2f6c260f6734a9b","bytes":5943894,"width":2048,"height":2048,"stagingVerified":true,"watermarkStatus":"creator_attribution","proposedAction":"add_view"}
   ],
   "identityReview": {
     "decision": "map_existing",
