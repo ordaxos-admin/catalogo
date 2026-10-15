@@ -1,0 +1,105 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 14066,
+  "productName": "Okarun STL 4 – Dandadan",
+  "sourceSlug": "okarun-stl-4-dandadan",
+  "sourceBrand": "3Dmoonn",
+  "stagingCoverage": "5/5",
+  "sourceImageCount": 5,
+  "uniqueSourceImages": 4,
+  "duplicateSourceImage": {
+    "positions": [2, 5],
+    "sha256": "3634517687202d930f0ec4b6a813d9b23bec9df0b8690c7f36569da9a08b2f48",
+    "decision": "skip_exact_internal_duplicate"
+  },
+  "images": [
+    {
+      "position": 1,
+      "imageId": "14068",
+      "sourcePath": "/wp-content/uploads/2025/08/8-scaled.webp",
+      "sha256": "9619d743fa04541a3cd88bd35d8f208d142002abc539d87190befd0f3bdfeaf1",
+      "bytes": 2529796,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotableMedia": false
+    },
+    {
+      "position": 2,
+      "imageId": "14069",
+      "sourcePath": "/wp-content/uploads/2025/08/11312-scaled.webp",
+      "sha256": "3634517687202d930f0ec4b6a813d9b23bec9df0b8690c7f36569da9a08b2f48",
+      "bytes": 2973628,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotableMedia": false
+    },
+    {
+      "position": 3,
+      "imageId": "14070",
+      "sourcePath": "/wp-content/uploads/2025/08/6-2-scaled.webp",
+      "sha256": "d8b6e1d7d32eff1ee03203805cc5d0d5314cf5d6d4163a0acdbc8364d22d3a91",
+      "bytes": 2997810,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotableMedia": false
+    },
+    {
+      "position": 4,
+      "imageId": "14071",
+      "sourcePath": "/wp-content/uploads/2025/08/3-1-scaled.webp",
+      "sha256": "03cf56731cfc49c38e437bd12d6cdc01e9162c50df102b35edf0be0b1a9671cb",
+      "bytes": 3188936,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotableMedia": false
+    },
+    {
+      "position": 5,
+      "imageId": "14072",
+      "sourcePath": "/wp-content/uploads/2025/08/11312-1-scaled.webp",
+      "sha256": "3634517687202d930f0ec4b6a813d9b23bec9df0b8690c7f36569da9a08b2f48",
+      "bytes": 2973628,
+      "stagingVerified": true,
+      "watermarkStatus": "watermarked",
+      "promotableMedia": false,
+      "duplicateOfPosition": 2
+    }
+  ],
+  "watermarkReview": {
+    "visualAuditComplete": true,
+    "creatorBrandingObserved": "3Dmoonn creator branding / creator Patreon or store presentation",
+    "blockingThirdPartyBrandingObserved": "Lychee Slicer Ambassador",
+    "decision": "watermarked",
+    "notes": "All four unique renders contain an unrelated third-party promotional Lychee Slicer Ambassador badge. Creator branding does not neutralize that blocking third-party badge. The badge must not be cropped or removed to make the media eligible."
+  },
+  "identityReview": {
+    "decision": "map_existing",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 3,
+    "targetModelId": "mdl_6494db2bbef0b1f22e18",
+    "targetSlug": "dandadan-okarun-transformado-sentado-em-diorama",
+    "targetCode": "TS-6494DB2BBEF0",
+    "nearestSourcePosition": 2,
+    "nearestSourceSha256": "3634517687202d930f0ec4b6a813d9b23bec9df0b8690c7f36569da9a08b2f48",
+    "canonicalDhashDistance": 1,
+    "visualThreshold": 6,
+    "sameSculptureVisualEvidence": true,
+    "notes": "Source position 2 (identical to position 5) and the existing production cover show the same transformed Okarun sculpture, pose, base and composition. The other two published Okarun candidates are visually distinct sculptures."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38785007590,
+    "artifactId": 11997311699,
+    "artifactSha256": "3e61c91da2e185758f2a83037d110c76bf138c72db6cb519befae223969ac9f8"
+  },
+  "decision": {
+    "identityResolved": true,
+    "galleryMediaReviewApproved": false,
+    "galleryPromotionApproved": false,
+    "newModelApproved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "blocked unless materially different source bytes become available without unrelated third-party promotional branding; never crop or remove the blocking badge"
+  }
+}
