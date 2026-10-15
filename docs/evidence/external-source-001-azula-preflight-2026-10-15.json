@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12803,
+  "productName": "Azula STL – Avatar: The Last Airbender",
+  "sourceSlug": "azula-stl-avatar-the-last-airbender",
+  "creator": "CA3D",
+  "creatorEvidence": {
+    "state": "source_brand_metadata_only",
+    "notes": "The exact source product metadata identifies CA3D as the brand. Independent creator-channel corroboration remains required before creator_attribution can authorize release."
+  },
+  "sourceGallery": {
+    "imageCount": 4,
+    "uniqueSourceImages": 4,
+    "stagingVerified": 3,
+    "stagingCoverage": "3/4",
+    "productionExactShaOwners": 0
+  },
+  "missingSourceImage": {
+    "sourcePosition": 1,
+    "imageId": "19457",
+    "sourceObjectPath": "/wp-content/uploads/2025/06/Close-scaled-1.webp",
+    "extension": "webp",
+    "sha256": "fa54eacc5af90338fb6c5899c360ec768dafd06b3627f1b913419729b3aa2871",
+    "bytes": 311948,
+    "exactByteVerification": "same_origin_fetch_webcrypto_sha256",
+    "watermarkStatus": "unknown_pending_full_visual_audit",
+    "stagingAcquisitionApproved": false
+  },
+  "stagedSourceImages": [
+    {"sourcePosition":2,"imageId":"12806","sourceObjectPath":"/wp-content/uploads/2025/06/Frente-scaled.jpg","sha256":"f0b588c5d0f8d2d8b0ac2957ba3feb5256ac0a570b5c3152854dfaab1c0766c6","bytes":5187039,"mediaAuditThisPass":"pending_full_visual"},
+    {"sourcePosition":3,"imageId":"12807","sourceObjectPath":"/wp-content/uploads/2025/06/Lado-scaled.jpg","sha256":"e8a3342cc09340a13f162128730cef1f3b59dfc9bfb0fc59b269f880a51b94e0","bytes":5255240,"mediaAuditThisPass":"pending_full_visual"},
+    {"sourcePosition":4,"imageId":"12808","sourceObjectPath":"/wp-content/uploads/2025/06/Tras-scaled.jpg","sha256":"bb6d083f0457f3f2c04e5da480005be622d889690c1ca8d44e1c82df04d86551","bytes":3996721,"mediaAuditThisPass":"pending_full_visual"}
+  ],
+  "watermarkReview": {
+    "state": "preflight_only",
+    "borderOcrPerformed": true,
+    "blockingTextDetected": false,
+    "notes": "Border OCR over all four exact source renders did not recognize SCAN ME, URLs, Telegram, Lychee or other blocking promotional text. Absence of OCR hits is not a release approval; full visual audit remains required."
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "exactProductionShaOwners": 0,
+    "productionCandidates": [
+      {"modelId":"mdl_7bfe8d533eec570cffb1","name":"Azula","slug":"avatar-last-airbender-azula-avatar-the-last-airbender","imageCount":1,"coverStorageKey":"media/mdl_7bfe8d533eec570cffb1/img_752eea619242f138179b/card.webp"},
+      {"modelId":"mdl_45da11761f9ef39b2a7d","name":"Zuko e Azula","slug":"avatar-last-airbender-zuko-e-azula-avatar-zuko-and-azula-diorama-avatar-the-last-airbender-principal","imageCount":1}
+    ],
+    "notes": "Two published name candidates exist and none of the four exact source SHAs are owned by production. Name matching alone does not authorize map_existing or new_model; canonical visual comparison against the published covers is required."
+  },
+  "decision": {
+    "fullSourceMediaReviewComplete": false,
+    "identityResolved": false,
+    "stagingAcquisitionApproved": false,
+    "galleryPromotionApproved": false,
+    "productionPublicationAuthorized": false,
+    "stagingWrites": 0,
+    "productionWrites": 0,
+    "nextGate": "materialize canonical production covers for visual identity review and complete full-pixel watermark audit plus creator corroboration before any bounded private staging acquisition"
+  }
+}
