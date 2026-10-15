@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 10015,
+  "productName": "Kikoru Shinomiya – Kaiju No. 8 – STL Files – STL Forge",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {
+    "franchise": "Kaiju No. 8",
+    "franchiseEvidence": "source_catalog_category"
+  },
+  "stagingEvidence": {
+    "coverage": "8/8",
+    "completeStaging": true,
+    "reviewOnlyImageCount": 0,
+    "reverseIndexRunId": 38823546575,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "productionSearch": {
+    "exactNameCandidates": 0,
+    "nameSlugSearchTextMatches": 0,
+    "matchingFranchiseRows": 0,
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_production_candidate_found_but_visual_identity_gate_not_completed",
+    "notes": "No published model matched Kikoru or Shinomiya in name, slug or search_text, and no Kaiju-named franchise is currently present. This is strong new-model evidence but does not by itself exclude an alternate-name historical record."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "perform visual/catalog identity review against potentially renamed historical records; if clear, authorize new_model and then run watermark/creator review"
+  }
+}
