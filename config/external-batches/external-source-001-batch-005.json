@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-005-media.jsonl",
+  "expectedProducts": 1,
+  "expectedImages": 5,
+  "products": [
+    {
+      "productId": 15600,
+      "displayName": "Sora",
+      "publicModelKey": "sora",
+      "sourceFolders": ["Games", "Kingdom Hearts", "Sora"],
+      "expectedImages": 5,
+      "expectedIdentityKey": "Games / Kingdom Hearts / Sora / sora",
+      "expectedModelId": "mdl_5ba45786af72f943f3b5",
+      "expectedSlug": "kingdom-hearts-sora",
+      "expectedCode": "TS-5BA45786AF72"
+    }
+  ]
+}
