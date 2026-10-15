@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 24869,
+  "targetModelId": "mdl_7c3000129caaf2e102f9",
+  "targetSlug": "one-piece-kaido-estatua-colorida-com-chamas",
+  "sourceEvidence": "docs/evidence/external-source-001-kaido-gallery-review-2026-10-15.json",
+  "workflow": {
+    "name": "Existing gallery preflight",
+    "runId": 38711599146,
+    "artifactId": 11960687318,
+    "artifactSha256": "f3651a18209b6585ddc167eaa20e4fd10a063b4926fba06aeaa50f880d5ef080",
+    "headSha": "dbcd4fce11ca2974a93c4b732e5a6ec09f498e14",
+    "conclusion": "success"
+  },
+  "canonicalPipeline": [
+    "plan_gallery_merge",
+    "resolve_gallery_merge",
+    "build_gallery_promotion_manifest"
+  ],
+  "plan": {
+    "incomingImages": 7,
+    "addView": 6,
+    "reviewVisualCandidate": 1,
+    "reviewPrefersIncoming": 1,
+    "visualThreshold": 6
+  },
+  "resolution": {
+    "ready": true,
+    "resolutionSha256": "0b32e1e1a6e8660c72de850a00208fd08dcbc75ba466d9859314a170fb431bf1",
+    "promotions": 7,
+    "addView": 6,
+    "replaceExisting": 1,
+    "replaceExistingSourceSha256": "73b8a377ba2e07af23e46ecc02b1fe9cfbc3559591762ecf611eb82178bc2854",
+    "replaceExistingProductionSha256": "4ff163d8ee16bab4b1836bc63c8cd91b6c4f30d9842536441d685813717ff637",
+    "sourceFilesModified": 0,
+    "destructiveDeletes": 0
+  },
+  "writes": {
+    "production": 0,
+    "staging": 0
+  },
+  "decision": {
+    "identity": "map_existing",
+    "canonicalPromotionAuthorizationReady": true,
+    "productionApplyApprovedByThisEvidence": false,
+    "nextGate": "implement and validate an existing-gallery production apply path that regenerates the same resolution at apply time, writes new content-addressed media/manifest first, atomically updates D1 last, never deletes the old R2 objects, and verifies the public gallery after commit"
+  }
+}
