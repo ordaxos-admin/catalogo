@@ -1,0 +1,181 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 22861,
+  "sourceProductKey": "external-source-001:product:22861",
+  "incomingModel": "external-source-001 / product:22861",
+  "sourcePage": "https://stlforge.cl/producto/artemis-stl-hades/",
+  "targetModelId": "mdl_e0af8379e806a3d5b8b8",
+  "targetSlug": "hades-artemis-hades",
+  "status": "preflight_review_required",
+  "productionWrites": 0,
+  "sourceFilesModified": 0,
+  "stagingCoverage": {
+    "expectedAssets": 9,
+    "verifiedAssets": 9,
+    "complete": true,
+    "allSourceByteSizesMatchStagingEvidence": true,
+    "allSourceSha256MatchStagingObjects": true
+  },
+  "metricEngine": {
+    "name": "sharp-parity-preflight",
+    "sharpVersion": "0.35.5",
+    "libvipsVersion": "8.18.7",
+    "purpose": "bounded independent preflight only",
+    "canonicalPythonManifestExecuted": false,
+    "canonicalRerunRequiredBeforePromotion": true,
+    "note": "dHash uses grayscale 9x8 Lanczos3 and the same 64-bit left>right comparison; quality score uses the repository formula. The official PIL-based manifest remains authoritative."
+  },
+  "assets": [
+    {
+      "position": 1,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-1.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-1.webp",
+      "sha256": "5c53b8000f2d15d84eff34d5bc6ff5de000dd99f76caac7eb4bb196e7fa97812",
+      "bytes": 4903752,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "40f094d4f2f4f461",
+      "sharpnessPreflight": 57.588,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "position": 2,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-6.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-6.webp",
+      "sha256": "d5b99bc20d2a9576af6332720c1321472e8e7541dba282fb34b61c9acc764dd2",
+      "bytes": 5760882,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "6077d2f0f0f03063",
+      "sharpnessPreflight": 38.984,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "legacy_accepted_exact_production_cover",
+      "expectedPlannerAction": "skip_exact"
+    },
+    {
+      "position": 3,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-3.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-3.webp",
+      "sha256": "d29c7ad8bd42d946a6ed5d7d4f420172896c04eba83673c63f5f9ec39d7c3806",
+      "bytes": 5530348,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "68a0b0d4d6f2e471",
+      "sharpnessPreflight": 62.259,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "position": 4,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-4.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-4.webp",
+      "sha256": "5c3cb5f959a334f1ab1038bb440b5ec18c229f5cf0718cac0aa551b6f1d29c91",
+      "bytes": 4863496,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "68a0b2d4f2f2e471",
+      "sharpnessPreflight": 64.133,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "position": 5,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-9.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-9.webp",
+      "sha256": "70d929311c8559f91e37dd480124b001dfb6139e58f4e45669141ddedb5f9495",
+      "bytes": 4634816,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "aa88cc55548d9d8c",
+      "sharpnessPreflight": 67.015,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "position": 6,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-7.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-7.webp",
+      "sha256": "d5a014b0c4134742b58c0ee4a617ccaef29bade7b552c46c24f2f892cad49905",
+      "bytes": 5680996,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "60f0f2f4f4e07063",
+      "sharpnessPreflight": 34.652,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "position": 7,
+      "sourceRole": "display_render",
+      "file": "Artemis_color-11.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_color-11.webp",
+      "sha256": "a2c9da0c9077c9b28a5afc0e08347a2696deef1b1c31eeeab2f6c260f6734a9b",
+      "bytes": 5943894,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "60e8e8f070f0f071",
+      "sharpnessPreflight": 36.944,
+      "qualityScorePreflight": 78.329,
+      "watermarkStatus": "creator_attribution"
+    },
+    {
+      "position": 8,
+      "sourceRole": "technical_reference",
+      "file": "Artemis_dimensions.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_dimensions.webp",
+      "sha256": "3f0f8d1b5c2256b01e5b82c832366dc40e4557bb627a5a410fd91c4deacfb77b",
+      "bytes": 5548012,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "40e060e2f2f2f273",
+      "sharpnessPreflight": 37.29,
+      "qualityScorePreflight": 78.329,
+      "galleryEligible": false,
+      "reason": "technical_asset_not_gallery_view"
+    },
+    {
+      "position": 9,
+      "sourceRole": "technical_reference",
+      "file": "Artemis_exploded.webp",
+      "sourceUrl": "https://stlforge.cl/wp-content/uploads/2026/01/Artemis_exploded.webp",
+      "sha256": "0eab7737129d9063dc697fa03ccd53679ef51f4c15c341318dde19c153331d79",
+      "bytes": 5173634,
+      "width": 2048,
+      "height": 2048,
+      "dhashPreflight": "c5ccdcd6d0d29235",
+      "sharpnessPreflight": 49.912,
+      "qualityScorePreflight": 78.329,
+      "galleryEligible": false,
+      "reason": "technical_asset_not_gallery_view"
+    }
+  ],
+  "perceptualReview": {
+    "threshold": 6,
+    "candidatePairs": [
+      {
+        "left": "Artemis_color-3.webp",
+        "leftSha256": "d29c7ad8bd42d946a6ed5d7d4f420172896c04eba83673c63f5f9ec39d7c3806",
+        "right": "Artemis_color-4.webp",
+        "rightSha256": "5c3cb5f959a334f1ab1038bb440b5ec18c229f5cf0718cac0aa551b6f1d29c91",
+        "preflightHammingDistance": 3,
+        "state": "explicit_visual_decision_required",
+        "automaticPromotionAllowed": false
+      }
+    ],
+    "otherPairsAtOrBelowThreshold": 0
+  },
+  "decision": {
+    "galleryPromotionApproved": false,
+    "reason": "perceptual candidate requires explicit visual decision and canonical PIL-based manifest/planner rerun",
+    "nextGate": "review Artemis_color-3 versus Artemis_color-4 visually, then execute canonical build_external_image_manifest + plan_gallery_merge + resolve_gallery_merge"
+  }
+}
