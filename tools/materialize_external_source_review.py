@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Materialize one explicitly versioned external source image for visual review.
+"""Materialize explicitly versioned external source images for visual review.
 
-Read-only helper. The source URL is reconstructed from the authorized source
-origin plus a repository-versioned sourcePath. Exact SHA-256 and byte length are
-verified before a short-lived review artifact is emitted. It never writes R2 or
-D1 and never decides watermark eligibility.
+Read-only helper. Source URLs are reconstructed from the authorized source
+origin plus repository-versioned sourcePath values. Exact SHA-256 and byte
+length are verified before a short-lived review artifact is emitted. It never
+writes R2 or D1 and never decides watermark eligibility.
 """
 from __future__ import annotations
 
@@ -66,29 +66,60 @@ def safe_source_url(origin: str, source_path: str) -> str:
     return urllib.parse.urlunsplit((parsed_origin.scheme, parsed_origin.netloc, parsed_path.path, "", ""))
 
 
-def selected_review(source_map: dict[str, Any]) -> dict[str, Any]:
-    missing = source_map.get("missingSource")
+def _review_specs(source_map: dict[str, Any]) -> list[dict[str, Any]]:
+    explicit = source_map.get("reviewSources")
+    if isinstance(explicit, list) and explicit:
+        if any(not isinstance(row, dict) for row in explicit):
+            raise RuntimeError("reviewSources contém entrada inválida")
+        return list(explicit)
+    legacy = source_map.get("missingSource")
+    if isinstance(legacy, dict):
+        return [legacy]
+    raise RuntimeError("source map sem reviewSources/missingSource")
+
+
+def selected_reviews(source_map: dict[str, Any]) -> list[dict[str, Any]]:
     images = source_map.get("images")
-    if not isinstance(missing, dict) or not isinstance(images, list):
-        raise RuntimeError("source map sem missingSource/images")
-    position = int(missing.get("position") or 0)
-    if position < 1:
-        raise RuntimeError("missingSource position inválida")
-    matches = [row for row in images if isinstance(row, dict) and int(row.get("position") or 0) == position]
-    if len(matches) != 1:
-        raise RuntimeError("missingSource não corresponde a uma imagem única")
-    row = matches[0]
-    for field in ("sourcePath", "sha256", "bytes"):
-        if str(row.get(field)) != str(missing.get(field)):
-            raise RuntimeError(f"missingSource diverge da imagem em {field}")
-    if row.get("stagingVerified") is not False:
-        raise RuntimeError("review source deve continuar ausente do staging")
-    if str(row.get("reviewState") or "") != "visual_review_required":
-        raise RuntimeError("review source não está marcado para revisão visual")
-    validate_sha(row.get("sha256"), "sha256")
-    if int(row.get("bytes") or 0) < 1:
-        raise RuntimeError("review source sem bytes esperados")
-    return row
+    if not isinstance(images, list):
+        raise RuntimeError("source map sem images")
+    selected: list[dict[str, Any]] = []
+    seen_positions: set[int] = set()
+    seen_shas: set[str] = set()
+    for spec in _review_specs(source_map):
+        position = int(spec.get("position") or 0)
+        if position < 1 or position in seen_positions:
+            raise RuntimeError("review source position inválida/duplicada")
+        matches = [
+            row for row in images
+            if isinstance(row, dict) and int(row.get("position") or 0) == position
+        ]
+        if len(matches) != 1:
+            raise RuntimeError("review source não corresponde a uma imagem única")
+        row = matches[0]
+        for field in ("sourcePath", "sha256", "bytes"):
+            if str(row.get(field)) != str(spec.get(field)):
+                raise RuntimeError(f"review source diverge da imagem em {field}")
+        if row.get("stagingVerified") is not False:
+            raise RuntimeError("review source deve continuar ausente do staging")
+        if str(row.get("reviewState") or "") != "visual_review_required":
+            raise RuntimeError("review source não está marcado para revisão visual")
+        sha = validate_sha(row.get("sha256"), "sha256")
+        if sha in seen_shas:
+            raise RuntimeError("review source SHA duplicado")
+        if int(row.get("bytes") or 0) < 1:
+            raise RuntimeError("review source sem bytes esperados")
+        seen_positions.add(position)
+        seen_shas.add(sha)
+        selected.append(row)
+    return selected
+
+
+def selected_review(source_map: dict[str, Any]) -> dict[str, Any]:
+    """Backward-compatible single-review accessor used by older tests/callers."""
+    rows = selected_reviews(source_map)
+    if len(rows) != 1:
+        raise RuntimeError("source map possui múltiplas imagens de revisão")
+    return rows[0]
 
 
 def download(url: str, target: Path, max_bytes: int) -> tuple[str, int, str]:
@@ -120,31 +151,37 @@ def materialize(args: argparse.Namespace) -> dict[str, Any]:
     contract = load_json(Path(args.source_contract))
     if str(source_map.get("sourceId") or "") != str(contract.get("sourceId") or ""):
         raise RuntimeError("sourceId diverge do contrato")
-    row = selected_review(source_map)
+    rows = selected_reviews(source_map)
     origin = decode_b64_text(contract.get("sourceOriginB64"), "sourceOriginB64")
-    url = safe_source_url(origin, str(row["sourcePath"]))
-    expected_sha = validate_sha(row["sha256"], "expected sha256")
-    expected_bytes = int(row["bytes"])
-    suffix = Path(urllib.parse.unquote(str(row["sourcePath"]))).suffix.lower()
     output = Path(args.output)
     review_dir = output / "review"
-    target = review_dir / f"position-{int(row['position']):02d}{suffix}"
-    actual_sha, actual_bytes, content_type = download(url, target, int(args.max_bytes))
-    if actual_sha != expected_sha or actual_bytes != expected_bytes:
-        raise RuntimeError(
-            "source atual divergiu da evidência versionada: "
-            f"sha={actual_sha} bytes={actual_bytes} esperado={expected_sha}/{expected_bytes}"
-        )
+    review_files: list[dict[str, Any]] = []
+    for row in rows:
+        url = safe_source_url(origin, str(row["sourcePath"]))
+        expected_sha = validate_sha(row["sha256"], "expected sha256")
+        expected_bytes = int(row["bytes"])
+        suffix = Path(urllib.parse.unquote(str(row["sourcePath"]))).suffix.lower()
+        target = review_dir / f"position-{int(row['position']):02d}{suffix}"
+        actual_sha, actual_bytes, content_type = download(url, target, int(args.max_bytes))
+        if actual_sha != expected_sha or actual_bytes != expected_bytes:
+            raise RuntimeError(
+                "source atual divergiu da evidência versionada: "
+                f"position={row['position']} sha={actual_sha} bytes={actual_bytes} "
+                f"esperado={expected_sha}/{expected_bytes}"
+            )
+        review_files.append({
+            "position": int(row["position"]),
+            "sourcePath": row["sourcePath"],
+            "sha256": actual_sha,
+            "bytes": actual_bytes,
+            "contentType": content_type,
+            "artifactPath": str(target.relative_to(output)).replace("\\", "/"),
+        })
     summary = {
         "version": 1,
         "sourceId": source_map["sourceId"],
         "targetModelId": source_map.get("targetModelId"),
-        "position": int(row["position"]),
-        "sourcePath": row["sourcePath"],
-        "sha256": actual_sha,
-        "bytes": actual_bytes,
-        "contentType": content_type,
-        "artifactPath": str(target.relative_to(output)).replace("\\", "/"),
+        "reviewFiles": review_files,
         "visualDecisionMade": False,
         "productionWrites": 0,
         "stagingWrites": 0,
