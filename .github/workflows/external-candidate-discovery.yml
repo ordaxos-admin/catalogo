@@ -1,0 +1,103 @@
+name: External candidate discovery
+
+on:
+  workflow_dispatch:
+    inputs:
+      page:
+        description: Bounded Store API page to inspect
+        required: true
+        default: '40'
+        type: string
+      per_page:
+        description: Products requested from the source page (max 20)
+        required: true
+        default: '10'
+        type: string
+      max_products:
+        description: Maximum products to hash in this run
+        required: true
+        default: '10'
+        type: string
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/external-candidate-discovery.yml'
+      - 'tools/discover_external_staging_candidates.py'
+      - 'tools/test_discover_external_staging_candidates.py'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-candidate-discovery-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '40' }}
+  DISCOVERY_PER_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.per_page || '10' }}
+  DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '6' }}
+
+jobs:
+  discover:
+    name: Read-only bounded discovery
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Setup Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
+        with:
+          node-version: 22
+      - name: Verify read-only discovery bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::CLOUDFLARE_ACCOUNT_ID ausente'; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
+          database_id="$(node tools/read_wrangler_d1_id.mjs)"
+          test -n "$database_id" || { echo '::error::D1 database id ausente'; exit 1; }
+          echo "CLOUDFLARE_D1_DATABASE_ID=$database_id" >> "$GITHUB_ENV"
+      - name: Test discovery guards
+        working-directory: tools
+        run: python -m unittest -v test_discover_external_staging_candidates.py
+      - name: Discover candidates without writes
+        run: >-
+          python tools/discover_external_staging_candidates.py
+          --page "$DISCOVERY_PAGE"
+          --per-page "$DISCOVERY_PER_PAGE"
+          --max-products "$DISCOVERY_MAX_PRODUCTS"
+          --max-review-products 3
+          --output "$RUNNER_TEMP/external-candidate-discovery"
+      - name: Assert discovery remained read-only
+        shell: bash
+        run: |
+          python - "$RUNNER_TEMP/external-candidate-discovery/discovery-report.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          report=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          assert report['productionWrites'] == 0
+          assert report['stagingWrites'] == 0
+          for product in report['products']:
+              assert product.get('promotable') is not True
+              assert product.get('identityDecision') != 'map_existing'
+              assert product.get('identityDecision') != 'new_model'
+          print(json.dumps({
+              'productsScanned': report['productsScanned'],
+              'sourceBytesHashed': report['sourceBytesHashed'],
+              'states': [row.get('state') for row in report['products']],
+          }, ensure_ascii=False))
+          PY
+      - name: Upload short-lived review evidence
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: external-candidate-discovery-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/external-candidate-discovery
+          if-no-files-found: error
+          retention-days: 1
