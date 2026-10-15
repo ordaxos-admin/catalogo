@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13373,
+  "productName": "Gustave STL – Clair Obscur: Expedition 33",
+  "creator": "Neko Figurines",
+  "creatorCorroborated": true,
+  "stagingCoverage": "5/5",
+  "sourceImages": [
+    {"position": 1, "imageId": "13375", "sha256": "3062f34c86744217384660a199f298cc34129be007f108c45e0b7700bebdb4cd", "bytes": 3841391, "review": "watermarked"},
+    {"position": 2, "imageId": "13377", "sha256": "e978c6d8a4cf3a45b1264ead4d8522a9faea1d3834424d6fa036348d64e9851a", "bytes": 3328786, "review": "watermarked"},
+    {"position": 3, "imageId": "13378", "sha256": "ad6de7ccdc5d146d4d1184e5f7721be151708d9af197e84970ef251581abc47a", "bytes": 3108507, "review": "watermarked"},
+    {"position": 4, "imageId": "13379", "sha256": "3735327ee134d10e39c472156ee2244745616668165d9e711405f83869f0e640", "bytes": 3014066, "review": "watermarked"},
+    {"position": 5, "imageId": "13380", "sha256": "f2d4274e4e5beee7825815a1c10864ceb270d55171f0fbc837a987e2406ab7b4", "bytes": 3717663, "review": "watermarked"}
+  ],
+  "identityReview": {
+    "decision": "map_existing",
+    "targetModelId": "mdl_edc544d768e4054b9fd7",
+    "targetSlug": "clair-obscur-expedition-33-gustave-estatua-com-arma",
+    "productionCandidatesReviewed": 2,
+    "exactProductionShaOwners": 0,
+    "sourcePosition1ToTargetCoverDhashDistance": 0,
+    "otherCandidateModelId": "mdl_3380a3d88656a8f990de",
+    "otherCandidateMinimumDhashDistance": 27,
+    "visualThreshold": 6,
+    "notes": "Source position 1 and the target production cover are perceptually identical under the canonical dHash implementation. The second published Gustave is a materially different raised-sword sculpture."
+  },
+  "mediaReview": {
+    "visualAuditComplete": true,
+    "uniqueSourceImages": 5,
+    "minimumInternalDhashDistance": 14,
+    "visualThreshold": 6,
+    "creatorAttributionObserved": "Patreon.com | Neko Figurines",
+    "blockingThirdPartyBrandingObserved": true,
+    "blockingBranding": "PRE-SUPPORTED IN LYCHEE / Lychee branding",
+    "classification": "watermarked",
+    "notes": "All five exact staged renders include legitimate Neko Figurines attribution and a separate Lychee promotional/pre-support badge. The third-party badge is blocking under the established catalog media policy; it will not be cropped or removed."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38813352433,
+    "artifactId": 12009566524,
+    "artifactSha256": "712291eb69259fb1d05bf64d9de74887bb8353805c55ccccf6f1b840b0677305"
+  },
+  "decision": {
+    "identityResolved": true,
+    "galleryMediaReviewApproved": false,
+    "galleryPromotionApproved": false,
+    "promotableMediaCount": 0,
+    "productionWrites": 0,
+    "nextGate": "none for these exact five source images; reconsider only if source bytes change"
+  }
+}
