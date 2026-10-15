@@ -1,0 +1,70 @@
+name: External gallery visual review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/external-gallery-review.yml'
+      - 'tools/materialize_external_gallery_review.py'
+      - 'tools/test_materialize_external_gallery_review.py'
+      - 'docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json'
+      - 'config/external-sources/external-source-001.json'
+  workflow_dispatch:
+    inputs:
+      source_map:
+        description: Versioned external gallery review map
+        required: true
+        default: docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: external-gallery-review-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  SOURCE_MAP: ${{ github.event_name == 'workflow_dispatch' && inputs.source_map || 'docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json' }}
+
+jobs:
+  review:
+    name: Materialize exact gallery review bytes
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Test gallery review guards
+        working-directory: tools
+        run: python -m unittest -v test_materialize_external_gallery_review.py
+      - name: Materialize exact source gallery
+        run: >-
+          python tools/materialize_external_gallery_review.py "$SOURCE_MAP"
+          --source-contract config/external-sources/external-source-001.json
+          --output "$RUNNER_TEMP/external-gallery-review"
+      - name: Assert read-only verified result
+        shell: bash
+        run: |
+          python - "$RUNNER_TEMP/external-gallery-review/review-manifest.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          data=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          assert data['allSourceBytesVerified'] is True
+          assert data['visualDecisionMade'] is False
+          assert data['productionWrites'] == 0
+          assert data['stagingWrites'] == 0
+          assert data['imageCount'] == len(data['images']) > 0
+          assert all(row['visualDecisionMade'] is False for row in data['images'])
+          print(json.dumps({'sourceProductId':data['sourceProductId'],'imageCount':data['imageCount'],'bytes':data['bytes'],'productionWrites':0,'stagingWrites':0},ensure_ascii=False))
+          PY
+      - name: Upload short-lived exact gallery review
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: external-gallery-review-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/external-gallery-review
+          if-no-files-found: error
+          retention-days: 1
