@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13612,
+  "targetModelId": "mdl_5cb1a7c25d077cd52209",
+  "sourceEvidence": "docs/evidence/external-source-001-jessica-cruz-gallery-review-2026-10-15.json",
+  "authorizationEvidence": "docs/evidence/external-source-001-jessica-cruz-canonical-preflight-2026-10-15.json",
+  "workflow": {
+    "name": "Exact source gallery promotion",
+    "runId": 38768445002,
+    "artifactId": 11990745729,
+    "artifactSha256": "53e50f5abef24cfc83871ee8b1941c7de564d1c6d22bcfa60403ef567bf8db7a",
+    "headSha": "2e4054f8a0252c73c38a908ad29081240338d823",
+    "conclusion": "success"
+  },
+  "state": "dry_run_ready",
+  "resolutionSha256": "39344088e04007f438681fcb407931abc3af98c58c0ce9d663bdace4f56eae14",
+  "before": {
+    "imageCount": 1,
+    "coverStorageKey": "media/mdl_5cb1a7c25d077cd52209/img_e1f359aca3ad997db87d/card.webp",
+    "galleryManifestKey": "gallery/mdl_5cb1a7c25d077cd52209/1c2fc3d3f2d3c86d2b52b986.json",
+    "galleryVersion": 30991474488019,
+    "publicGalleryVersion": 1
+  },
+  "candidate": {
+    "imageCount": 4,
+    "coverStorageKey": "media/mdl_5cb1a7c25d077cd52209/img_e1f359aca3ad997db87d/card.webp",
+    "galleryManifestKey": "gallery/mdl_5cb1a7c25d077cd52209/540668580b011a207cc4c936.json",
+    "galleryVersion": 92386497137409,
+    "galleryDigest": "540668580b011a207cc4c9365fbe16c9be78c711fbacc26d394aaa5f39029ae0",
+    "sourceHierarchy": ["Marvel & DC", "DC", "Lanterna Verde", "Jessica Cruz"],
+    "reusedCoverImageId": "img_e1f359aca3ad997db87d",
+    "reusedCoverSourceSha256": "1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1"
+  },
+  "plannedProductionDelta": {
+    "newR2Objects": 10,
+    "newRenderedVariants": 9,
+    "newGalleryManifests": 1,
+    "coverRerenders": 0,
+    "rejectedSourceRendersPublished": 0,
+    "d1Writes": 0,
+    "productionDeletes": 0
+  },
+  "decision": {
+    "dryRunValidated": true,
+    "sourceReviewComplete": true,
+    "twoLycheeBrandedRendersRemainExcluded": true,
+    "productionApplyPerformed": false,
+    "nextGate": "explicit workflow_dispatch with apply=true; the apply path must regenerate the same canonical resolution against then-current D1/R2 state before any write"
+  }
+}
