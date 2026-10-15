@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13687,
+  "productName": "Roronoa Zoro STL 3 Diorama – One Piece",
+  "creator": "Kiba Studio",
+  "creatorCorroborated": true,
+  "visualAuditComplete": true,
+  "watermarkStatus": "creator_attribution",
+  "stagingCoverage": "7/7",
+  "sourceSha256": [
+    "40381c6743e1f265be8f54ab565e1e136352f11fc2efb3aa6d7de494ac31b57a",
+    "c42842d7b1465502c1723410c845a820fafc68d77c77dd5ad5fc5a6744d8377f",
+    "e8f13751475a01b3547b4e480e4721ff5ece7472c77c80dcfe7e17927747daa3",
+    "ba8150866dc94e821b497f0a7b548b0c405b4a2a173dce317a17b30107a02b5a",
+    "1867033eb2a529c4af6823bd26abb1d947dac74c7b05e6c6602accb981c195c6",
+    "6fe09c5ea5e13ebb104a63329307244535e5c39e4690ff280f946700a859b3a6",
+    "ba1eb6121fe6d000a10f5822671e21b84a68bcf052bcc05537deb522e76256f4"
+  ],
+  "mediaReview": {
+    "uniqueSourceImages": 7,
+    "perceptualPairsAtOrBelowThreshold": 0,
+    "visualThreshold": 6,
+    "creatorBrandingObserved": "Kiba Studio logo",
+    "blockingThirdPartyBrandingObserved": false,
+    "notes": "All seven staged renders are distinct views of the same Kiba Studio diorama. No unrelated third-party promotional badge, Telegram/group branding, reseller URL, QR code or repost handle was observed."
+  },
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 1,
+    "candidateModelIds": ["mdl_ffb07179ff7306cc3b9a"],
+    "allCandidatesVisuallyDistinct": true,
+    "minimumCandidateDhashDistance": 28,
+    "visualThreshold": 6,
+    "notes": "The only published Zoro candidate is a different sculpture: its pose, base and blue wave-like effect differ materially from the reviewed Kiba Studio skull-rock diorama with green/teal slicing effects. No reviewed source view is perceptually close to the existing cover."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38788804628,
+    "artifactId": 11999075782,
+    "artifactSha256": "172ba04798b5e82e3584cefd870fc8fb7490208a779d3f74a23c471655d8d3ad"
+  },
+  "decision": {
+    "newModelAuthorized": true,
+    "creatorAttributionPromotable": true,
+    "productionWrites": 0,
+    "nextGate": "validate batch 007 creator-attribution proof and exact deterministic identity in release preflight; production apply remains explicitly gated"
+  }
+}

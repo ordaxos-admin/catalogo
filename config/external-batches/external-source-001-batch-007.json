@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-007-media.jsonl",
+  "creatorAttributionEvidence": "docs/evidence/external-source-001-zoro-3-identity-review-2026-10-15.json",
+  "expectedProducts": 1,
+  "expectedImages": 7,
+  "products": [
+    {
+      "productId": 13687,
+      "displayName": "Roronoa Zoro 3 Diorama",
+      "publicModelKey": "roronoa-zoro-3-diorama",
+      "sourceFolders": ["Animes & Desenhos", "One Piece", "Roronoa Zoro 3 Diorama"],
+      "expectedImages": 7,
+      "expectedIdentityKey": "Animes & Desenhos / One Piece / Roronoa Zoro 3 Diorama / roronoa-zoro-3-diorama",
+      "expectedModelId": "mdl_2b753e4d94e3a72b5510",
+      "expectedSlug": "one-piece-roronoa-zoro-3-diorama",
+      "expectedCode": "TS-2B753E4D94E3"
+    }
+  ]
+}
