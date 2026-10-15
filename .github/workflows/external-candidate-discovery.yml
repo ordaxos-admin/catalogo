@@ -6,7 +6,7 @@ on:
       page:
         description: Bounded Store API page used only when product_id is empty
         required: true
-        default: '43'
+        default: '44'
         type: string
       per_page:
         description: Products requested from the bounded source page (max 20)
@@ -16,12 +16,12 @@ on:
       max_products:
         description: Maximum products to hash when no exact product id is selected
         required: true
-        default: '10'
+        default: '7'
         type: string
       product_id:
         description: Optional exact Store API product id; bypasses unstable pagination
         required: false
-        default: '13373'
+        default: ''
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -42,10 +42,10 @@ concurrency:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '43' }}
+  DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '44' }}
   DISCOVERY_PER_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.per_page || '20' }}
-  DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '10' }}
-  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '13373' }}
+  DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '7' }}
+  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '' }}
 
 jobs:
   discover:
