@@ -11,7 +11,7 @@ on:
       start_product_offset:
         description: Zero-based product offset within the first page
         required: true
-        default: '11'
+        default: '18'
         type: string
       end_page:
         description: Last Store API page to scan (max 10 pages per run)
@@ -36,7 +36,7 @@ env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '43' }}
-  START_PRODUCT_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.start_product_offset || '11' }}
+  START_PRODUCT_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.start_product_offset || '18' }}
   END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '45' }}
 
 jobs:
