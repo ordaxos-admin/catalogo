@@ -14,33 +14,47 @@
     "technicalReferences": 2,
     "currentStructuredDataConfirmed": true,
     "currentBytesRehashedInBrowserRendering": true,
+    "sourceImagesReviewed": 8,
+    "sourceReviewComplete": true,
     "stagedDisplayRenders": 4,
-    "missingDisplayRenders": 4,
+    "missingEligibleDisplayRenders": 4,
     "technicalReferencesExcluded": 2,
     "priorSixRenderSummarySuperseded": true
   },
   "images": [
-    {"position":1,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/LauraDiorama_beauty-1440x1920-1.webp","extension":"webp","sha256":"7b60763cc347f8a8420046c4a7e1bb5a5a999db41081ec278d89f2f3776094bc","bytes":848954,"width":1440,"height":1920,"stagingVerified":false,"reviewState":"visual_review_required"},
-    {"position":2,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Diorama_Laura_Diorama_Clay_001-1440x1920-1.webp","extension":"webp","sha256":"8d7e06990f56ef4b47582d7d696a7750dd5997ed5d82bbf60664e9886e85566e","bytes":2491364,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"legacy_accepted","role":"exact_production_cover"},
-    {"position":3,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Diorama_Laura_Diorama_Clay_007-1440x1920-1.webp","extension":"webp","sha256":"2d51906c01f4c0c3d70c357fc3ce8982312688fd8b8c9c007e0bbffd79196d2f","bytes":2530744,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"clear"},
-    {"position":4,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Diorama_Laura_Diorama_Clay_003-1440x1920-1.webp","extension":"webp","sha256":"db9298f1e0a67b38802a0143a45643e89e1c93181857d8bc742ce6d50eb9f148","bytes":2561158,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"clear"},
-    {"position":5,"sourceRole":"technical_reference","sourcePath":"/wp-content/uploads/2026/03/LauraDiorama_Whats-included.jpg","extension":"jpg","sha256":"e264d9dab294a517effbd716762de2e57ff1dd66f2560d7678f735aeae47242f","bytes":776317,"width":1024,"height":1024,"stagingVerified":false,"reviewState":"excluded_technical_reference"},
-    {"position":6,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/LauraStandalone_beauty-1440x1920-1.webp","extension":"webp","sha256":"9ea41ce330445e746c5a558fe09dbac8a81c5d2534c7442413ea39bde8bd4a8d","bytes":736332,"width":1440,"height":1920,"stagingVerified":false,"reviewState":"visual_review_required"},
-    {"position":7,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_001-1440x1920-1.webp","extension":"webp","sha256":"4bd9073d628e889f1f590765ce50b6a9bf689073c39d1d43c559ddf4c864e6cd","bytes":2218078,"width":1440,"height":1920,"stagingVerified":false,"reviewState":"visual_review_required"},
-    {"position":8,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_005-1440x1920-1.webp","extension":"webp","sha256":"f85090f8b0adb954213ab0f47b3a747fcf94fac805d30babc5672bf883ff0191","bytes":2271548,"width":1440,"height":1920,"stagingVerified":false,"reviewState":"visual_review_required"},
-    {"position":9,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_003-1440x1920-1.webp","extension":"webp","sha256":"13051ef48863c220c1a99097251771963232b479f3d473e40c6ee724d24f8da1","bytes":2335236,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"clear"},
-    {"position":10,"sourceRole":"technical_reference","sourcePath":"/wp-content/uploads/2026/03/LauraStandalone_Whats-included.jpg","extension":"jpg","sha256":"d585bfe409b4de8dbf0acb66abe47405f3d204880d63c9c821baf49bb77af030","bytes":628307,"width":1024,"height":1024,"stagingVerified":false,"reviewState":"excluded_technical_reference"}
+    {"position":1,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/LauraDiorama_beauty-1440x1920-1.webp","extension":"webp","sha256":"7b60763cc347f8a8420046c4a7e1bb5a5a999db41081ec278d89f2f3776094bc","bytes":848954,"width":1440,"height":1920,"stagingVerified":false,"watermarkStatus":"clear","promotable":true,"reviewNotes":"Clean diorama beauty render; no unrelated branding observed."},
+    {"position":2,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Diorama_Laura_Diorama_Clay_001-1440x1920-1.webp","extension":"webp","sha256":"8d7e06990f56ef4b47582d7d696a7750dd5997ed5d82bbf60664e9886e85566e","bytes":2491364,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"legacy_accepted","role":"exact_production_cover","promotable":false},
+    {"position":3,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Diorama_Laura_Diorama_Clay_007-1440x1920-1.webp","extension":"webp","sha256":"2d51906c01f4c0c3d70c357fc3ce8982312688fd8b8c9c007e0bbffd79196d2f","bytes":2530744,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"clear","promotable":true},
+    {"position":4,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Diorama_Laura_Diorama_Clay_003-1440x1920-1.webp","extension":"webp","sha256":"db9298f1e0a67b38802a0143a45643e89e1c93181857d8bc742ce6d50eb9f148","bytes":2561158,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"clear","promotable":true},
+    {"position":5,"sourceRole":"technical_reference","sourcePath":"/wp-content/uploads/2026/03/LauraDiorama_Whats-included.jpg","extension":"jpg","sha256":"e264d9dab294a517effbd716762de2e57ff1dd66f2560d7678f735aeae47242f","bytes":776317,"width":1024,"height":1024,"stagingVerified":false,"reviewState":"excluded_technical_reference","promotable":false},
+    {"position":6,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/LauraStandalone_beauty-1440x1920-1.webp","extension":"webp","sha256":"9ea41ce330445e746c5a558fe09dbac8a81c5d2534c7442413ea39bde8bd4a8d","bytes":736332,"width":1440,"height":1920,"stagingVerified":false,"watermarkStatus":"clear","promotable":true,"reviewNotes":"Clean standalone beauty render; no unrelated branding observed."},
+    {"position":7,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_001-1440x1920-1.webp","extension":"webp","sha256":"4bd9073d628e889f1f590765ce50b6a9bf689073c39d1d43c559ddf4c864e6cd","bytes":2218078,"width":1440,"height":1920,"stagingVerified":false,"watermarkStatus":"creator_attribution","promotable":true,"reviewNotes":"Only the creator's subtle Nerikson background branding is visible; no unrelated reseller/repost/promo mark."},
+    {"position":8,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_005-1440x1920-1.webp","extension":"webp","sha256":"f85090f8b0adb954213ab0f47b3a747fcf94fac805d30babc5672bf883ff0191","bytes":2271548,"width":1440,"height":1920,"stagingVerified":false,"watermarkStatus":"creator_attribution","promotable":true,"reviewNotes":"Only the creator's subtle Nerikson background branding is visible; no unrelated reseller/repost/promo mark."},
+    {"position":9,"sourceRole":"display_render","sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_003-1440x1920-1.webp","extension":"webp","sha256":"13051ef48863c220c1a99097251771963232b479f3d473e40c6ee724d24f8da1","bytes":2335236,"width":1440,"height":1920,"stagingVerified":true,"watermarkStatus":"clear","promotable":true},
+    {"position":10,"sourceRole":"technical_reference","sourcePath":"/wp-content/uploads/2026/03/LauraStandalone_Whats-included.jpg","extension":"jpg","sha256":"d585bfe409b4de8dbf0acb66abe47405f3d204880d63c9c821baf49bb77af030","bytes":628307,"width":1024,"height":1024,"stagingVerified":false,"reviewState":"excluded_technical_reference","promotable":false}
   ],
-  "reviewSources": [
-    {"position":1,"sourcePath":"/wp-content/uploads/2026/03/LauraDiorama_beauty-1440x1920-1.webp","sha256":"7b60763cc347f8a8420046c4a7e1bb5a5a999db41081ec278d89f2f3776094bc","bytes":848954},
-    {"position":6,"sourcePath":"/wp-content/uploads/2026/03/LauraStandalone_beauty-1440x1920-1.webp","sha256":"9ea41ce330445e746c5a558fe09dbac8a81c5d2534c7442413ea39bde8bd4a8d","bytes":736332},
-    {"position":7,"sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_001-1440x1920-1.webp","sha256":"4bd9073d628e889f1f590765ce50b6a9bf689073c39d1d43c559ddf4c864e6cd","bytes":2218078},
-    {"position":8,"sourcePath":"/wp-content/uploads/2026/03/Laura_the_Detective_Standalone_Laura_Standalone_Clay_005-1440x1920-1.webp","sha256":"f85090f8b0adb954213ab0f47b3a747fcf94fac805d30babc5672bf883ff0191","bytes":2271548}
-  ],
+  "reviewSources": [],
+  "reviewArtifact": {
+    "workflowRunId": 38769460280,
+    "artifactId": 11991280125,
+    "artifactSha256": "4bb8077d2a8986400fc3deeb87469d6baa626d4b00c74cc25e373957eaddec2d",
+    "reviewedPositions": [1,6,7,8]
+  },
+  "stagingAcquisition": {
+    "required": true,
+    "eligibleMissing": 4,
+    "shas": [
+      "7b60763cc347f8a8420046c4a7e1bb5a5a999db41081ec278d89f2f3776094bc",
+      "9ea41ce330445e746c5a558fe09dbac8a81c5d2534c7442413ea39bde8bd4a8d",
+      "4bd9073d628e889f1f590765ce50b6a9bf689073c39d1d43c559ddf4c864e6cd",
+      "f85090f8b0adb954213ab0f47b3a747fcf94fac805d30babc5672bf883ff0191"
+    ]
+  },
   "decision": {
-    "sourceReviewComplete": false,
+    "sourceReviewComplete": true,
+    "galleryMediaReviewApproved": true,
     "productionWrites": 0,
     "stagingWrites": 0,
-    "nextGate": "materialize and visually classify all four missing display renders read-only; technical What’s included assets remain excluded"
+    "nextGate": "stage the four reviewed eligible missing display renders through the bounded private staging workflow; after 8/8 eligible display coverage, run exact-source canonical preflight"
   }
 }
