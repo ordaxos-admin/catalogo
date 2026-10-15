@@ -96,6 +96,14 @@ def inventory_sizes_by_extension(inventory: dict[str, int]) -> dict[str, set[int
     return result
 
 
+def canonical_source_url(origin: str, source_path: str) -> str:
+    """Rebuild one validated same-origin media URL using an ASCII request path."""
+    if not source_path.startswith("/") or ".." in source_path.split("/"):
+        raise RuntimeError("sourcePath inseguro")
+    encoded_path = urllib.parse.quote(source_path, safe="/%:@")
+    return origin.rstrip("/") + encoded_path
+
+
 def fetch_source_size(url: str, timeout: int = 30) -> int | None:
     """Return exact identity-encoded Content-Length when safely available.
 
@@ -187,8 +195,9 @@ def scan_page(
 
             rows: list[dict[str, Any]] = []
             for position, image in enumerate(raw_images, 1):
-                source_url = str(image.get("src") or "")
-                source_path = safe_source_path(origin, source_url)
+                raw_source_url = str(image.get("src") or "")
+                source_path = safe_source_path(origin, raw_source_url)
+                source_url = canonical_source_url(origin, source_path)
                 extension = extension_from_path(source_path)
                 known_size = fetch_size(source_url) if fetch_size is not None else None
                 eligible_sizes = staged_sizes.get(extension, set())
