@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-008-media.jsonl",
+  "creatorAttributionEvidence": "docs/evidence/external-source-001-changli-identity-review-2026-10-15.json",
+  "expectedProducts": 1,
+  "expectedImages": 6,
+  "products": [
+    {
+      "productId": 13582,
+      "displayName": "Changli",
+      "publicModelKey": "changli",
+      "sourceFolders": ["Games", "Wuthering Waves", "Changli"],
+      "expectedImages": 6,
+      "expectedIdentityKey": "Games / Wuthering Waves / Changli / changli",
+      "expectedModelId": "mdl_e2455177a94681455054",
+      "expectedSlug": "wuthering-waves-changli",
+      "expectedCode": "TS-E2455177A946"
+    }
+  ]
+}

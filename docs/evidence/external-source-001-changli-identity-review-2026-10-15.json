@@ -1,0 +1,58 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13582,
+  "productName": "Changli STL – Wuthering Waves",
+  "creator": "Chuya Factory",
+  "creatorCorroborated": true,
+  "creatorCorroboration": {
+    "basis": "official_creator_publication_and_revision_notes",
+    "notes": "The creator's official public posts identify Chang Li / Wuthering Waves as a Chuya Factory release and later list supported STL revisions for Changli."
+  },
+  "visualAuditComplete": true,
+  "watermarkStatus": "creator_attribution",
+  "stagingCoverage": "6/6",
+  "sourceSha256": [
+    "6d8586bb1d4bd75b70c7b1560b3c88b838b847abf8dab8f761ab81df63018277",
+    "ef301a474db320bb0892da251e155e8088986467df19ff7280ee2222a9a5b226",
+    "0c603243aae91e1a2de2ff01b61b5658e40d1b210e4f148d101d13049d9b64d6",
+    "6076d94042c863abc36c1a6a1530f3f97b01b55cdfdee2e720901ac3de7e181e",
+    "8226bd94f64015e1172f0ea6c90f9065dec94dde9cd96249adda5744852e8d18",
+    "d8906422b22902f1c38611c135663c35cc0b3d6c594c8598dc0fd3f9e5c42a6f"
+  ],
+  "mediaReview": {
+    "uniqueSourceImages": 6,
+    "perceptualPairsAtOrBelowThreshold": 0,
+    "minimumPairDhashDistance": 18,
+    "visualThreshold": 6,
+    "creatorBrandingObserved": "Chuya Factory logo",
+    "franchiseBrandingObserved": "Wuthering Waves logo",
+    "blockingThirdPartyBrandingObserved": false,
+    "notes": "All six staged originals are distinct physical views/detail crops of the same Changli statue. No Lychee Slicer Ambassador badge, Telegram/group mark, reseller/source/download URL, unknown handle, unrelated QR code, or third-party promotional branding was observed."
+  },
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 3,
+    "candidateModelIds": [
+      "mdl_b18596b6dcaa6024b107",
+      "mdl_503d094c68f876aaa3db",
+      "mdl_34ac0544a0d7cc90c264"
+    ],
+    "allCandidatesVisuallyDistinct": true,
+    "candidateNames": ["Aemeath", "Cartethyia", "Chisa"],
+    "notes": "Production contains three Wuthering Waves peers, all distinct characters from Changli, and no published model/search identity named Changli. The reviewed source SHAs have no production owner and the deterministic Changli id/slug/code are all absent from D1."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38803640829,
+    "artifactId": 12005521988,
+    "artifactSha256": "809c8abf86cf4e918e2e8104eed441050b5e9bbc8878d424ff83eb93834a2240"
+  },
+  "decision": {
+    "newModelAuthorized": true,
+    "creatorAttributionPromotable": true,
+    "productionWrites": 0,
+    "nextGate": "validate batch 008 creator-attribution proof and deterministic identity in release preflight; production apply remains explicitly gated"
+  }
+}
