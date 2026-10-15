@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 22861,
+  "targetModelId": "mdl_e0af8379e806a3d5b8b8",
+  "sourceEvidence": "docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json",
+  "authorizationEvidence": "docs/evidence/external-source-001-artemis-canonical-preflight-2026-10-15.json",
+  "workflow": {
+    "name": "Exact source gallery promotion",
+    "runId": 38765998278,
+    "artifactId": 11990380652,
+    "artifactSha256": "980600d217c2afa76986a675f158663e6ccc7087ac96717bf7fe82af918465ff",
+    "headSha": "c2527e4d7584f92d9beffe583f6249913f3b2b1d",
+    "conclusion": "success"
+  },
+  "state": "dry_run_ready",
+  "resolutionSha256": "0bdbcc27f01f5805fd1dba6ec6458b827f960aeadb6bef82a229edca825c8963",
+  "before": {
+    "imageCount": 1,
+    "coverStorageKey": "media/mdl_e0af8379e806a3d5b8b8/img_db379943020dd3d7a24c/card.webp",
+    "galleryManifestKey": "gallery/mdl_e0af8379e806a3d5b8b8/2e8d562de5ce73b55e224b40.json",
+    "galleryVersion": 51184571114958,
+    "publicGalleryVersion": 1
+  },
+  "candidate": {
+    "imageCount": 7,
+    "coverStorageKey": "media/mdl_e0af8379e806a3d5b8b8/img_db379943020dd3d7a24c/card.webp",
+    "galleryManifestKey": "gallery/mdl_e0af8379e806a3d5b8b8/edc0a73b6d655bc8edbddb9e.json",
+    "galleryVersion": 261411695193445,
+    "galleryDigest": "edc0a73b6d655bc8edbddb9e3a194af1076083e1e23565c4e1fe112c60d90594",
+    "sourceHierarchy": ["Games", "Hades", "Artemis"],
+    "reusedCoverImageId": "img_db379943020dd3d7a24c",
+    "reusedCoverSourceSha256": "d5b99bc20d2a9576af6332720c1321472e8e7541dba282fb34b61c9acc764dd2"
+  },
+  "plannedProductionDelta": {
+    "newR2Objects": 19,
+    "newRenderedVariants": 18,
+    "newGalleryManifests": 1,
+    "coverRerenders": 0,
+    "d1Writes": 0,
+    "productionDeletes": 0
+  },
+  "decision": {
+    "dryRunValidated": true,
+    "productionApplyPerformed": false,
+    "nextGate": "explicit workflow_dispatch with apply=true; the apply path must regenerate the same canonical resolution against the then-current D1/R2 state before any write"
+  }
+}
