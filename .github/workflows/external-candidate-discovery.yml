@@ -24,6 +24,8 @@ on:
       - '.github/workflows/external-candidate-discovery.yml'
       - 'tools/discover_external_staging_candidates.py'
       - 'tools/test_discover_external_staging_candidates.py'
+      - 'tools/enrich_external_candidate_identity.py'
+      - 'tools/test_enrich_external_candidate_identity.py'
 
 permissions:
   contents: read
@@ -65,7 +67,10 @@ jobs:
           echo "CLOUDFLARE_D1_DATABASE_ID=$database_id" >> "$GITHUB_ENV"
       - name: Test discovery guards
         working-directory: tools
-        run: python -m unittest -v test_discover_external_staging_candidates.py
+        run: >-
+          python -m unittest -v
+          test_discover_external_staging_candidates.py
+          test_enrich_external_candidate_identity.py
       - name: Discover candidates without writes
         run: >-
           python tools/discover_external_staging_candidates.py
@@ -74,6 +79,11 @@ jobs:
           --max-products "$DISCOVERY_MAX_PRODUCTS"
           --max-review-products 3
           --output "$RUNNER_TEMP/external-candidate-discovery"
+      - name: Attach production covers for identity review
+        run: >-
+          python tools/enrich_external_candidate_identity.py
+          "$RUNNER_TEMP/external-candidate-discovery/discovery-report.json"
+          --review-root "$RUNNER_TEMP/external-candidate-discovery/review"
       - name: Assert discovery remained read-only
         shell: bash
         run: |
@@ -87,9 +97,12 @@ jobs:
               assert product.get('promotable') is not True
               assert product.get('identityDecision') != 'map_existing'
               assert product.get('identityDecision') != 'new_model'
+              for match in product.get('identityReviewCandidates') or []:
+                  assert match.get('matchBasis') == 'name_or_search_hint_review_only'
           print(json.dumps({
               'productsScanned': report['productsScanned'],
               'sourceBytesHashed': report['sourceBytesHashed'],
+              'productionCoverReviewObjects': report.get('productionCoverReviewObjects', 0),
               'states': [row.get('state') for row in report['products']],
           }, ensure_ascii=False))
           PY
