@@ -1,6 +1,7 @@
 import unittest
+from unittest.mock import patch
 
-from preflight_exact_source_gallery_evidence import validate_evidence
+from preflight_exact_source_gallery_evidence import fetch_current_anchor, validate_evidence
 
 
 class ExactSourceGalleryPreflightTests(unittest.TestCase):
@@ -45,6 +46,25 @@ class ExactSourceGalleryPreflightTests(unittest.TestCase):
         self.assertEqual(incoming, "external-source-001 / product:42")
         self.assertEqual(len(images), 2)
         self.assertEqual(anchor["sourceSha256"], "a" * 64)
+
+    def test_cover_position_zero_is_not_treated_as_missing(self):
+        rows = [{
+            "id": "mdl_existing",
+            "slug": "existing",
+            "code": "TS-EXISTING",
+            "image_count": 1,
+            "gallery_version": 7,
+            "cover_storage_key": "media/mdl_existing/img/card.webp",
+            "public_gallery_version": 1,
+            "published": 1,
+            "source_sha256": "a" * 64,
+            "position": 0,
+            "role": "cover",
+        }]
+        with patch("preflight_exact_source_gallery_evidence.d1_query", return_value=rows):
+            current = fetch_current_anchor("mdl_existing")
+        self.assertEqual(current["source_sha256"], "a" * 64)
+        self.assertEqual(current["position"], 0)
 
     def test_rejects_missing_exact_overlap(self):
         data = self.evidence()
