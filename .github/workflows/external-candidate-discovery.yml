@@ -14,9 +14,14 @@ on:
         default: '20'
         type: string
       max_products:
-        description: Maximum products to hash in this run
+        description: Maximum products to hash when no exact product id is selected
         required: true
         default: '10'
+        type: string
+      product_id:
+        description: Optional exact product id that must exist on the declared page
+        required: false
+        default: '13964'
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -40,6 +45,7 @@ env:
   DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '42' }}
   DISCOVERY_PER_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.per_page || '20' }}
   DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '10' }}
+  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '13964' }}
 
 jobs:
   discover:
@@ -72,13 +78,20 @@ jobs:
           test_discover_external_staging_candidates.py
           test_enrich_external_candidate_identity.py
       - name: Discover candidates without writes
-        run: >-
-          python tools/discover_external_staging_candidates.py
-          --page "$DISCOVERY_PAGE"
-          --per-page "$DISCOVERY_PER_PAGE"
-          --max-products "$DISCOVERY_MAX_PRODUCTS"
-          --max-review-products 3
-          --output "$RUNNER_TEMP/external-candidate-discovery"
+        shell: bash
+        run: |
+          set -euo pipefail
+          args=(
+            --page "$DISCOVERY_PAGE"
+            --per-page "$DISCOVERY_PER_PAGE"
+            --max-products "$DISCOVERY_MAX_PRODUCTS"
+            --max-review-products 3
+            --output "$RUNNER_TEMP/external-candidate-discovery"
+          )
+          if [[ -n "$DISCOVERY_PRODUCT_ID" ]]; then
+            args+=(--product-id "$DISCOVERY_PRODUCT_ID")
+          fi
+          python tools/discover_external_staging_candidates.py "${args[@]}"
       - name: Attach production covers for identity review
         run: >-
           python tools/enrich_external_candidate_identity.py
@@ -87,12 +100,17 @@ jobs:
       - name: Assert discovery remained read-only
         shell: bash
         run: |
-          python - "$RUNNER_TEMP/external-candidate-discovery/discovery-report.json" <<'PY'
+          python - "$RUNNER_TEMP/external-candidate-discovery/discovery-report.json" "$DISCOVERY_PRODUCT_ID" <<'PY'
           import json, sys
           from pathlib import Path
           report=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          target=str(sys.argv[2] or '').strip()
           assert report['productionWrites'] == 0
           assert report['stagingWrites'] == 0
+          if target:
+              assert report.get('requestedProductId') == int(target)
+              assert report['productsScanned'] == 1
+              assert report['products'][0]['productId'] == int(target)
           for product in report['products']:
               assert product.get('promotable') is not True
               assert product.get('identityDecision') != 'map_existing'
@@ -100,6 +118,7 @@ jobs:
               for match in product.get('identityReviewCandidates') or []:
                   assert match.get('matchBasis') == 'name_or_search_hint_review_only'
           print(json.dumps({
+              'requestedProductId': report.get('requestedProductId'),
               'productsScanned': report['productsScanned'],
               'sourceBytesHashed': report['sourceBytesHashed'],
               'productionCoverReviewObjects': report.get('productionCoverReviewObjects', 0),

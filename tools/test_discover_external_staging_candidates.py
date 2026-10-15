@@ -6,6 +6,7 @@ from discover_external_staging_candidates import (
     decode_b64_text,
     extension_from_path,
     safe_source_path,
+    select_products,
     staging_key,
 )
 
@@ -34,6 +35,27 @@ class DiscoverExternalStagingCandidatesTests(unittest.TestCase):
             staging_key("external/", sha, ".jpeg"),
             f"external/sha256/aa/{sha}.jpg",
         )
+
+    def test_select_products_preserves_bounded_prefix_without_exact_target(self):
+        products = [{"id": 1}, {"id": 2}, {"id": 3}]
+        self.assertEqual([row["id"] for row in select_products(products, 2)], [1, 2])
+
+    def test_select_products_uses_exact_target_even_beyond_bounded_prefix(self):
+        products = [{"id": 1}, {"id": 2}, {"id": 3}]
+        self.assertEqual(
+            [row["id"] for row in select_products(products, 1, product_id=3)],
+            [3],
+        )
+
+    def test_select_products_fails_closed_when_exact_target_is_missing(self):
+        products = [{"id": 1}, {"id": 2}]
+        with self.assertRaisesRegex(RuntimeError, "deve existir exatamente uma vez"):
+            select_products(products, 2, product_id=3)
+
+    def test_select_products_fails_closed_when_exact_target_is_duplicated(self):
+        products = [{"id": 3}, {"id": 3}]
+        with self.assertRaisesRegex(RuntimeError, "encontrado=2"):
+            select_products(products, 2, product_id=3)
 
     def test_candidate_state_fails_closed_for_incomplete_staging(self):
         images = [

@@ -192,6 +192,24 @@ def candidate_state(images: list[dict[str, Any]]) -> str:
     return "visual_review_required"
 
 
+def select_products(
+    products: list[dict[str, Any]],
+    max_products: int,
+    product_id: int | None = None,
+) -> list[dict[str, Any]]:
+    if product_id is None:
+        return products[:max_products]
+    target = int(product_id)
+    if target < 1:
+        raise RuntimeError("product-id deve ser positivo")
+    matches = [row for row in products if int(row.get("id") or 0) == target]
+    if len(matches) != 1:
+        raise RuntimeError(
+            f"product-id {target} deve existir exatamente uma vez na página consultada; encontrado={len(matches)}"
+        )
+    return matches
+
+
 def discover(args: argparse.Namespace) -> dict[str, Any]:
     descriptor = load_json(Path(args.descriptor))
     origin = decode_b64_text(descriptor.get("sourceOriginB64"), "sourceOriginB64").rstrip("/")
@@ -210,10 +228,10 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
     per_page = min(max(int(args.per_page), 1), 20)
     max_products = min(max(int(args.max_products), 1), per_page)
     api_query = urllib.parse.urlencode({"per_page": per_page, "page": int(args.page)})
-    products = request_json(origin + "/wp-json/wc/store/v1/products?" + api_query)
-    if not isinstance(products, list):
+    raw_products = request_json(origin + "/wp-json/wc/store/v1/products?" + api_query)
+    if not isinstance(raw_products, list):
         raise RuntimeError("Store API não retornou lista")
-    products = products[:max_products]
+    products = select_products(raw_products, max_products, args.product_id)
 
     inventory = list_staging_inventory(account_id, token, bucket, prefix)
     output = Path(args.output)
@@ -313,6 +331,7 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
         "sourceId": source_id,
         "page": int(args.page),
         "perPage": per_page,
+        "requestedProductId": args.product_id,
         "productsScanned": len(product_rows),
         "sourceBytesHashed": total_source_bytes,
         "stagingInventoryObjects": len(inventory),
@@ -322,6 +341,7 @@ def discover(args: argparse.Namespace) -> dict[str, Any]:
     }
     (output / "discovery-report.json").write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     summary = {
+        "requestedProductId": args.product_id,
         "productsScanned": len(product_rows),
         "completeStaging": sum(1 for row in product_rows if str(row.get("stagingCoverage", "")).split("/")[0:1] == str(row.get("sourceImageCount"))),
         "visualReviewRequired": sum(1 for row in product_rows if row.get("state") == "visual_review_required"),
@@ -340,6 +360,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--page", type=int, required=True)
     parser.add_argument("--per-page", type=int, default=10)
     parser.add_argument("--max-products", type=int, default=10)
+    parser.add_argument("--product-id", type=int)
     parser.add_argument("--max-review-products", type=int, default=3)
     parser.add_argument("--max-image-bytes", type=int, default=16 * 1024 * 1024)
     parser.add_argument("--max-total-bytes", type=int, default=256 * 1024 * 1024)

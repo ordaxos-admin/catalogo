@@ -1,0 +1,126 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13964,
+  "productName": "Goku SSJ4 Daima 2 + Bust – Dragon Ball",
+  "sourceSlug": "goku-stl-ssj4-daima-bust-dragon-ball",
+  "creator": "Tanuki Figures",
+  "creatorEvidence": {
+    "state": "corroborated_official_creator_storefront",
+    "notes": "The official creator storefront publishes the Goku SSJ4 full-size model under Tanuki Figures and explicitly includes render images."
+  },
+  "sourceGallery": {
+    "imageCount": 7,
+    "stagingVerified": 6,
+    "stagingCoverage": "6/7",
+    "productionExactShaOwners": 0
+  },
+  "images": [
+    {
+      "position": 1,
+      "imageId": "19262",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_05-scaled-1.webp",
+      "extension": "webp",
+      "sha256": "34beadd6440eec70a024c0e828d3b19a7f27620d166b681380443a3bd52a2550",
+      "bytes": 805374,
+      "width": 1200,
+      "height": 1500,
+      "stagingVerified": false,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    },
+    {
+      "position": 2,
+      "imageId": "13972",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_09-scaled.jpg",
+      "extension": "jpg",
+      "sha256": "c4117203f5ba9d930d12a4f85bddc9670b38172f5e25f424dd42fe49b456feb8",
+      "bytes": 3691385,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    },
+    {
+      "position": 3,
+      "imageId": "13971",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_08-scaled.jpg",
+      "extension": "jpg",
+      "sha256": "1993c75f2934d6bd6187986ce8268ccba86bc95ab0c466888b08843a1846f465",
+      "bytes": 6418997,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    },
+    {
+      "position": 4,
+      "imageId": "13970",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_07-scaled.jpg",
+      "extension": "jpg",
+      "sha256": "78f3b730331c0662bb3f8832c9ea4dca627bed19b3048f91977d7942f5db1058",
+      "bytes": 5521910,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    },
+    {
+      "position": 5,
+      "imageId": "13969",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_06-scaled.jpg",
+      "extension": "jpg",
+      "sha256": "e4191af989d5ef754024e5b4d08c616bf67948a684adbb3d9bb0c3a3256dc425",
+      "bytes": 6047600,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    },
+    {
+      "position": 6,
+      "imageId": "13968",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_03-scaled.jpg",
+      "extension": "jpg",
+      "sha256": "563e1f4ac77ff7f7da516b52f99abd80c2283ce4b0c7285f1e2ba1d4e8a15ef5",
+      "bytes": 4261361,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    },
+    {
+      "position": 7,
+      "imageId": "13967",
+      "sourcePath": "/wp-content/uploads/2025/07/Goku_SJJ4_01-scaled.jpg",
+      "extension": "jpg",
+      "sha256": "8bce4516ccc64e16a69c8845d867209ea4e3d685be4e143646dfc813ef1f63bc",
+      "bytes": 4497995,
+      "stagingVerified": true,
+      "watermarkStatus": "unknown",
+      "promotableMedia": false
+    }
+  ],
+  "missingImageVerification": {
+    "sourceBytesSha256Verified": true,
+    "method": "isolated_browser_same_origin_fetch_plus_webcrypto_sha256",
+    "sha256": "34beadd6440eec70a024c0e828d3b19a7f27620d166b681380443a3bd52a2550",
+    "bytes": 805374,
+    "visualAuditComplete": false,
+    "ocrSignals": {
+      "fullImageConfidence": 34,
+      "edgeConfidenceRange": "21-33",
+      "creatorBrandingSignal": "low-confidence text consistent with Tanuki Figures branding",
+      "unrelatedThirdPartyBrandingDetected": false,
+      "sufficientForPromotionDecision": false
+    },
+    "notes": "OCR is deliberately not treated as a visual approval. The remote image-view path was unavailable because the authorized desktop device was offline."
+  },
+  "decision": {
+    "creatorCorroborated": true,
+    "visualAuditComplete": false,
+    "stagingAcquisitionApproved": false,
+    "identityDecision": "unresolved",
+    "newModelApproved": false,
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "materialize the exact source pixels for explicit visual watermark review; only if eligible, create acquisition evidence for position 1 and stage that exact SHA before identity review"
+  }
+}
