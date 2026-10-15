@@ -73,6 +73,16 @@ jobs:
           database_id="$(node tools/read_wrangler_d1_id.mjs)"
           test -n "$database_id" || { echo '::error::D1 database id ausente'; exit 1; }
           echo "CLOUDFLARE_D1_DATABASE_ID=$database_id" >> "$GITHUB_ENV"
+      - name: Require public verification endpoint before apply
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CATALOG_API_URL" || { echo '::error::CATALOG_API_URL ausente; apply bloqueado antes de qualquer write'; exit 1; }
+          case "$CATALOG_API_URL" in
+            https://*) ;;
+            *) echo '::error::CATALOG_API_URL deve usar HTTPS; apply bloqueado antes de qualquer write'; exit 1 ;;
+          esac
       - name: Test exact-source promotion guards
         working-directory: tools
         run: >-
@@ -120,6 +130,22 @@ jobs:
 
           while IFS= read -r authorization; do
             [[ -n "$authorization" ]] || continue
+            python - "$authorization" <<'PY'
+          import json, sys
+          from pathlib import Path
+          path=Path(sys.argv[1])
+          data=json.loads(path.read_text(encoding='utf-8'))
+          decision=data.get('decision') or {}
+          resolution=data.get('resolution') or {}
+          if decision.get('identity') != 'map_existing_exact_source':
+              raise SystemExit(f'authorization is not exact-source: {path}')
+          if decision.get('canonicalPromotionAuthorizationReady') is not True:
+              raise SystemExit(f'authorization is not ready: {path}')
+          if int(resolution.get('replaceExisting') or 0) != 0:
+              raise SystemExit(f'exact-source authorization cannot replace existing media: {path}')
+          if not str(resolution.get('anchorSourceSha256') or '').strip():
+              raise SystemExit(f'exact-source authorization missing anchorSourceSha256: {path}')
+          PY
             if [[ -n "$GALLERY_EVIDENCE" ]]; then
               evidence="$GALLERY_EVIDENCE"
             else
@@ -189,10 +215,7 @@ jobs:
       - name: Verify public catalog after apply
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
         shell: bash
-        run: |
-          set -euo pipefail
-          test -n "$CATALOG_API_URL" || { echo '::error::CATALOG_API_URL ausente'; exit 1; }
-          python tools/verify_public_catalog.py --api-base "$CATALOG_API_URL"
+        run: python tools/verify_public_catalog.py --api-base "$CATALOG_API_URL"
       - name: Upload exact-source promotion evidence
         if: always()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
