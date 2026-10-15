@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12858,
+  "productName": "Gemma STL 3 – Monster Hunter",
+  "creator": "CA3D Studios",
+  "sourceImageCount": 6,
+  "stagingCoverage": "6/6",
+  "targetModelId": "mdl_03087f436ba0fb2ac272",
+  "targetSlug": "monster-hunter-gemma-3",
+  "targetCode": "TS-03087F436BA0",
+  "targetProductionImageCount": 6,
+  "sourceImages": [
+    {"position": 1, "imageId": "12860", "sha256": "b64bad2b20f82e8c68efe2e1e5cb3eb3eeb4ee04ca6ea0c3197c123e03dac90c", "bytes": 4230219, "productionOwner": "mdl_03087f436ba0fb2ac272", "decision": "skip_exact"},
+    {"position": 2, "imageId": "12861", "sha256": "a3a41e0895b16d6659edc81157f1e3a1f01e0c19e95d52400b5bd8dffd76fce3", "bytes": 4316721, "productionOwner": "mdl_03087f436ba0fb2ac272", "decision": "skip_exact"},
+    {"position": 3, "imageId": "12862", "sha256": "2e0e246633027cb0e1934390931668b66706c24839d8b6c1c2df0e2d37c28f17", "bytes": 4160999, "productionOwner": "mdl_03087f436ba0fb2ac272", "decision": "skip_exact"},
+    {"position": 4, "imageId": "12863", "sha256": "0db97f0060fe6842e00354fd1f6fe8e17898d58e4867e0649c5afd36669fa98b", "bytes": 4335359, "productionOwner": "mdl_03087f436ba0fb2ac272", "decision": "skip_exact"},
+    {"position": 5, "imageId": "12864", "sha256": "ec632073e21455e4b542b52d68fd589be58835036c361a803ec96f49c02cfb4c", "bytes": 3741141, "productionOwner": "mdl_03087f436ba0fb2ac272", "decision": "skip_exact"},
+    {"position": 6, "imageId": "12865", "sha256": "d4c17b8b241987eb15975719b633d1d3b99e2a3df3ab5a7395827cc505415dd1", "bytes": 3192549, "productionOwner": "mdl_03087f436ba0fb2ac272", "decision": "skip_exact"}
+  ],
+  "decision": {
+    "identityDecision": "map_existing_exact_sha",
+    "exactSourceImagesAlreadyPublished": 6,
+    "imagesToAdd": 0,
+    "imagesToReplace": 0,
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "nextGate": "none for these exact source bytes; do not revisit unless source bytes or production ownership change"
+  }
+}
