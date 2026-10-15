@@ -1,0 +1,68 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13612,
+  "sourceProductKey": "external-source-001:product:13612",
+  "incomingModel": "external-source-001 / product:13612",
+  "targetName": "Jessica Cruz",
+  "sourceSlug": "jessica-cruz-stl-dc",
+  "creator": "3Dmoonn",
+  "sourceReview": {
+    "sourceMap": "docs/evidence/external-source-001-jessica-cruz-source-map-2026-10-15.json",
+    "sourceImagesReviewed": 6,
+    "sourceReviewComplete": true,
+    "eligiblePublicImages": 4,
+    "rejectedPublicImages": 2,
+    "partialPromotion": false,
+    "reason": "All six source renders were reviewed. Two are explicitly rejected for unrelated Lychee Slicer Ambassador branding; only the exact existing cover plus three clean views remain eligible."
+  },
+  "visualReview": {
+    "result": "eligible_subset_after_complete_source_review",
+    "cleanAddViews": 3,
+    "exactCoverSkip": 1,
+    "rejectedWatermarked": 2
+  },
+  "metricReview": {
+    "engine": "repository_PIL_pipeline_is_canonical",
+    "visualThreshold": 6,
+    "sourceInvariants": ["sha256", "bytes", "width", "height"],
+    "existingCover": {
+      "modelId": "mdl_5cb1a7c25d077cd52209",
+      "storageKey": "media/mdl_5cb1a7c25d077cd52209/img_e1f359aca3ad997db87d/card.webp",
+      "galleryVersion": 30991474488019,
+      "sourceSha256": "1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1"
+    }
+  },
+  "images": [
+    {"position":1,"sourcePosition":2,"sourcePath":"/wp-content/uploads/2025/07/6-1-scaled.webp","extension":"webp","sha256":"08c1a48f83889cf817bf45a88530a1c6481735b2dfe2d9d9382fa7301b904be3","bytes":2833396,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"clear","proposedAction":"add_view"},
+    {"position":2,"sourcePosition":3,"sourcePath":"/wp-content/uploads/2025/07/1-1-scaled.webp","extension":"webp","sha256":"1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1","bytes":2751280,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"legacy_accepted","proposedAction":"skip_exact"},
+    {"position":3,"sourcePosition":4,"sourcePath":"/wp-content/uploads/2025/07/3-2-scaled.webp","extension":"webp","sha256":"8737fbe1be928bd199efe7e7a40eb332b179f9573f275d9dc02d785be0b6ce95","bytes":2431770,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"clear","proposedAction":"add_view"},
+    {"position":4,"sourcePosition":5,"sourcePath":"/wp-content/uploads/2025/07/4-1-scaled.webp","extension":"webp","sha256":"621cd7aaec131756f23ac14e2feb947e63b809d245586fd5fc8890d19f3551eb","bytes":2834744,"width":2110,"height":2560,"stagingVerified":true,"watermarkStatus":"clear","proposedAction":"add_view"}
+  ],
+  "excludedImages": [
+    {"sourcePosition":1,"sourcePath":"/wp-content/uploads/2025/07/5-1-scaled-1.webp","sha256":"d8d8f0fe38ee58465302a96e227b879be0739bf591428bf84a40a7e5c305923e","bytes":358806,"stagingVerified":false,"watermarkStatus":"watermarked","reason":"unrelated Lychee Slicer Ambassador promotional badge; source was materialized and reviewed read-only, so no staging write is needed"},
+    {"sourcePosition":6,"sourcePath":"/wp-content/uploads/2025/07/8-1-scaled.webp","sha256":"c86b5cfd14f0cc96a3ae7f6f2eb34fafdd5d90251e88ec244dfc34a229560bdc","bytes":2413406,"stagingVerified":true,"watermarkStatus":"watermarked","reason":"unrelated Lychee Slicer Ambassador promotional badge"}
+  ],
+  "identityReview": {
+    "decision": "map_existing",
+    "targetModelId": "mdl_5cb1a7c25d077cd52209",
+    "targetSlug": "lanterna-verde-jessica-cruz-com-machado-de-energia-verde",
+    "targetCode": "TS-5CB1A7C25D07",
+    "targetImageCountBeforePromotion": 1,
+    "targetGalleryVersionBeforePromotion": 30991474488019,
+    "exactSourceShaOverlap": true,
+    "exactSourceSha256": "1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1",
+    "mapExistingApproved": true
+  },
+  "decision": {
+    "galleryMediaReviewApproved": true,
+    "identityDecision": "map_existing",
+    "mapExistingApproved": true,
+    "batch005Approved": false,
+    "newModelApproved": false,
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "nextGate": "run canonical exact-source preflight over the four eligible staged images; preserve the exact cover as skip_exact and authorize only the three clear add_view renders"
+  }
+}
