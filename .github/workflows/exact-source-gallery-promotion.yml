@@ -10,8 +10,8 @@ on:
       - 'tools/preflight_exact_source_gallery_evidence.py'
       - 'tools/test_preflight_exact_source_gallery_evidence.py'
       - 'tools/apply_existing_gallery_promotion.py'
-      - 'docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json'
-      - 'docs/evidence/external-source-001-artemis-canonical-preflight-2026-10-15.json'
+      - 'docs/evidence/external-source-001-*-gallery-review-*.json'
+      - 'docs/evidence/external-source-001-*-canonical-preflight-*.json'
       - 'config/external-sources/external-source-001.json'
       - 'wrangler.jsonc'
   workflow_dispatch:
@@ -43,8 +43,8 @@ env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CATALOG_API_URL: ${{ vars.CATALOG_API_URL }}
-  GALLERY_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || 'docs/evidence/external-source-001-artemis-gallery-review-2026-10-15.json' }}
-  GALLERY_AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.authorization || 'docs/evidence/external-source-001-artemis-canonical-preflight-2026-10-15.json' }}
+  GALLERY_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || '' }}
+  GALLERY_AUTHORIZATION: ${{ github.event_name == 'workflow_dispatch' && inputs.authorization || '' }}
   APPLY_GALLERY: ${{ github.event_name == 'workflow_dispatch' && inputs.apply || false }}
 
 jobs:
@@ -82,46 +82,101 @@ jobs:
           test_plan_gallery_merge.py
           test_resolve_gallery_merge.py
           test_build_gallery_promotion_manifest.py
-      - name: Rebuild authorization and plan exact-source production delta
+      - name: Rebuild authorizations and plan exact-source production deltas
         shell: bash
         run: |
           set -euo pipefail
-          args=(
-            "$GALLERY_EVIDENCE"
-            --authorization "$GALLERY_AUTHORIZATION"
-            --source-contract config/external-sources/external-source-001.json
-            --production-bucket tonecos-catalogo-media
-            --summary "$RUNNER_TEMP/exact-source-gallery-promotion-summary.json"
-          )
-          if [[ "$APPLY_GALLERY" == "true" ]]; then
-            args+=(--apply)
+          root="$RUNNER_TEMP/exact-source-gallery-promotion"
+          mkdir -p "$root"
+          auth_list="$RUNNER_TEMP/exact-source-authorization-list.txt"
+          if [[ -n "$GALLERY_AUTHORIZATION" ]]; then
+            printf '%s\n' "$GALLERY_AUTHORIZATION" > "$auth_list"
+          else
+            python - "$auth_list" <<'PY'
+          import glob, json, sys
+          from pathlib import Path
+          selected=[]
+          for raw in sorted(glob.glob('docs/evidence/external-source-001-*-canonical-preflight-*.json')):
+              path=Path(raw)
+              data=json.loads(path.read_text(encoding='utf-8'))
+              decision=data.get('decision') or {}
+              evidence=str(data.get('sourceEvidence') or '').strip()
+              if decision.get('canonicalPromotionAuthorizationReady') is True and evidence and Path(evidence).is_file():
+                  selected.append(raw)
+          if not selected:
+              raise SystemExit('no approved exact-source promotion authorization found')
+          Path(sys.argv[1]).write_text('\n'.join(selected)+'\n', encoding='utf-8')
+          print(json.dumps({'selected': selected}, ensure_ascii=False))
+          PY
           fi
-          python tools/apply_exact_source_gallery_promotion.py "${args[@]}"
-      - name: Assert exact-source promotion result
-        shell: bash
-        run: |
-          python - "$RUNNER_TEMP/exact-source-gallery-promotion-summary.json" "$APPLY_GALLERY" <<'PY'
+
+          while IFS= read -r authorization; do
+            [[ -n "$authorization" ]] || continue
+            if [[ -n "$GALLERY_EVIDENCE" ]]; then
+              evidence="$GALLERY_EVIDENCE"
+            else
+              evidence="$(python - "$authorization" <<'PY'
           import json, sys
           from pathlib import Path
-          summary=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          data=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          print(str(data.get('sourceEvidence') or ''))
+          PY
+              )"
+            fi
+            test -f "$evidence" || { echo "::error::source evidence ausente para $authorization: $evidence"; exit 1; }
+            name="$(basename "$authorization" .json)"
+            args=(
+              "$evidence"
+              --authorization "$authorization"
+              --source-contract config/external-sources/external-source-001.json
+              --production-bucket tonecos-catalogo-media
+              --summary "$root/$name.json"
+            )
+            if [[ "$APPLY_GALLERY" == "true" ]]; then
+              args+=(--apply)
+            fi
+            python tools/apply_exact_source_gallery_promotion.py "${args[@]}"
+          done < "$auth_list"
+      - name: Assert exact-source promotion results
+        shell: bash
+        run: |
+          python - "$RUNNER_TEMP/exact-source-gallery-promotion" "$APPLY_GALLERY" <<'PY'
+          import glob, json, sys
+          from pathlib import Path
+          root=Path(sys.argv[1])
           applying=sys.argv[2].lower() == 'true'
-          assert summary['targetModelId'] == 'mdl_e0af8379e806a3d5b8b8'
-          assert summary['resolutionSha256'] == '0bdbcc27f01f5805fd1dba6ec6458b827f960aeadb6bef82a229edca825c8963'
-          assert summary['productionDeletes'] == 0
-          candidate=summary['candidate']
-          assert candidate['imageCount'] == 7
-          assert candidate['reusedCoverSourceSha256'] == 'd5b99bc20d2a9576af6332720c1321472e8e7541dba282fb34b61c9acc764dd2'
-          if summary['state'] != 'already_applied':
-              assert summary['before']['coverStorageKey'] == candidate['coverStorageKey']
-          if applying:
-              assert summary['state'] in {'applied_verified','already_applied'}
-          else:
-              assert summary['state'] in {'dry_run_ready','already_applied'}
-              assert summary['d1Writes'] == 0
-              if summary['state'] == 'dry_run_ready':
-                  assert summary['r2']['planned'] == 19
-                  assert summary['r2']['written'] == 0
-          print(json.dumps(summary, ensure_ascii=False))
+          summaries=[]
+          for path in sorted(root.glob('*.json')):
+              summary=json.loads(path.read_text(encoding='utf-8'))
+              auth_name=path.name.replace('.json','.json')
+              auth_path=Path('docs/evidence')/auth_name
+              if not auth_path.is_file():
+                  matches=list(Path('docs/evidence').glob(path.stem+'.json'))
+                  if len(matches) != 1:
+                      raise AssertionError(f'authorization not found for {path.name}')
+                  auth_path=matches[0]
+              auth=json.loads(auth_path.read_text(encoding='utf-8'))
+              resolution=auth['resolution']
+              assert summary['targetModelId'] == auth['targetModelId']
+              assert summary['resolutionSha256'] == resolution['resolutionSha256']
+              assert summary['productionDeletes'] == 0
+              candidate=summary['candidate']
+              assert candidate['reusedCoverSourceSha256'] == resolution['anchorSourceSha256']
+              if summary['state'] != 'already_applied':
+                  assert summary['before']['coverStorageKey'] == candidate['coverStorageKey']
+                  assert candidate['imageCount'] == summary['before']['imageCount'] + int(resolution['addView'])
+              if applying:
+                  assert summary['state'] in {'applied_verified','already_applied'}
+              else:
+                  assert summary['state'] in {'dry_run_ready','already_applied'}
+                  assert summary['d1Writes'] == 0
+                  if summary['state'] == 'dry_run_ready':
+                      assert summary['r2']['written'] == 0
+              summaries.append(summary)
+          assert summaries
+          batch={'version':1,'models':len(summaries),'apply':applying,'summaries':summaries,'productionDeletes':0}
+          (root/'batch-summary.json').write_text(json.dumps(batch, ensure_ascii=False, indent=2)+'\n', encoding='utf-8')
+          print(json.dumps(batch, ensure_ascii=False))
           PY
       - name: Verify public catalog after apply
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.apply == true }}
@@ -135,6 +190,6 @@ jobs:
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: exact-source-gallery-promotion-${{ github.run_id }}-${{ github.run_attempt }}
-          path: ${{ runner.temp }}/exact-source-gallery-promotion-summary.json
+          path: ${{ runner.temp }}/exact-source-gallery-promotion
           if-no-files-found: error
           retention-days: 7
