@@ -5,6 +5,7 @@ on:
     paths:
       - '.github/workflows/external-media-staging.yml'
       - 'config/external-sources/**'
+      - 'docs/evidence/external-source-001-*-staging-acquisition-*.json'
       - 'tools/stage_external_media.py'
       - 'tools/staging_checkpoint.py'
       - 'tools/test_stage_external_media.py'
@@ -14,7 +15,7 @@ on:
       evidence:
         description: Reviewed evidence JSON with sourceObjectPath/SHA/bytes/watermark decisions
         required: true
-        default: docs/evidence/external-source-001-laura-gallery-review-2026-10-15.json
+        default: docs/evidence/external-source-001-laura-staging-acquisition-2026-10-15.json
         type: string
       shas:
         description: Comma-separated reviewed SHA-256 values to stage
@@ -47,6 +48,74 @@ jobs:
       - name: Run focused staging tests
         working-directory: tools
         run: python -m unittest -v test_staging_checkpoint.py test_stage_external_media.py
+      - name: Dry-run versioned staging acquisitions
+        if: ${{ github.event_name == 'pull_request' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          root="$RUNNER_TEMP/staging-acquisition-dry-run"
+          mkdir -p "$root"
+          python - "$root" <<'PY'
+          import glob, json, subprocess, sys
+          from pathlib import Path
+
+          root=Path(sys.argv[1])
+          summaries=[]
+          for raw in sorted(glob.glob('docs/evidence/external-source-001-*-staging-acquisition-*.json')):
+              path=Path(raw)
+              data=json.loads(path.read_text(encoding='utf-8'))
+              decision=data.get('decision') or {}
+              if decision.get('stagingAcquisitionReady') is not True:
+                  continue
+              images=data.get('images')
+              if not isinstance(images,list) or not images:
+                  raise SystemExit(f'acquisition evidence has no images: {path}')
+              shas=[]
+              for row in images:
+                  if not isinstance(row,dict):
+                      raise SystemExit(f'invalid image row: {path}')
+                  sha=str(row.get('sha256') or '').strip().lower()
+                  if len(sha)!=64 or any(ch not in '0123456789abcdef' for ch in sha):
+                      raise SystemExit(f'invalid acquisition SHA: {path}: {sha}')
+                  shas.append(sha)
+              if len(set(shas)) != len(shas):
+                  raise SystemExit(f'duplicate acquisition SHA: {path}')
+              summary_path=root/(path.stem+'.json')
+              cmd=[
+                  sys.executable,'tools/stage_external_media.py',str(path),
+                  '--source-contract','config/external-sources/external-source-001.json',
+                  '--summary',str(summary_path),
+              ]
+              for sha in shas:
+                  cmd.extend(['--sha',sha])
+              subprocess.run(cmd, check=True)
+              summary=json.loads(summary_path.read_text(encoding='utf-8'))
+              if summary.get('state') != 'dry_run' or summary.get('apply') is not False:
+                  raise SystemExit(f'acquisition did not remain dry-run: {path}')
+              if int(summary.get('stagingWrites') or 0) != 0 or int(summary.get('productionWrites') or 0) != 0:
+                  raise SystemExit(f'acquisition dry-run reported writes: {path}')
+              if int(summary.get('selected') or 0) != len(shas):
+                  raise SystemExit(f'acquisition selection mismatch: {path}')
+              summaries.append(summary)
+          batch={
+              'version':1,
+              'acquisitions':len(summaries),
+              'selected':sum(int(x['selected']) for x in summaries),
+              'stagingWrites':0,
+              'productionWrites':0,
+              'summaries':summaries,
+          }
+          (root/'batch-summary.json').write_text(json.dumps(batch,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
+          print(json.dumps(batch,ensure_ascii=False))
+          PY
+      - name: Upload staging acquisition dry-run
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: staging-acquisition-dry-run-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/staging-acquisition-dry-run
+          if-no-files-found: error
+          retention-days: 7
 
   stage:
     name: Bounded private staging
