@@ -36,7 +36,7 @@ class SoraBatch005ContractTests(unittest.TestCase):
         missing = [row for row in evidence if row.get("stagingVerified") is not True]
         self.assertEqual([row["imageId"] for row in missing], ["15604"])
         self.assertEqual(missing[0]["sha256"], "c42d6a378c794a4ff6752a4211900b879c4bb79d6f2d0ecd5cf3eec26d9276bc")
-        with self.assertRaisesRegex(RuntimeError, "clear/stagingVerified"):
+        with self.assertRaisesRegex(RuntimeError, "sem stagingVerified"):
             validate_evidence(evidence, descriptor, products)
 
     def test_all_five_images_are_creator_attribution_reviewed(self):
