@@ -100,8 +100,16 @@ jobs:
               path=Path(raw)
               data=json.loads(path.read_text(encoding='utf-8'))
               decision=data.get('decision') or {}
+              resolution=data.get('resolution') or {}
               evidence=str(data.get('sourceEvidence') or '').strip()
-              if decision.get('canonicalPromotionAuthorizationReady') is True and evidence and Path(evidence).is_file():
+              if (
+                  decision.get('identity') == 'map_existing_exact_source'
+                  and decision.get('canonicalPromotionAuthorizationReady') is True
+                  and int(resolution.get('replaceExisting') or 0) == 0
+                  and str(resolution.get('anchorSourceSha256') or '').strip()
+                  and evidence
+                  and Path(evidence).is_file()
+              ):
                   selected.append(raw)
           if not selected:
               raise SystemExit('no approved exact-source promotion authorization found')
@@ -141,15 +149,14 @@ jobs:
         shell: bash
         run: |
           python - "$RUNNER_TEMP/exact-source-gallery-promotion" "$APPLY_GALLERY" <<'PY'
-          import glob, json, sys
+          import json, sys
           from pathlib import Path
           root=Path(sys.argv[1])
           applying=sys.argv[2].lower() == 'true'
           summaries=[]
           for path in sorted(root.glob('*.json')):
               summary=json.loads(path.read_text(encoding='utf-8'))
-              auth_name=path.name.replace('.json','.json')
-              auth_path=Path('docs/evidence')/auth_name
+              auth_path=Path('docs/evidence')/path.name
               if not auth_path.is_file():
                   matches=list(Path('docs/evidence').glob(path.stem+'.json'))
                   if len(matches) != 1:
@@ -157,6 +164,7 @@ jobs:
                   auth_path=matches[0]
               auth=json.loads(auth_path.read_text(encoding='utf-8'))
               resolution=auth['resolution']
+              assert (auth.get('decision') or {}).get('identity') == 'map_existing_exact_source'
               assert summary['targetModelId'] == auth['targetModelId']
               assert summary['resolutionSha256'] == resolution['resolutionSha256']
               assert summary['productionDeletes'] == 0
