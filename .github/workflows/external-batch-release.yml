@@ -12,6 +12,7 @@ on:
       - 'tools/publish_r2_wrangler.py'
       - 'tools/verify_external_batch_release.py'
       - 'tools/test_external_batch_release.py'
+      - 'tools/test_external_batch_005_contract.py'
       - 'tools/test_external_release_verifier.py'
       - 'tools/test_new_only_released_preflight.py'
   workflow_dispatch:
@@ -84,6 +85,7 @@ jobs:
         run: >-
           python -m unittest -v
           test_external_batch_release.py
+          test_external_batch_005_contract.py
           test_external_release_verifier.py
           test_new_only_released_preflight.py
       - name: Materialize reviewed bytes from private staging
