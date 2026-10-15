@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12433,
+  "productName": "Reanette Elfelt – The Ossan Newbie Adventurer",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"6/6","completeStaging":true,"reverseIndexRunId":38825743609,"productionWrites":0,"stagingWrites":0},
+  "productionSearch": {"exactOrTextualCandidateCount":0,"candidateModelIds":[],"database":"tonecos-catalogo","readOnly":true},
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_exact_name_candidate_requires_visual_and_alias_review",
+    "notes": "No exact-name candidate was found. Absence by exact name is insufficient to authorize a new model without checking aliases, franchise labeling and historical imports."
+  },
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and alias review against historical franchise records"}
+}
