@@ -21,7 +21,7 @@ on:
       product_id:
         description: Optional exact product id that must exist on the declared page
         required: false
-        default: '13632'
+        default: '13687'
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -45,7 +45,7 @@ env:
   DISCOVERY_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.page || '43' }}
   DISCOVERY_PER_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.per_page || '20' }}
   DISCOVERY_MAX_PRODUCTS: ${{ github.event_name == 'workflow_dispatch' && inputs.max_products || '10' }}
-  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '13632' }}
+  DISCOVERY_PRODUCT_ID: ${{ github.event_name == 'workflow_dispatch' && inputs.product_id || '13687' }}
 
 jobs:
   discover:
