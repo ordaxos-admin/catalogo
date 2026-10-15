@@ -3,6 +3,8 @@
   "reviewedAt": "2026-10-15",
   "sourceId": "external-source-001",
   "sourceProductId": 24869,
+  "sourceProductKey": "external-source-001:product:24869",
+  "incomingModel": "external-source-001 / product:24869",
   "targetName": "Kaido STL 2",
   "sourceSlug": "kaido-stl-2-one-piece",
   "creator": "Lucas Perez Studio",
@@ -21,34 +23,66 @@
     "result": "creator_attribution",
     "notes": "All seven renders show Lucas Perez Studio/creator Patreon presentation, adjusted-scale information and the creator's STL-for-3D-printing presentation badge. No unrelated redistribution handle, Telegram/group branding, reseller URL, QR code or unrelated third-party promotional badge was observed."
   },
+  "metricReview": {
+    "engine": "canonical_pil_parity",
+    "dhash": "grayscale_9x8_lanczos_left_greater_than_right",
+    "visualThreshold": 6,
+    "sourcePairCandidatesAtOrBelowThreshold": 0,
+    "existingCover": {
+      "modelId": "mdl_7c3000129caaf2e102f9",
+      "storageKey": "media/mdl_7c3000129caaf2e102f9/img_1aacef725447073b922d/card.webp",
+      "sha256": "4ff163d8ee16bab4b1836bc63c8cd91b6c4f30d9842536441d685813717ff637",
+      "bytes": 126946,
+      "width": 800,
+      "height": 800,
+      "dhash": "4c444dd0344c3935",
+      "sharpness": 53.298,
+      "qualityScore": 53.608,
+      "watermarkStatus": "legacy_accepted"
+    },
+    "nearestSourceView": {
+      "position": 2,
+      "sha256": "73b8a377ba2e07af23e46ecc02b1fe9cfbc3559591762ecf611eb82178bc2854",
+      "dhash": "4c444cd0344c3935",
+      "dhashDistance": 1,
+      "width": 2048,
+      "height": 2048,
+      "sharpness": 51.303,
+      "qualityScore": 77.329,
+      "watermarkStatus": "creator_attribution",
+      "visualDecision": "same_view_higher_quality_source",
+      "recommendedResolution": "replace_existing"
+    }
+  },
   "images": [
-    {"position":1,"imageId":"24871","sourcePath":"/wp-content/uploads/2026/03/001.jpg","extension":"jpg","sha256":"bd6bcb29f0a096515fec2b7336be971bd1462eed0b7bcc0e56b8d11654fa628b","bytes":3019348,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
-    {"position":2,"imageId":"24875","sourcePath":"/wp-content/uploads/2026/03/010.jpg","extension":"jpg","sha256":"73b8a377ba2e07af23e46ecc02b1fe9cfbc3559591762ecf611eb82178bc2854","bytes":2899798,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
-    {"position":3,"imageId":"24872","sourcePath":"/wp-content/uploads/2026/03/003.jpg","extension":"jpg","sha256":"0199019a27faecf48f74107ba3dccb204195d87112c1220082a678696a976b53","bytes":2829707,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
-    {"position":4,"imageId":"24873","sourcePath":"/wp-content/uploads/2026/03/006.jpg","extension":"jpg","sha256":"93ece0312dc013faaa0875b3052e8e365c7375ea97e727a64ab3ce159f1d2113","bytes":2812868,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
-    {"position":5,"imageId":"24874","sourcePath":"/wp-content/uploads/2026/03/008.jpg","extension":"jpg","sha256":"7282dd9adbc7838b7b7a875d07f270e36fa3ffb60141ddd13cf60c01341b55ab","bytes":3191385,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
-    {"position":6,"imageId":"24876","sourcePath":"/wp-content/uploads/2026/03/013.jpg","extension":"jpg","sha256":"a60d6d61d6450377fbc41063e6a6313a68ce3ae39db75f19772f81ee358e6497","bytes":3175847,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true},
-    {"position":7,"imageId":"24877","sourcePath":"/wp-content/uploads/2026/03/021.jpg","extension":"jpg","sha256":"59db20772d865189bfbddb157c293f0c2a754d619022bfe5bfbb3f313f3f3597","bytes":3160922,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true}
+    {"position":1,"imageId":"24871","sourcePath":"/wp-content/uploads/2026/03/001.jpg","extension":"jpg","sha256":"bd6bcb29f0a096515fec2b7336be971bd1462eed0b7bcc0e56b8d11654fa628b","bytes":3019348,"width":2048,"height":2048,"dhash":"c6c676189470222d","sharpness":55.281,"qualityScore":77.329,"distanceToExistingCover":25,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":2,"imageId":"24875","sourcePath":"/wp-content/uploads/2026/03/010.jpg","extension":"jpg","sha256":"73b8a377ba2e07af23e46ecc02b1fe9cfbc3559591762ecf611eb82178bc2854","bytes":2899798,"width":2048,"height":2048,"dhash":"4c444cd0344c3935","sharpness":51.303,"qualityScore":77.329,"distanceToExistingCover":1,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"replace_existing","replaceSha256":"4ff163d8ee16bab4b1836bc63c8cd91b6c4f30d9842536441d685813717ff637"},
+    {"position":3,"imageId":"24872","sourcePath":"/wp-content/uploads/2026/03/003.jpg","extension":"jpg","sha256":"0199019a27faecf48f74107ba3dccb204195d87112c1220082a678696a976b53","bytes":2829707,"width":2048,"height":2048,"dhash":"b6e797cc983a3033","sharpness":49.778,"qualityScore":77.329,"distanceToExistingCover":31,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":4,"imageId":"24873","sourcePath":"/wp-content/uploads/2026/03/006.jpg","extension":"jpg","sha256":"93ece0312dc013faaa0875b3052e8e365c7375ea97e727a64ab3ce159f1d2113","bytes":2812868,"width":2048,"height":2048,"dhash":"0c5062364c283c37","sharpness":49.188,"qualityScore":77.329,"distanceToExistingCover":23,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":5,"imageId":"24874","sourcePath":"/wp-content/uploads/2026/03/008.jpg","extension":"jpg","sha256":"7282dd9adbc7838b7b7a875d07f270e36fa3ffb60141ddd13cf60c01341b55ab","bytes":3191385,"width":2048,"height":2048,"dhash":"2ecc34b3945c3025","sharpness":57.364,"qualityScore":77.329,"distanceToExistingCover":20,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":6,"imageId":"24876","sourcePath":"/wp-content/uploads/2026/03/013.jpg","extension":"jpg","sha256":"a60d6d61d6450377fbc41063e6a6313a68ce3ae39db75f19772f81ee358e6497","bytes":3175847,"width":2048,"height":2048,"dhash":"3e3625f0341c3a35","sharpness":56.279,"qualityScore":77.329,"distanceToExistingCover":16,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"add_view"},
+    {"position":7,"imageId":"24877","sourcePath":"/wp-content/uploads/2026/03/021.jpg","extension":"jpg","sha256":"59db20772d865189bfbddb157c293f0c2a754d619022bfe5bfbb3f313f3f3597","bytes":3160922,"width":2048,"height":2048,"dhash":"4c4c4c73746c3837","sharpness":56.034,"qualityScore":77.329,"distanceToExistingCover":10,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"creator_attribution","promotableMedia":true,"proposedAction":"add_view"}
   ],
   "identityReview": {
-    "decision": "unresolved",
+    "decision": "map_existing",
     "sameNameIsNotDuplicateProof": true,
-    "productionNameSearchCandidates": [
-      {
-        "modelId": "mdl_7c3000129caaf2e102f9",
-        "name": "Kaido",
-        "slug": "one-piece-kaido-estatua-colorida-com-chamas",
-        "imageCount": 1,
-        "exactSourceShaOverlap": false,
-        "state": "visual_cover_comparison_required"
-      }
-    ]
+    "sameSculptureVisualEvidence": true,
+    "targetModelId": "mdl_7c3000129caaf2e102f9",
+    "targetSlug": "one-piece-kaido-estatua-colorida-com-chamas",
+    "targetCode": "TS-7C3000129CAA",
+    "targetImageCountBeforePromotion": 1,
+    "exactSourceShaOverlap": false,
+    "evidence": "The production cover and source position 2 depict the same Lucas Perez Studio Kaido sculpture, same pose, same lava/throne composition and same creator presentation. Canonical dHash distance is 1 despite the production cover being an 800px derived WebP and the source being the 2048px original JPEG.",
+    "mapExistingApproved": true
   },
   "decision": {
     "galleryMediaReviewApproved": true,
-    "identityDecision": "unresolved",
+    "identityDecision": "map_existing",
+    "mapExistingApproved": true,
     "batch005Approved": false,
+    "newModelApproved": false,
+    "galleryPromotionApproved": false,
     "productionWrites": 0,
-    "nextGate": "compare the existing production Kaido cover with the seven reviewed source renders; only then resolve new_model versus map_existing"
+    "nextGate": "run the existing-gallery promotion authorization path: source position 2 is an explicit same-view replacement candidate; positions 1 and 3-7 are distinct add_view candidates. Verify source SHAs and current production ownership again immediately before promotion."
   }
 }
