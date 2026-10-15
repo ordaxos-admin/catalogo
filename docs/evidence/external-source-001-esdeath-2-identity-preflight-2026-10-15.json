@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12441,
+  "productName": "Esdeath 2 – Akame ga Kill",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"4/4","completeStaging":true,"reverseIndexRunId":38825743609,"productionWrites":0,"stagingWrites":0},
+  "productionSearch": {
+    "exactOrTextualCandidateCount": 1,
+    "candidateModelIds": ["mdl_6a16a4d5d34df8569a03"],
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "single_same_character_candidate_requires_visual_sculpture_review",
+    "notes": "A single published Esdeath candidate exists in the same franchise, but same-character naming is not sufficient proof that this source product is the same sculpture."
+  },
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual comparison against mdl_6a16a4d5d34df8569a03"}
+}
