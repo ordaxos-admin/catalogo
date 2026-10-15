@@ -24,6 +24,7 @@ on:
       - '.github/workflows/staging-product-index.yml'
       - 'tools/index_external_staging_products.py'
       - 'tools/test_index_external_staging_products.py'
+      - 'tools/test_index_external_staging_products_oversize.py'
 
 permissions:
   contents: read
@@ -58,7 +59,10 @@ jobs:
           test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
       - name: Test reverse-index guards
         working-directory: tools
-        run: python -m unittest -v test_index_external_staging_products.py
+        run: >-
+          python -m unittest -v
+          test_index_external_staging_products.py
+          test_index_external_staging_products_oversize.py
       - name: Build bounded reverse index
         run: >-
           python tools/index_external_staging_products.py
@@ -88,6 +92,11 @@ jobs:
               for image in product['images']:
                   if image['stagingVerified']:
                       assert image['stagingKey']
+                  if image.get('reviewOnly') is True:
+                      assert not image['stagingVerified']
+                      assert image['sha256'] is None
+                      assert image['stagingKey'] is None
+                      assert str(image.get('hashSkippedReason') or '').startswith('source_exceeds_max_image_bytes')
           print(json.dumps({
               'pagesCompleted': report['pagesCompleted'],
               'productsScanned': report['productsScanned'],
