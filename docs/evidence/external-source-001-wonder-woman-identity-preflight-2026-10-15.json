@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12389,
+  "productName": "Wonder Woman – DC",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"7/7","completeStaging":true,"reverseIndexRunId":38825743609,"productionWrites":0,"stagingWrites":0},
+  "productionSearch": {"exactOrTextualCandidateCount":0,"candidateModelIds":[],"database":"tonecos-catalogo","readOnly":true},
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_exact_name_candidate_does_not_prove_absence",
+    "notes": "No exact-name candidate was found, but a translated or historically renamed Wonder Woman record may exist. Full staged media requires visual/catalogal review before new_model is authorized."
+  },
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and alias review against DC / Wonder Woman historical records"}
+}
