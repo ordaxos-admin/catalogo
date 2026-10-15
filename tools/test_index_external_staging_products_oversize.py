@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import urllib.parse
 import unittest
 
 from index_external_staging_products import scan_page
@@ -104,6 +105,26 @@ class OversizedReverseIndexTests(unittest.TestCase):
         )
         self.assertEqual(matched, [])
         self.assertEqual((completed, returned, count, total, stopped, next_offset), (1, 1, 0, 0, False, 1))
+
+    def test_source_page_is_stably_ordered_by_ascending_product_id(self):
+        requested: list[str] = []
+
+        def fetch_products(url):
+            requested.append(url)
+            return []
+
+        scan_page(
+            origin="https://example.com", page=7, per_page=20, inventory={},
+            staging_prefix="src", max_image_bytes=100, remaining_bytes=1000,
+            fetch_products=fetch_products,
+            fetch_image=lambda *_args: self.fail("empty page must not fetch images"),
+        )
+        self.assertEqual(len(requested), 1)
+        query = urllib.parse.parse_qs(urllib.parse.urlparse(requested[0]).query)
+        self.assertEqual(query["page"], ["7"])
+        self.assertEqual(query["per_page"], ["20"])
+        self.assertEqual(query["orderby"], ["id"])
+        self.assertEqual(query["order"], ["asc"])
 
 
 if __name__ == "__main__":
