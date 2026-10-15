@@ -1,0 +1,89 @@
+name: Existing gallery preflight
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - '.github/workflows/existing-gallery-preflight.yml'
+      - 'tools/preflight_existing_gallery_evidence.py'
+      - 'tools/test_preflight_existing_gallery_evidence.py'
+      - 'tools/plan_gallery_merge.py'
+      - 'tools/resolve_gallery_merge.py'
+      - 'tools/build_gallery_promotion_manifest.py'
+      - 'tools/media_quality_policy.py'
+      - 'docs/evidence/external-source-001-kaido-gallery-review-2026-10-15.json'
+      - 'config/external-sources/external-source-001.json'
+  workflow_dispatch:
+    inputs:
+      evidence:
+        description: Versioned existing-gallery review evidence
+        required: true
+        default: docs/evidence/external-source-001-kaido-gallery-review-2026-10-15.json
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: existing-gallery-preflight-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+  CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+  GALLERY_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || 'docs/evidence/external-source-001-kaido-gallery-review-2026-10-15.json' }}
+
+jobs:
+  preflight:
+    name: Canonical read-only gallery preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+      - name: Setup Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
+        with:
+          python-version: '3.13'
+      - name: Install ingestion dependencies
+        run: python -m pip install -r tools/requirements.txt
+      - name: Test existing-gallery preflight guards
+        working-directory: tools
+        run: >-
+          python -m unittest -v
+          test_preflight_existing_gallery_evidence.py
+          test_plan_gallery_merge.py
+          test_resolve_gallery_merge.py
+          test_build_gallery_promotion_manifest.py
+      - name: Assert Cloudflare read bindings
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::CLOUDFLARE_ACCOUNT_ID ausente'; exit 1; }
+          test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
+      - name: Run canonical existing-gallery preflight
+        run: >-
+          python tools/preflight_existing_gallery_evidence.py "$GALLERY_EVIDENCE"
+          --source-contract config/external-sources/external-source-001.json
+          --production-bucket tonecos-catalogo-media
+          --output "$RUNNER_TEMP/existing-gallery-preflight"
+      - name: Assert zero writes and expected ready state
+        shell: bash
+        run: |
+          python - "$RUNNER_TEMP/existing-gallery-preflight/summary.json" <<'PY'
+          import json, sys
+          from pathlib import Path
+          summary=json.loads(Path(sys.argv[1]).read_text(encoding='utf-8'))
+          assert summary['ready'] is True
+          assert summary['productionWrites'] == 0
+          assert summary['stagingWrites'] == 0
+          assert summary['promotionSummary']['promotions'] > 0
+          print(json.dumps(summary, ensure_ascii=False))
+          PY
+      - name: Upload short-lived canonical preflight
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: existing-gallery-preflight-${{ github.run_id }}-${{ github.run_attempt }}
+          path: ${{ runner.temp }}/existing-gallery-preflight
+          if-no-files-found: error
+          retention-days: 3
