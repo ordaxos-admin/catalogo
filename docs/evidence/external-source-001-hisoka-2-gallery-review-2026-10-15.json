@@ -1,0 +1,64 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13632,
+  "productName": "Hisoka Morow STL 2 – Hunter x Hunter",
+  "sourceSlug": "hisoka-morow-stl-2-hunter-x-hunter",
+  "creator": "LionRealm Studio",
+  "creatorEvidence": {
+    "state": "corroborated_official_creator_channels",
+    "notes": "Official LionRealm Studio creator channels list Hisoka from Hunter x Hunter as a released model and identify the same LionRealm Patreon/Gumroad branding visible on the reviewed renders."
+  },
+  "sourceGallery": {
+    "imageCount": 7,
+    "uniqueSourceImages": 7,
+    "stagingVerified": 7,
+    "stagingCoverage": "7/7",
+    "productionExactShaOwners": 0
+  },
+  "images": [
+    {"position":1,"imageId":"13873","sourcePath":"/wp-content/uploads/2025/07/00-scaled.png","extension":"png","sha256":"d8a7c67a88b86222fa4a625818214da218932dee207c38d9939aa836e1fa6b82","bytes":2921036,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":2,"imageId":"13874","sourcePath":"/wp-content/uploads/2025/07/03-scaled.png","extension":"png","sha256":"b75f4e4027f0abddfcf5520729ae8177df16d7a47920977bdb3230acff70a812","bytes":2701052,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":3,"imageId":"13877","sourcePath":"/wp-content/uploads/2025/07/06-scaled.png","extension":"png","sha256":"232fd9754bff2e68edf97561c011948ef07f3b707d2834b5ed7a302e55236eaa","bytes":2906458,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":4,"imageId":"13875","sourcePath":"/wp-content/uploads/2025/07/04-scaled.png","extension":"png","sha256":"eca9b6eb9a469dfee301489c79391781d542bec8d765240a7a66cfddf3e13d75","bytes":2386304,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":5,"imageId":"13876","sourcePath":"/wp-content/uploads/2025/07/05-scaled.png","extension":"png","sha256":"c62a489787bbd753b9cbd4ce3d7026aa9959d5a5e7284d7138db389de8558542","bytes":2546820,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":6,"imageId":"13878","sourcePath":"/wp-content/uploads/2025/07/07-scaled.png","extension":"png","sha256":"72c209e2e3899403098772a59bdad3e53634731bb00813b41485c7fbad684025","bytes":2931908,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":7,"imageId":"13879","sourcePath":"/wp-content/uploads/2025/07/08-scaled.png","extension":"png","sha256":"d0d50d5d4d1bda789269b61fd923771a8c6652e0bc377c118dd330a4e5c64bae","bytes":3040920,"stagingVerified":true,"productionOwners":[],"watermarkStatus":"watermarked","promotableMedia":false}
+  ],
+  "watermarkReview": {
+    "visualAuditComplete": true,
+    "creatorBrandingObserved": "LionRealm Studio logo plus creator Gumroad/Patreon attribution and creator-branded QR panel",
+    "blockingThirdPartyBrandingObserved": "Lychee Slicer Ambassador badge",
+    "decision": "watermarked",
+    "notes": "All seven exact staged renders visibly contain the unrelated Lychee Slicer Ambassador promotional badge. Verified LionRealm creator attribution does not neutralize this third-party promotion. Do not crop, paint over or remove the badge to make the images eligible."
+  },
+  "metricReview": {
+    "engine": "canonical_pil_parity",
+    "visualThreshold": 6,
+    "sourcePairCandidatesAtOrBelowThreshold": 1,
+    "candidatePair": {"leftPosition":1,"rightPosition":3,"dhashDistance":3},
+    "notes": "The perceptual candidate is not resolved for promotion because both images fail the blocking watermark gate first."
+  },
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 0,
+    "identityReviewCandidates": [],
+    "notes": "Production lookup returned no published Hisoka model and the exact-product discovery attached no production identity candidate. Identity is distinct, but release remains blocked by media eligibility."
+  },
+  "reviewArtifact": {
+    "workflowRunId": 38787555299,
+    "artifactId": 11997419193,
+    "artifactSha256": "973c583fef8025e8e010625e92bb347758774ecd9504ea9aba658eebaae7417b"
+  },
+  "decision": {
+    "identityResolved": true,
+    "galleryMediaReviewApproved": false,
+    "newModelApproved": false,
+    "galleryPromotionApproved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "blocked unless materially different source renders become available without unrelated third-party promotional branding; never crop or remove the Lychee badge"
+  }
+}
