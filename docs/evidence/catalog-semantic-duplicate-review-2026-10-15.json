@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "policy": {
+    "sameNameIsNotDuplicateProof": true,
+    "exactCoverShaIsStrongIdentityEvidence": true,
+    "mergeRequiresExplicitSameSculptureEvidence": true,
+    "productionWrites": 0
+  },
+  "families": [
+    {
+      "name": "Jessica Cruz",
+      "category": "Marvel & DC",
+      "franchise": "Lanterna Verde",
+      "state": "multiple_models_distinct_cover_sha_review_required",
+      "models": [
+        {
+          "id": "mdl_b3d0a7390ef896e06a73",
+          "slug": "lanterna-verde-jessica-cruz-classica-com-lanterna-e-energia",
+          "imageCount": 1,
+          "coverSha256": "c586a2efd2a36890c3a96856022c59cb0a3a7efd1aa0540940b9f4d16a723594",
+          "externalIdentityState": "variant_identity_unresolved"
+        },
+        {
+          "id": "mdl_5cb1a7c25d077cd52209",
+          "slug": "lanterna-verde-jessica-cruz-com-machado-de-energia-verde",
+          "imageCount": 1,
+          "coverSha256": "1df023255247f46098ee6d23cf8ee8d8ffb4385eb004ee026e82b4bf912c27a1",
+          "externalIdentityState": "map_existing_reviewed",
+          "sourcePagePath": "/produto/jessica-cruz-stl-dc/"
+        }
+      ],
+      "decision": "do_not_merge_by_name"
+    },
+    {
+      "name": "Momo Ayase",
+      "category": "Animes & Desenhos",
+      "franchise": "Dandadan",
+      "state": "multiple_models_distinct_cover_sha_review_required",
+      "models": [
+        {
+          "id": "mdl_a0260baa442770c09f14",
+          "slug": "dandadan-momo-ayase-com-maos-psiquicas",
+          "imageCount": 1,
+          "coverSha256": "65fcbb7ff77aee96d4028c20ab3cba5eb24c6233f34db3e3984dabb9797b9400",
+          "externalIdentityState": "map_existing_reviewed",
+          "sourcePagePath": "/producto/momo-ayase-stl-8-extras-dandadan/"
+        },
+        {
+          "id": "mdl_adb5c8620edfb55559ca",
+          "slug": "dandadan-momo-ayase-estatua-colorida-em-base",
+          "imageCount": 1,
+          "coverSha256": "845eddab078c93c466d294e757c10478b948dcd54fbde6b1ccc37dd96635b4c7",
+          "externalIdentityState": "variant_identity_unresolved"
+        },
+        {
+          "id": "mdl_95bbc4ef07044edbfb9c",
+          "slug": "dandadan-momo-ayase-estatua-em-pe",
+          "imageCount": 1,
+          "coverSha256": "0744ffdaf167fde28ed805bfc294f2de283e451e5b8f6f13134cef6a62d8c06e",
+          "externalIdentityState": "variant_identity_unresolved"
+        },
+        {
+          "id": "mdl_61f1a2eb9f296d3d3073",
+          "slug": "dandadan-momo-ayase-uniforme-escolar-com-maos-psiquicas",
+          "imageCount": 1,
+          "coverSha256": "9c9f59b07eef29568c452faac56b932bc58e7f1150cfa03f06ff72200d9aecb0",
+          "externalIdentityState": "variant_identity_unresolved"
+        }
+      ],
+      "decision": "do_not_merge_by_name_or_franchise"
+    }
+  ]
+}
