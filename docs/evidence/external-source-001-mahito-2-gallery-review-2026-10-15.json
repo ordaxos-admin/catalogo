@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12642,
+  "productName": "Mahito STL 2 – Jujutsu Kaisen",
+  "sourceSlug": "mahito-stl-2-jujutsu-kaisen",
+  "creator": "LionRealm Studio",
+  "creatorEvidence": {
+    "state": "source_brand_metadata_only",
+    "notes": "The exact Store API product metadata identifies LionRealm Studio as the brand. This review does not rely on creator attribution for eligibility because the promotional watermark gate already blocks every source render."
+  },
+  "sourceGallery": {
+    "imageCount": 6,
+    "uniqueSourceImages": 6,
+    "stagingVerified": 5,
+    "stagingCoverage": "5/6",
+    "productionExactShaOwners": 0
+  },
+  "images": [
+    {"position":1,"imageId":"19658","sourcePath":"/wp-content/uploads/2025/05/10-2-scaled-1.webp","extension":"webp","sha256":"167d50315b1d46f2755540ea163c8f7d80c8eed788fdcbd638a9071bb0026e58","bytes":409386,"stagingVerified":false,"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":2,"imageId":"12645","sourcePath":"/wp-content/uploads/2025/05/01-1-scaled.webp","extension":"webp","sha256":"012babd0b58e564c65f10abfa62998298b2c58e0eaa4cb5cfff5c5a2b85460a9","bytes":3962316,"stagingVerified":true,"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":3,"imageId":"12646","sourcePath":"/wp-content/uploads/2025/05/02-scaled.webp","extension":"webp","sha256":"0012bf4c23f5bb218a60b0decdb94e73b9b4b901876eb4bf0b1d0aac56514dbf","bytes":3894388,"stagingVerified":true,"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":4,"imageId":"12647","sourcePath":"/wp-content/uploads/2025/05/03-1-scaled.webp","extension":"webp","sha256":"68052e1bd621c8c45634dd0befde86d2fbc5ff63bb89de84cf72bf8eadc0bfb0","bytes":3972664,"stagingVerified":true,"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":5,"imageId":"12649","sourcePath":"/wp-content/uploads/2025/05/08-1-scaled.webp","extension":"webp","sha256":"62d8d7f5a652ed278d42723fe506f8aba11bf9ec6eded49085797e7acecc4241","bytes":2566198,"stagingVerified":true,"watermarkStatus":"watermarked","promotableMedia":false},
+    {"position":6,"imageId":"12648","sourcePath":"/wp-content/uploads/2025/05/05-1-scaled.webp","extension":"webp","sha256":"159acfca29ac0a2358f1b0a80719038a05bbed0fa8f2db91613f7b7d96f06e2a","bytes":3930008,"stagingVerified":true,"watermarkStatus":"watermarked","promotableMedia":false}
+  ],
+  "watermarkReview": {
+    "visualAuditComplete": true,
+    "method": "exact_source_pixels_browser_ocr_border_review",
+    "blockingBrandingObserved": [
+      "SCAN ME QR prompt",
+      "LionRealmStudio branding",
+      "creator Gumroad URL",
+      "creator Patreon URL"
+    ],
+    "decision": "watermarked",
+    "notes": "The exact missing source image and the five staged source renders expose recurring promotional QR/link branding. Under the catalog media policy, QR codes and promotional URLs/membership/source branding are blocking even when they belong to the creator. Do not crop, paint over or remove these marks to make the media eligible."
+  },
+  "identityReview": {
+    "decision": "unresolved_media_blocked",
+    "exactProductionShaOwners": 0,
+    "publishedNameOrSlugCandidates": 0,
+    "notes": "D1 returned no published Mahito by name/slug and none of the six exact source SHAs are owned by production. A formal new_model decision is unnecessary while all exact source media is blocked."
+  },
+  "decision": {
+    "identityResolvedForRelease": false,
+    "galleryMediaReviewApproved": false,
+    "missingImageStagingAcquisitionApproved": false,
+    "galleryPromotionApproved": false,
+    "productionPublicationAuthorized": false,
+    "promotableMediaCount": 0,
+    "stagingWrites": 0,
+    "productionWrites": 0,
+    "nextGate": "none for these exact six source renders; reconsider only if materially different source bytes become available without blocking promotional QR/link branding"
+  }
+}
