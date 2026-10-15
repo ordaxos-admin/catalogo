@@ -1,0 +1,54 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13280,
+  "productName": "Sung Jinwoo STL 6 + Bust – Solo Leveling",
+  "creator": "Tanuki Figures",
+  "creatorCorroborated": true,
+  "sourceImageCount": 8,
+  "stagingCoverage": "7/8",
+  "missingSourceImage": {
+    "sourcePosition": 1,
+    "imageId": "19336",
+    "sourceObjectPath": "/wp-content/uploads/2025/06/Sung_Jin_woo_05-scaled-1.webp",
+    "sha256": "82d8b5f815bdf5116c96cb10db02f540e6a7d68e9850a838b57bc78742345be8",
+    "bytes": 730146,
+    "width": 1200,
+    "height": 1500,
+    "watermarkStatus": "clear",
+    "visualAuditComplete": true,
+    "exactByteVerification": "same_origin_fetch_webcrypto_sha256",
+    "visualAuditNotes": "Exact source image was inspected for visible overlay branding. No text, logo, badge, URL, social handle, creator attribution, Lychee/Lychee Slicer, Telegram, reseller/download branding, or other promotional watermark was observed."
+  },
+  "stagedSourceImages": [
+    {"sourcePosition": 2, "imageId": "13285", "sha256": "2498181576a71af0efb25f2e4e3c1c115944e8c5c3d2633e3fbc9dc7151e04a8", "bytes": 4134074, "mediaAuditThisPass": "pending"},
+    {"sourcePosition": 3, "imageId": "13286", "sha256": "1896cd6b602b3fe73106caf859f2500f541a2845d6884d373a2b0c7b6984d79d", "bytes": 8016352, "mediaAuditThisPass": "pending"},
+    {"sourcePosition": 4, "imageId": "13287", "sha256": "d0325b68bc5f05e5c82372c83adccb4233b3b7a3136b249cd7928330f4dc5ecd", "bytes": 8077020, "mediaAuditThisPass": "pending"},
+    {"sourcePosition": 5, "imageId": "13288", "sha256": "2f465198676c9370752e8e825f35b96ac5d55ea4f42cc916cd0c5127c4482e02", "bytes": 3704310, "mediaAuditThisPass": "pending"},
+    {"sourcePosition": 6, "imageId": "13289", "sha256": "505fbce478ca9f2e0b04000bf78e6ba32d0489a217d718a9e1c177cb57700432", "bytes": 3531969, "mediaAuditThisPass": "pending"},
+    {"sourcePosition": 7, "imageId": "13290", "sha256": "4f5cbc3720c8c90a807ac0eaad32a3e61485c57115250158d62157313bbf3123", "bytes": 3610110, "mediaAuditThisPass": "pending"},
+    {"sourcePosition": 8, "imageId": "13291", "sha256": "977f5a4fcd3a49a76b8e0fe0dee9c0dcb8f982e3aa1fea60df30259df4f03449", "bytes": 4424316, "mediaAuditThisPass": "pending"}
+  ],
+  "identityReview": {
+    "state": "pending_visual_comparison",
+    "decision": "unresolved",
+    "exactProductionShaOwnersForStagedImages": 0,
+    "productionCandidates": [
+      {"modelId": "mdl_673ada9d26c979c8f34e", "slug": "solo-leveling-sung-jinwoo-vs-igris"},
+      {"modelId": "mdl_926a80fc343e73d06cc9", "slug": "solo-leveling-sung-jinwoo-com-espada-em-diorama"}
+    ],
+    "notes": "Name search alone does not authorize map_existing or new_model. Exact visual comparison against both production covers remains required."
+  },
+  "decision": {
+    "missingImageMediaReviewApproved": true,
+    "fullSourceMediaReviewComplete": false,
+    "stagingAcquisitionReady": false,
+    "galleryMediaReviewApproved": false,
+    "galleryPromotionApproved": false,
+    "productionPublicationAuthorized": false,
+    "stagingWrites": 0,
+    "productionWrites": 0,
+    "nextGate": "audit source positions 2-8 and compare source identity against both production candidates; only then decide whether the missing clear SHA may enter bounded private staging"
+  }
+}
