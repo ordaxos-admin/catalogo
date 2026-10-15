@@ -1,0 +1,7 @@
+{
+  "version": 1,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w="
+}
