@@ -213,7 +213,7 @@ def plan_gallery_merge(
                     "incoming": compact_image(row, "incoming"),
                     "matches": match_payload,
                     "recommendedSource": "existing_or_planned" if visual_matches else "none",
-                    "reason": "incoming_blocking_watermark",
+                    "reason": "incoming_watermarked",
                 })
                 counts["reject_watermarked"] += 1
                 continue
@@ -234,22 +234,26 @@ def plan_gallery_merge(
             if visual_matches:
                 best_existing = best_quality(item for _, item in visual_matches)
                 best_existing_watermark = manifest_watermark_status(best_existing)
-                incoming_is_explicitly_audited = incoming_watermark in {
-                    WATERMARK_CLEAR,
-                    WATERMARK_CREATOR_ATTRIBUTION,
-                }
-                if (
-                    incoming_is_explicitly_audited
-                    and best_existing_watermark == WATERMARK_WATERMARKED
-                ):
-                    incoming_better = True
-                    recommendation_reason = "audited_incoming_beats_blocking_watermark"
-                elif (
-                    incoming_is_explicitly_audited
-                    and best_existing_watermark == WATERMARK_LEGACY_ACCEPTED
-                ):
-                    incoming_better = True
-                    recommendation_reason = "audited_incoming_beats_unverified_legacy_match"
+                if best_existing_watermark == WATERMARK_WATERMARKED:
+                    if incoming_watermark == WATERMARK_CLEAR:
+                        incoming_better = True
+                        recommendation_reason = "clear_incoming_beats_watermarked_match"
+                    elif incoming_watermark == WATERMARK_CREATOR_ATTRIBUTION:
+                        incoming_better = True
+                        recommendation_reason = "creator_attribution_incoming_beats_watermarked_match"
+                    else:
+                        incoming_better = quality_tuple(row) > quality_tuple(best_existing)
+                        recommendation_reason = "perceptual_similarity_requires_review"
+                elif best_existing_watermark == WATERMARK_LEGACY_ACCEPTED:
+                    if incoming_watermark == WATERMARK_CLEAR:
+                        incoming_better = True
+                        recommendation_reason = "verified_clear_incoming_beats_unverified_legacy_match"
+                    elif incoming_watermark == WATERMARK_CREATOR_ATTRIBUTION:
+                        incoming_better = True
+                        recommendation_reason = "verified_creator_attribution_incoming_beats_unverified_legacy_match"
+                    else:
+                        incoming_better = quality_tuple(row) > quality_tuple(best_existing)
+                        recommendation_reason = "perceptual_similarity_requires_review"
                 else:
                     incoming_better = quality_tuple(row) > quality_tuple(best_existing)
                     recommendation_reason = "perceptual_similarity_requires_review"
