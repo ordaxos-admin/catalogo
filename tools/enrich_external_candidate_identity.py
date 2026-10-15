@@ -19,6 +19,7 @@ from pathlib import Path
 from typing import Any
 
 USER_AGENT = "catalog-external-identity-review/1.0"
+MAX_REVIEW_CANDIDATES = 100
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -26,6 +27,20 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(data, dict):
         raise RuntimeError(f"objeto JSON esperado: {path}")
     return data
+
+
+def decode_b64_text(value: Any, field: str) -> str:
+    raw = str(value or "").strip()
+    if not raw:
+        raise RuntimeError(f"{field} ausente")
+    try:
+        import base64
+        decoded = base64.b64decode(raw, validate=True).decode("utf-8")
+    except (ValueError, UnicodeDecodeError) as exc:
+        raise RuntimeError(f"{field} inválido") from exc
+    if not decoded:
+        raise RuntimeError(f"{field} vazio")
+    return decoded
 
 
 def subject_hint(value: str) -> str:
@@ -63,9 +78,9 @@ def find_candidates(account_id: str, token: str, database_id: str, hint: str) ->
             "sql": (
                 "SELECT id,name,slug,code,image_count,cover_storage_key "
                 "FROM models WHERE published=1 AND (lower(name) LIKE ? OR lower(search_text) LIKE ?) "
-                "ORDER BY CASE WHEN lower(name)=? THEN 0 ELSE 1 END,name,slug LIMIT 20"
+                "ORDER BY CASE WHEN lower(name)=? THEN 0 ELSE 1 END,name,slug LIMIT ?"
             ),
-            "params": [pattern, pattern, hint.casefold()],
+            "params": [pattern, pattern, hint.casefold(), MAX_REVIEW_CANDIDATES],
         },
         token,
     )
@@ -134,7 +149,7 @@ def enrich(report_path: Path, descriptor_path: Path, review_root: Path) -> dict[
                     item["coverBytes"] = download_r2_object(account_id, token, production_bucket, key, destination)
                     item["reviewArtifactPath"] = str(destination.relative_to(review_root.parent)).replace("\\", "/")
                     materialized += 1
-                except Exception as exc:  # fail closed in report, do not hide missing comparison evidence
+                except Exception as exc:
                     item["coverMaterializationError"] = str(exc)
             review_candidates.append(item)
         product["identityReviewHint"] = hint
