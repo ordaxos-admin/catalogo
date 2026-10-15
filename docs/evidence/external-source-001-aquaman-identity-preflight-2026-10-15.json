@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12177,
+  "productName": "Aquaman STL + Bust + Extras – DC",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"7/7","completeStaging":true,"reverseIndexRunId":38825218195,"productionWrites":0,"stagingWrites":0},
+  "productionSearch": {
+    "sameCharacterCandidateCount": 8,
+    "candidateModelIds": ["mdl_cea55f7f13dcaa99ebb3","mdl_27c9132c0b1fbf8766e8","mdl_ede7d556559b2d436f30","mdl_35d9b756ce015ab48995","mdl_2de3cc68b34dfe13af99","mdl_df7b9a1a71cb2ccd957d","mdl_0c9cd42d049a330f24d0","mdl_ac83ea86bb27b04ef3fe"],
+    "falsePositiveModelIds": ["mdl_a6535ea2b5095114abce"],
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "multiple_same_character_candidates_require_visual_sculpture_review",
+    "notes": "Eight published Aquaman sculptures are plausible identity candidates. A broader textual hit for Black Manta was excluded as a false positive. The 7/7 staged source gallery still requires sculpture-level visual comparison."
+  },
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual comparison against all eight published Aquaman sculptures"}
+}
