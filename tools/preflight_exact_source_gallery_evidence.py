@@ -17,7 +17,6 @@ from pathlib import Path
 from typing import Any
 
 from build_gallery_promotion_manifest import build_promotion_rows, write_csv
-from media_quality_policy import AUTHORIZED_EXTERNAL_PROVENANCE
 from plan_gallery_merge import plan_gallery_merge
 from resolve_gallery_merge import resolve_gallery_merge
 from preflight_existing_gallery_evidence import (
@@ -91,15 +90,19 @@ def validate_evidence(evidence: dict[str, Any]) -> tuple[str, str, list[dict[str
     skip_rows = []
     for row in images:
         if row.get("stagingVerified") is not True:
-            raise RuntimeError("preflight exige cobertura staging 100%")
-        if row.get("watermarkStatus") not in {"clear", "creator_attribution"}:
-            raise RuntimeError("preflight bloqueado por watermarkStatus")
-        if row.get("proposedAction") not in {"add_view", "skip_exact"}:
+            raise RuntimeError("preflight exige cobertura staging 100% da mídia elegível")
+        proposal = str(row.get("proposedAction") or "")
+        if proposal not in {"add_view", "skip_exact"}:
             raise RuntimeError("ação exact-source inválida")
+        watermark = str(row.get("watermarkStatus") or "").strip().lower()
+        if proposal == "add_view" and watermark not in {"clear", "creator_attribution"}:
+            raise RuntimeError("add_view bloqueado por watermarkStatus")
+        if proposal == "skip_exact" and watermark not in {"clear", "creator_attribution", "legacy_accepted"}:
+            raise RuntimeError("skip_exact possui watermarkStatus inválido")
         validate_sha(row.get("sha256"), "source sha256")
         if int(row.get("bytes") or 0) < 1:
             raise RuntimeError("imagem sem bytes esperados")
-        if row.get("proposedAction") == "skip_exact":
+        if proposal == "skip_exact":
             skip_rows.append(row)
     if len(skip_rows) != 1:
         raise RuntimeError("gate exact-source exige exatamente um skip_exact de âncora")
@@ -203,11 +206,13 @@ def run_preflight(args: argparse.Namespace) -> dict[str, Any]:
             get_r2_object(account_id, token, staging_bucket, staging_key(staging_prefix, sha, ext), source)
             metrics = image_metrics(source)
             validate_recorded_source_metrics(row, metrics)
+            watermark = str(row.get("watermarkStatus") or "").strip().lower()
+            watermark_arg = None if row.get("proposedAction") == "skip_exact" and watermark == "legacy_accepted" else watermark
             incoming_manifest.append(compact_manifest_row(
                 path=f"staging/{source_id}/product-{evidence['sourceProductId']}/{int(row['position']):02d}.{ext}",
                 metrics=metrics,
                 model=incoming_model,
-                watermark=str(row["watermarkStatus"]),
+                watermark=watermark_arg,
                 source_id=source_id,
             ))
 
