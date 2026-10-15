@@ -8,6 +8,10 @@
   "creator": "Tanuki Figures",
   "categories": ["Kingdom Hearts", "Videogames"],
   "stagingCoverage": "4/5",
+  "creatorEvidence": {
+    "state": "corroborated_official_creator_site_and_patreon",
+    "notes": "Tanuki Figures' official site and official Patreon identify Tanuki Figures as the creator of premium printable STL models and use Patreon as the creator's own membership channel."
+  },
   "identityReview": {
     "decision": "new_model_candidate",
     "exactProductionShaOwners": 0,
@@ -22,7 +26,12 @@
         "relation": "unrelated_character_same_first_name"
       }
     },
-    "state": "taxonomy_and_visual_review_required_before_new_model_authorization"
+    "state": "new_model_candidate_pending_taxonomy_and_staging_completion"
+  },
+  "visualReview": {
+    "method": "manual_visual_review_of_five_exact_sha_and_byte_verified_source_images",
+    "result": "creator_attribution",
+    "notes": "All five renders show the Tanuki Figures creator logo and the creator's own Patreon mark. No QR code, Telegram/group branding, repost/piracy handle, reseller/source URL, @specialstl-style handle, or unrelated third-party promotional branding was observed. The Patreon mark is treated as creator attribution here because it is the corroborated creator's own channel, not third-party redistribution branding."
   },
   "images": [
     {
@@ -32,8 +41,9 @@
       "sha256": "c42d6a378c794a4ff6752a4211900b879c4bb79d6f2d0ecd5cf3eec26d9276bc",
       "bytes": 873870,
       "stagingVerified": false,
-      "watermarkStatus": "unknown",
-      "reviewState": "visual_review_required"
+      "watermarkStatus": "creator_attribution",
+      "visualNotes": "Tanuki Figures logo + creator-owned Patreon mark; no unrelated redistribution/piracy branding observed.",
+      "reviewState": "approved_for_staging"
     },
     {
       "sourceImageId": "15605",
@@ -42,8 +52,9 @@
       "sha256": "c90a6e89621a3e3234fc1ff6979c086829552a78dbcbb9b1db193455684b04ff",
       "bytes": 4961124,
       "stagingVerified": true,
-      "watermarkStatus": "unknown",
-      "reviewState": "visual_review_required"
+      "watermarkStatus": "creator_attribution",
+      "visualNotes": "Tanuki Figures logo + creator-owned Patreon mark; no unrelated redistribution/piracy branding observed.",
+      "reviewState": "approved"
     },
     {
       "sourceImageId": "15607",
@@ -52,8 +63,9 @@
       "sha256": "51cb1dc8698320c4dbe25cc26bae6fe23d200fd78e3b35277b6fc8b84c70dbb1",
       "bytes": 4146312,
       "stagingVerified": true,
-      "watermarkStatus": "unknown",
-      "reviewState": "visual_review_required"
+      "watermarkStatus": "creator_attribution",
+      "visualNotes": "Tanuki Figures logo + creator-owned Patreon mark; no unrelated redistribution/piracy branding observed.",
+      "reviewState": "approved"
     },
     {
       "sourceImageId": "15606",
@@ -62,8 +74,9 @@
       "sha256": "b9961b2788352f926c3d81cc74363dd3ac9273c73e2c6432a8899bfa2cc9f23d",
       "bytes": 4702690,
       "stagingVerified": true,
-      "watermarkStatus": "unknown",
-      "reviewState": "visual_review_required"
+      "watermarkStatus": "creator_attribution",
+      "visualNotes": "Tanuki Figures logo + creator-owned Patreon mark; no unrelated redistribution/piracy branding observed.",
+      "reviewState": "approved"
     },
     {
       "sourceImageId": "15608",
@@ -72,16 +85,18 @@
       "sha256": "bfeed2b7b17ee41fbc6af5eefedc95b8fd9bb67fafa102e39dbd480bfcf0b634",
       "bytes": 4330862,
       "stagingVerified": true,
-      "watermarkStatus": "unknown",
-      "reviewState": "visual_review_required"
+      "watermarkStatus": "creator_attribution",
+      "visualNotes": "Tanuki Figures logo + creator-owned Patreon mark; no unrelated redistribution/piracy branding observed.",
+      "reviewState": "approved"
     }
   ],
   "decision": {
-    "sourceReviewComplete": false,
-    "galleryMediaReviewApproved": false,
+    "sourceReviewComplete": true,
+    "galleryMediaReviewApproved": true,
+    "missingEligibleImages": 1,
     "batchApproved": false,
     "productionWrites": 0,
     "stagingWrites": 0,
-    "nextGate": "materialize all five exact source images into a short-lived artifact and perform visual watermark review before staging the missing position 1"
+    "nextGate": "stage only sourceImageId 15604 with exact SHA/byte verification, then prove staging coverage 5/5 before taxonomy/new-model authorization"
   }
 }
