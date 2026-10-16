@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "releasedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 36978,
+  "productName": "Morrigan STL — Dragon Age",
+  "batch": "config/external-batches/external-source-001-batch-011.json",
+  "model": {
+    "id": "mdl_93be42fe77b0641688f3",
+    "name": "Morrigan",
+    "slug": "dragon-age-morrigan",
+    "published": true,
+    "imageCount": 9,
+    "sourceImageCount": 9
+  },
+  "release": {
+    "workflowRunId": 38951112979,
+    "preflightArtifactId": 12068017480,
+    "preflightArtifactSha256": "2867a8145621ad8c96f484fa638b06264996c4d772a25742d2ba25001f489778",
+    "releaseArtifactId": 12069006817,
+    "releaseArtifactSha256": "a741690cc1e08ba60813cb6940005cabd24b56ef1436f02235e0df80a0d95b53",
+    "preflightConclusion": "success",
+    "applyConclusion": "success",
+    "r2Verified": true,
+    "d1AtomicApplyVerified": true,
+    "publicCatalogHealthVerified": true,
+    "publicGalleryVerified": true
+  },
+  "directD1Verification": {
+    "published": 1,
+    "image_count": 9,
+    "model_image_sources": 9,
+    "rows_written_by_verification": 0
+  },
+  "decision": {
+    "releaseComplete": true,
+    "productionReleaseLabelRemoved": true,
+    "stagingReleaseLabelRemoved": true,
+    "nextGate": "none"
+  }
+}
