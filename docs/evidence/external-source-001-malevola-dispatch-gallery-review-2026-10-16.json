@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 22180,
+  "productName": "Malevola STL — Dispatch",
+  "sourceSlug": "malevola-stl-dispatch",
+  "creator": "Neko Figurines",
+  "categories": ["Dispatch", "Videogames"],
+  "creatorEvidence": {
+    "state": "source_store_brand_only_pending_visual_corroboration",
+    "notes": "The source product page identifies Neko Figurines as the brand. Creator attribution is not yet promotable until the exact renders are visually audited and any visible branding is confirmed to match this creator rather than a third party."
+  },
+  "identityReview": {
+    "decision": "new_model",
+    "reason": "same_display_name_but_different_franchise",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 1,
+    "allCandidatesSemanticallyDistinct": true,
+    "semanticDistinctnessReason": "different_franchise",
+    "notes": "The only published exact-name candidate belongs to the Malévola franchise, while source product 22180 is explicitly categorized as Dispatch."
+  },
+  "images": [
+    {"sourceImageId":"22183","position":1,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot1_Logo-1.webp","sha256":"e0014745fcf0845d5fcd9995a5ec09615312d88abad366e00f26afa318ac1c4e","bytes":536188,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
+    {"sourceImageId":"22187","position":2,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Midshot3_Logo.webp","sha256":"11fc20d760d6b3ced07aea018e21b076a53ef2a1f19820601401e87ba444243b","bytes":572816,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
+    {"sourceImageId":"22186","position":3,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Midshot2_Logo.webp","sha256":"6e0beed3e4fac8d719778544568f946a774eafc42fa6db29d4948831e6fc68f5","bytes":578004,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
+    {"sourceImageId":"22184","position":4,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot2_Logo.webp","sha256":"70e55776d6b508002e5af321f35589126b0c88135da7c823375f524017f61a12","bytes":537292,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
+    {"sourceImageId":"22185","position":5,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot3_Logo.webp","sha256":"eec044311a238357997ed6e34e4eab6c86b71655574cc5ccdac9110c2e63e0f2","bytes":523800,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"}
+  ],
+  "excludedSourceMedia": [
+    {
+      "sourceImageId":"22188",
+      "sourcePath":"/wp-content/uploads/2026/01/Malevola_TurntableLogo.gif",
+      "sha256":"ea8003babc287ee4439c6dd361d40cf00042395608bcd33f80049fbc8c036dcb",
+      "bytes":19530896,
+      "reason":"source_exceeds_visual_review_max_image_bytes_16777216",
+      "state":"review_only_oversize",
+      "promotableMedia":false
+    }
+  ],
+  "decision": {
+    "sourceReviewComplete": false,
+    "galleryMediaReviewApproved": false,
+    "eligibleStaticImages": 5,
+    "oversizeReviewOnlyImages": 1,
+    "batchApproved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "materialize and visually audit the five bounded exact WebP renders; keep the 19.5 MiB GIF excluded unless the media policy is deliberately revised independently"
+  }
+}
