@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 22180,
+  "sourceEvidence": "docs/evidence/external-source-001-malevola-dispatch-gallery-review-2026-10-16.json",
+  "purpose": "bounded_private_staging_only",
+  "images": [
+    {"sourcePosition":1,"sourceObjectPath":"/wp-content/uploads/2026/01/Malevola_Fullshot1_Logo-1.webp","sha256":"e0014745fcf0845d5fcd9995a5ec09615312d88abad366e00f26afa318ac1c4e","bytes":536188,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":2,"sourceObjectPath":"/wp-content/uploads/2026/01/Malevola_Midshot3_Logo.webp","sha256":"11fc20d760d6b3ced07aea018e21b076a53ef2a1f19820601401e87ba444243b","bytes":572816,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":3,"sourceObjectPath":"/wp-content/uploads/2026/01/Malevola_Midshot2_Logo.webp","sha256":"6e0beed3e4fac8d719778544568f946a774eafc42fa6db29d4948831e6fc68f5","bytes":578004,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":4,"sourceObjectPath":"/wp-content/uploads/2026/01/Malevola_Fullshot2_Logo.webp","sha256":"70e55776d6b508002e5af321f35589126b0c88135da7c823375f524017f61a12","bytes":537292,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":5,"sourceObjectPath":"/wp-content/uploads/2026/01/Malevola_Fullshot3_Logo.webp","sha256":"eec044311a238357997ed6e34e4eab6c86b71655574cc5ccdac9110c2e63e0f2","bytes":523800,"watermarkStatus":"creator_attribution"}
+  ],
+  "excludedSourceMedia": [
+    {"sourceImageId":"22188","sha256":"ea8003babc287ee4439c6dd361d40cf00042395608bcd33f80049fbc8c036dcb","bytes":19530896,"state":"review_only_oversize","stagingAuthorized":false}
+  ],
+  "decision": {
+    "sourceReviewComplete": true,
+    "stagingAcquisitionReady": true,
+    "selected": 5,
+    "excluded": 1,
+    "productionPublicationAuthorized": false,
+    "productionWrites": 0,
+    "nextGate": "bounded private staging dry-run, then owner-gated apply for these five exact static SHAs only"
+  }
+}
