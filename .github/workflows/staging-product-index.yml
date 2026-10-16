@@ -23,9 +23,11 @@ on:
     paths:
       - '.github/workflows/staging-product-index.yml'
       - 'tools/index_external_staging_products.py'
+      - 'tools/discover_external_staging_candidates.py'
       - 'tools/test_index_external_staging_products.py'
       - 'tools/test_index_external_staging_products_oversize.py'
       - 'tools/test_index_external_staging_products_prefetch.py'
+      - 'tools/test_discover_external_staging_candidates_http.py'
 
 permissions:
   contents: read
@@ -65,6 +67,7 @@ jobs:
           test_index_external_staging_products.py
           test_index_external_staging_products_oversize.py
           test_index_external_staging_products_prefetch.py
+          test_discover_external_staging_candidates_http.py
       - name: Build bounded reverse index
         run: >-
           python tools/index_external_staging_products.py
