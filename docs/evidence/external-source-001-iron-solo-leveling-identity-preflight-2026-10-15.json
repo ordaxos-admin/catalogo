@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12458,
+  "productName": "Iron — Solo Leveling",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {
+    "coverage": "4/4",
+    "completeStaging": true,
+    "reverseIndexRunId": 38826809638,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "productionSearch": {
+    "exactNameCandidates": 0,
+    "publishedModelsInFranchiseReviewed": 11,
+    "matchingIronRows": 0,
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_textual_candidate_but_alias_and_visual_history_gate_not_completed",
+    "notes": "No Iron row exists among the currently published Solo Leveling models, but absence of a name match alone does not prove a distinct unpublished sculpture."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "visual/catalog identity review against renamed historical Solo Leveling records"
+  }
+}
