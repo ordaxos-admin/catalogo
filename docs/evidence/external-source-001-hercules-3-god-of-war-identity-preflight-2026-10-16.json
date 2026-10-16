@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 32038,
+  "productName": "Hercules STL 3 + Bust + Extras — God of War",
+  "scope": "identity_preflight_only",
+  "sourceGallery": {"imageCount": 8, "stagingVerified": 8, "stagingCoverage": "8/8", "productionExactShaOwners": 0},
+  "identityReview": {"decision": "unresolved", "reason": "no_exact_production_sha_and_no_exact_name_candidate", "notes": "Full staged gallery is available, but absence of a published SHA or exact-name candidate does not by itself prove a new model."},
+  "decision": {"newModelIdentityAuthorized": false, "batchCreationAuthorized": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/historical catalog identity comparison before new-model authorization"}
+}
