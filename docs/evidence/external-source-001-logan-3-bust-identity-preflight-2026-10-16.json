@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 30976,
+  "productName": "Logan STL 3 + Bust — Marvel",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"6/6","completeStaging":true,"reverseIndexRunId":"38868947542","productionWrites":0,"stagingWrites":0},
+  "coverageSnapshot": {"stateBeforeReview":"unreviewed_no_exact_name_candidate","exactNameCandidates":0},
+  "identityReview": {"decision":"unresolved","reason":"no_textual_candidate_and_no_exact_published_sha_match","notes":"No exact-name candidate exists and a read-only source_sha256 check found no exact match for the six staged source images. Absence of a textual candidate does not authorize a new model without visual/history review."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
