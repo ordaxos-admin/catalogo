@@ -25,7 +25,7 @@ on:
       batch:
         description: Versioned external batch descriptor
         required: true
-        default: config/external-batches/external-source-001-batch-006.json
+        default: config/external-batches/external-source-001-batch-010.json
         type: string
       apply:
         description: Publish the reviewed delta to production
@@ -41,7 +41,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  BATCH_DESCRIPTOR: ${{ github.event_name == 'workflow_dispatch' && inputs.batch || 'config/external-batches/external-source-001-batch-006.json' }}
+  BATCH_DESCRIPTOR: ${{ github.event_name == 'workflow_dispatch' && inputs.batch || 'config/external-batches/external-source-001-batch-010.json' }}
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
   CATALOG_API_URL: ${{ vars.VITE_API_BASE_URL }}
