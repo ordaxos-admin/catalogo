@@ -6,17 +6,17 @@ on:
       start_page:
         description: First stable ID-ordered Store API page to scan
         required: true
-        default: '66'
+        default: '67'
         type: string
       start_product_offset:
         description: Zero-based product offset within the first stable page
         required: true
-        default: '3'
+        default: '16'
         type: string
       end_page:
         description: Last Store API page to scan (max 25 pages per run)
         required: true
-        default: '90'
+        default: '91'
         type: string
   pull_request:
     types: [opened, synchronize, reopened]
@@ -37,9 +37,9 @@ concurrency:
 env:
   CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
   CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '66' }}
-  START_PRODUCT_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.start_product_offset || '3' }}
-  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '90' }}
+  START_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.start_page || '67' }}
+  START_PRODUCT_OFFSET: ${{ github.event_name == 'workflow_dispatch' && inputs.start_product_offset || '16' }}
+  END_PAGE: ${{ github.event_name == 'workflow_dispatch' && inputs.end_page || '91' }}
 
 jobs:
   index:
