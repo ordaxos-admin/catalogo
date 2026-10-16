@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import io
+import itertools
 import json
 import tempfile
 import unittest
@@ -91,7 +92,10 @@ class SourceImageRetryTests(unittest.TestCase):
         self.assertEqual(urlopen.call_count, 2)
 
     @patch("discover_external_staging_candidates.time.sleep", return_value=None)
-    @patch("discover_external_staging_candidates.time.monotonic", side_effect=[0.0, 0.0, 91.0])
+    @patch(
+        "discover_external_staging_candidates.time.monotonic",
+        side_effect=itertools.chain([0.0, 0.0], itertools.repeat(91.0)),
+    )
     @patch("discover_external_staging_candidates.urllib.request.urlopen")
     def test_total_image_transfer_deadline_fails_closed(self, urlopen, _monotonic, _sleep):
         urlopen.return_value = _BinaryResponse(b"partial")
