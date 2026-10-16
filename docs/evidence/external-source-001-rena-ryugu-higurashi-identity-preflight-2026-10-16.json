@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 34715,
+  "productName": "Rena Ryugu STL – Higurashi no Naku Koro Ni",
+  "sourceSlug": "rena-ryugu-stl-higurashi-no-naku-koro-ni",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Higurashi no Naku Koro Ni","franchiseEvidence":"source_catalog_category","creator":"Bulkamancer Sculpts","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":7,"stagingVerified":7,"stagingCoverage":"7/7","productionExactShaOwners":0,"sha256":["29bc3b21c9edc30e60f3706eb9268def37571f36197ef846454c85490948d145","8cf0f9e90dddd4ca29928f0b65a009bd608535e5a1b543177f6b2cd93eabd860","3ea6222aa315f2ab43e681a2115b25dc3c550969eb1ee8994c4b4abd777cd133","5f2d7d0f9e8fb2809e14426fccd4d35e44524f573d25f6489a0ec844a8f75b96","bb7ea109de1c468b5d0713603a2ac9b26e293b100ca0be165308d3c3b6ad9361","6353e5528551a7cc0d1141181e8dddd430efe74a3d80ab01b76532d276d24355","7fd95b158a5a21d53636c5f6f7d8810ab431ae8f562332baf351fb52f2466915"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"No exact-name production candidate and none of the seven exact staged source bytes is already owned in production. Absence of a candidate is not sufficient proof of a new model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
