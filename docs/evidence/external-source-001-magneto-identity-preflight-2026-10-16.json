@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 26106,
+  "productName": "Magneto STL — Marvel",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage": "5/5", "completeStaging": true, "reverseIndexRunId": "38858967328", "productionWrites": 0, "stagingWrites": 0},
+  "coverageSnapshot": {"stateBeforeReview": "unreviewed_multiple_exact_name_candidates", "exactNameCandidates": 12},
+  "identityReview": {"decision": "unresolved", "reason": "multiple_textual_candidates_and_no_exact_published_sha_match", "notes": "Twelve published Magneto candidates exist. A read-only source_sha256 check found no exact match for the five staged source images, so name/franchise similarity alone is insufficient to map identity."},
+  "decision": {"identityResolved": false, "newModelIdentityAuthorized": false, "batchCreationAuthorized": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual and historical catalog identity comparison"}
+}
