@@ -1,0 +1,25 @@
+{
+  "version": 1,
+  "sourceId": "external-source-001",
+  "sourceProductId": 13530,
+  "sourceName": "Mulan STL - Fantasy",
+  "sourceSlug": "mulan-stl-fantasy",
+  "sourceCategories": ["Fantasy"],
+  "stagingCoverage": "5/5",
+  "completeStaging": true,
+  "stagedSha256": [
+    "ca60256888ea585efb23ae0ca4758764a70000f53cb255952d5be830b815d287",
+    "f8b032faefa35f2ce5274535d5d4635d6fbfedc3515dd0adb85c3eeb889da11e",
+    "ca60256888ea585efb23ae0ca4758764a70000f53cb255952d5be830b815d287",
+    "aa7d757845f1a4be5fb28ca701ee3aac86b33dd258105bb420277eee80b4f0b7",
+    "e699230e222452989e43cf48e59c2b08b8af2bdc974e714b813cf25d8471c3bf"
+  ],
+  "coverageSnapshot": {
+    "stateBeforeReview": "unreviewed_no_exact_name_candidate",
+    "exactNameCandidates": []
+  },
+  "decision": "reviewed_unresolved",
+  "reason": "All five source gallery positions are verified in staging, but the current production coverage report has no exact-name candidate. Absence of an exact textual candidate is not sufficient proof that this is a new sculpture or unpublished model; alias, translated naming, alternate franchise labeling, or historical catalog naming can still conceal an existing model. Identity remains fail-closed pending visual/historical comparison.",
+  "productionWrites": 0,
+  "stagingWrites": 0
+}
