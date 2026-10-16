@@ -1,0 +1,25 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-011-media.jsonl",
+  "creatorAttributionEvidence": "docs/evidence/external-source-001-morrigan-dragon-age-creator-attribution-release-2026-10-16.json",
+  "expectedProducts": 1,
+  "expectedImages": 9,
+  "products": [
+    {
+      "productId": 36978,
+      "displayName": "Morrigan",
+      "publicModelKey": "morrigan",
+      "sourceFolders": ["Games", "Dragon Age", "Morrigan"],
+      "expectedImages": 9,
+      "expectedIdentityKey": "Games / Dragon Age / Morrigan / morrigan",
+      "expectedModelId": "mdl_93be42fe77b0641688f3",
+      "expectedSlug": "dragon-age-morrigan",
+      "expectedCode": "TS-93BE42FE77B0"
+    }
+  ]
+}
