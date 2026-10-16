@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 33056,
+  "productName": "Fury STL + Bust – Darksiders",
+  "sourceSlug": "fury-stl-bust-darksiders",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Darksiders","franchiseEvidence":"source_catalog_category","creator":"Tanuki Figures","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":7,"stagingVerified":7,"stagingCoverage":"7/7","productionExactShaOwners":0,"sha256":["81448f09199d54daf71adbd962cc489c9a401da7561c2180571f7ebd7cbea5a6","4013bd9ba67d63e09847da9c6aa89359afe551920e13ff21bc0b29f7554a9c13","397330a7106d3d9a41dbf67d20d19f0de6d36f466c61bbd58727d5aa9329c3d9","90661b6ee9bf2f3022178576c379d6311cd8e822de88cce50f2c25fb1031d63f","f86140fd2e05c16fcf452a7a35ba179eb852602f51cc709c13c6da0e093ef9ef","601d707253d8168cc3a6668ba870c47b7bff12ab4c959a4a500cefa63844e87a","309a6fb03b44316f6e7b6868888602989557512f2a451f9175c4f7da043000ab"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"Exact staged source bytes have no owner in production. Candidate names/slugs/categories are review-only and cannot authorize map_existing or new_model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
