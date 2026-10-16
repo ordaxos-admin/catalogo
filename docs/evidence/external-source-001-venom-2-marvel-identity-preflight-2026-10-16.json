@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 33081,
+  "productName": "Venom STL 2 + Bust – Marvel",
+  "sourceSlug": "venom-stl-2-bust-marvel",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Marvel","franchiseEvidence":"source_catalog_category","creator":"Tanuki Figures","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":7,"stagingVerified":7,"stagingCoverage":"7/7","productionExactShaOwners":0,"sha256":["35c4e4713df4582b125c28c28aba8a3763e8c26573650e578ab7fb3d6aad871f","dda7a55710cacccfe56e8ed62e731cd2d5866fd08ecc3ba3cb76088cc01dadc1","9ef868679f511c5aa58f8e3a5d68d42da16ea6b769ab456e13a973b4498e4925","7781c396babd6a1b7292aeaa7f4bbf7f7c7b03a7b48fae8e4bc2f50c49db6847","b239afe21db7b61dd5ef874144ddf375f81392c1efc704c2f552e3ae565aca67","be647877c1e69a34b9ffe2103639c911de4b754268d03b1a637ae885d1626c3f","7c4b74a55ba65bc6b569f87083236a0e37107ea1166a78b0c1fe33983972d8ab"]},
+  "productionNameCandidates": [
+    {"modelId":"mdl_0aec059bebe1cb16cec1","name":"Venom","slug":"herois-individuais-venom-busto-prototipo-cinza"},
+    {"modelId":"mdl_0af32e2791190efcd1ed","name":"Venom","slug":"herois-individuais-venom-chibi-em-pose-de-ataque"},
+    {"modelId":"mdl_1401e2621a1e4600dc21","name":"Venom","slug":"herois-individuais-venom-busto-colorido-com-lingua-estendida"},
+    {"modelId":"mdl_46ba1e5c8f5ce1a4549b","name":"Venom","slug":"herois-individuais-venom-busto-colorido-com-lingua"},
+    {"modelId":"mdl_59147fd682f738a296cc","name":"Venom","slug":"herois-individuais-venom-busto-versao-monstro-e-anatomica"},
+    {"modelId":"mdl_7161c55b8d9929f2f4d0","name":"Venom","slug":"herois-individuais-venom-diorama-eddie-brock-simbionte"},
+    {"modelId":"mdl_975f8daa22e7031fa8c8","name":"Venom","slug":"herois-individuais-venom-estatua-colorida-sobre-destrocos"},
+    {"modelId":"mdl_a05908753574387671ca","name":"Venom","slug":"herois-individuais-venom-busto-cinza-dupla-vista"},
+    {"modelId":"mdl_f197fe45a2b353cf58e1","name":"Venom","slug":"herois-individuais-venom-diorama-cinza-sobre-esgoto"}
+  ],
+  "identityReview": {"decision":"unresolved","candidateCount":9,"exactProductionShaOwners":0,"reason":"multiple_name_candidates_without_exact_sha_proof","notes":"Nine published Venom candidates exist, but none owns any of the seven exact staged source bytes. Name similarity cannot authorize merge."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical comparison against the nine published Venom candidates"}
+}
