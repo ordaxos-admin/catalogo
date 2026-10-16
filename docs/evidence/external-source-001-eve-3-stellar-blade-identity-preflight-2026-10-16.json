@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 32945,
+  "productName": "Eve STL 3 + Bust + NSFW – Stellar Blade",
+  "sourceSlug": "eve-stl-3-bust-nsfw-stellar-blade",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Stellar Blade","franchiseEvidence":"source_catalog_category","creator":"3Dmoonn","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":8,"stagingVerified":8,"stagingCoverage":"8/8","productionExactShaOwners":0,"sha256":["b2193200e7d52b5c67dad3d04bf6197b4b1f466b714c05c84db08e99cde6fcfc","2a31f7fe106e9e8309bacf039b936412c3b0649fd73be45b3f0b6b9efaf44d35","6fe69fd1c0eef042f8e56d9392fd86d13ad5749c47ad7b71c4e2339c4734ebf4","d6ed91923ebfe6044602fcb5c7fb1852285c3bf4ec43ce5d9d9978183456783e","2417f36403db27c7498f2b4086f9f92450b4deccd68f80f42e5a5ad0a7cb1b4e","1828c13236a50869e9049ecd1bf358c5d6661e5087ac42f6649243e6c6c3e9a7","72f6f9f40686e2803373962bf4500d71bdd218207c2898c13a6f9bd1f2652ab2","b6ad9acc94e43657dcdf6f0702ac341207b69cb2a9d420dad7ef0511665a889c"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"Exact staged source bytes have no owner in production. Candidate names/slugs/categories are review-only and cannot authorize map_existing or new_model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
