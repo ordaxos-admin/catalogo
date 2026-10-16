@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 31415,
+  "productName": "Yuta Okkotsu STL 4 – Jujutsu Kaisen",
+  "scope": "identity_preflight_only",
+  "sourceGallery": {"imageCount": 5, "stagingVerified": 5, "stagingCoverage": "5/5"},
+  "coverageBeforeReview": {"state": "unreviewed_multiple_exact_name_candidates", "candidateModelIds": ["mdl_973494869d51ca315fb8","mdl_b4178dd7b9c977564215"]},
+  "productionExactShaReview": {"matchedRows": 0, "productionWrites": 0},
+  "identityReview": {"decision": "unresolved", "reason": "multiple_textual_candidates_without_exact_sha_identity_proof"},
+  "decision": {"identityResolved": false, "newModelApproved": false, "galleryPromotionApproved": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity comparison against production candidates"}
+}
