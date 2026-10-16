@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 30868,
+  "productName": "Fern STL 3 — Frieren: Beyond Journey’s End",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"8/8","completeStaging":true,"reverseIndexRunId":"38868947542","productionWrites":0,"stagingWrites":0},
+  "coverageSnapshot": {"stateBeforeReview":"unreviewed_multiple_exact_name_candidates","exactNameCandidates":3},
+  "identityReview": {"decision":"unresolved","reason":"multiple_textual_candidates_and_no_exact_published_sha_match","notes":"Three published Fern candidates exist. A read-only source_sha256 check found no exact match for the eight staged source images, so textual/franchise similarity alone cannot map identity."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"mapExistingAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
