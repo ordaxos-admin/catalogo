@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 25166,
+  "productName": "Raphael — Teenage Mutant Ninja Turtles",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {
+    "coverage": "4/4",
+    "completeStaging": true,
+    "reverseIndexRunId": "38857646301",
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "coverageSnapshot": {
+    "stateBeforeReview": "unreviewed_multiple_exact_name_candidates",
+    "exactNameCandidates": 6
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "multiple_textual_candidates_and_no_exact_published_sha_match",
+    "notes": "Six published Raphael candidates exist, including five in Teenage Mutant Ninja Turtles. A read-only source_sha256 check found no exact match for the four staged source images, so name/franchise similarity alone is insufficient to map identity."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "visual and historical catalog identity comparison"
+  }
+}
