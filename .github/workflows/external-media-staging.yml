@@ -2,6 +2,7 @@ name: External media staging acquisition
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled]
     paths:
       - '.github/workflows/external-media-staging.yml'
       - 'config/external-sources/**'
@@ -15,7 +16,7 @@ on:
       evidence:
         description: Reviewed evidence JSON with sourceObjectPath/SHA/bytes/watermark decisions
         required: true
-        default: docs/evidence/external-source-001-laura-staging-acquisition-2026-10-15.json
+        default: docs/evidence/external-source-001-morrigan-dragon-age-staging-acquisition-2026-10-16.json
         type: string
       shas:
         description: Comma-separated reviewed SHA-256 values to stage
@@ -33,6 +34,9 @@ permissions:
 concurrency:
   group: external-media-staging-${{ github.ref }}
   cancel-in-progress: false
+
+env:
+  STAGING_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || 'docs/evidence/external-source-001-morrigan-dragon-age-staging-acquisition-2026-10-16.json' }}
 
 jobs:
   contract-tests:
@@ -119,7 +123,12 @@ jobs:
 
   stage:
     name: Bounded private staging
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: >-
+      ${{
+        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+         github.event.label.name == 'staging-release' && github.actor == github.repository_owner)
+      }}
     needs: contract-tests
     runs-on: ubuntu-latest
     env:
@@ -132,23 +141,41 @@ jobs:
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7
         with:
           python-version: '3.13'
-      - name: Resolve bounded SHA arguments
+      - name: Resolve bounded evidence and SHA arguments
         id: selection
         shell: bash
         env:
-          INPUT_SHAS: ${{ inputs.shas }}
+          INPUT_SHAS: ${{ github.event_name == 'workflow_dispatch' && inputs.shas || '' }}
         run: |
           set -euo pipefail
           python - <<'PY'
-          import os
-          values=[part.strip().lower() for part in os.environ['INPUT_SHAS'].split(',') if part.strip()]
+          import json, os
+          from pathlib import Path
+
+          evidence=Path(os.environ['STAGING_EVIDENCE'])
+          data=json.loads(evidence.read_text(encoding='utf-8'))
+          if (data.get('decision') or {}).get('stagingAcquisitionReady') is not True:
+              raise SystemExit('evidence is not stagingAcquisitionReady')
+          evidence_shas=[]
+          for row in data.get('images') or []:
+              sha=str(row.get('sha256') or '').strip().lower()
+              if len(sha)!=64 or any(ch not in '0123456789abcdef' for ch in sha):
+                  raise SystemExit(f'invalid evidence SHA: {sha}')
+              evidence_shas.append(sha)
+          if not evidence_shas or len(set(evidence_shas)) != len(evidence_shas):
+              raise SystemExit('evidence SHAs ausentes ou duplicados')
+
+          raw=os.environ.get('INPUT_SHAS','').strip()
+          values=[part.strip().lower() for part in raw.split(',') if part.strip()] if raw else evidence_shas
           if not values or len(set(values)) != len(values):
               raise SystemExit('SHAs ausentes ou duplicados')
           for sha in values:
               if len(sha) != 64 or any(ch not in '0123456789abcdef' for ch in sha):
                   raise SystemExit(f'SHA inválido: {sha}')
+              if sha not in evidence_shas:
+                  raise SystemExit(f'SHA fora da evidência aprovada: {sha}')
           with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as handle:
-              handle.write('json=' + __import__('json').dumps(values, separators=(',', ':')) + '\n')
+              handle.write('json=' + json.dumps(values, separators=(',', ':')) + '\n')
           PY
       - name: Dry-run exact evidence selection
         shell: bash
@@ -159,27 +186,47 @@ jobs:
           mapfile -t shas < <(python -c "import json,os; print('\\n'.join(json.loads(os.environ['SELECTED_SHAS'])))")
           args=()
           for sha in "${shas[@]}"; do args+=(--sha "$sha"); done
-          python tools/stage_external_media.py "${{ inputs.evidence }}" \
+          python tools/stage_external_media.py "$STAGING_EVIDENCE" \
             --source-contract config/external-sources/external-source-001.json \
             "${args[@]}" \
             --summary "$RUNNER_TEMP/staging-plan.json"
       - name: Setup Node for Wrangler
-        if: ${{ inputs.apply == true }}
+        if: >-
+          ${{
+            (github.event_name == 'workflow_dispatch' && inputs.apply == true) ||
+            (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+             github.event.label.name == 'staging-release' && github.actor == github.repository_owner)
+          }}
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7
         with:
           node-version: 22
       - name: Install locked Wrangler
-        if: ${{ inputs.apply == true }}
+        if: >-
+          ${{
+            (github.event_name == 'workflow_dispatch' && inputs.apply == true) ||
+            (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+             github.event.label.name == 'staging-release' && github.actor == github.repository_owner)
+          }}
         run: npm ci --ignore-scripts
       - name: Assert Cloudflare staging credentials
-        if: ${{ inputs.apply == true }}
+        if: >-
+          ${{
+            (github.event_name == 'workflow_dispatch' && inputs.apply == true) ||
+            (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+             github.event.label.name == 'staging-release' && github.actor == github.repository_owner)
+          }}
         shell: bash
         run: |
           set -euo pipefail
           test -n "$CLOUDFLARE_ACCOUNT_ID" || { echo '::error::CLOUDFLARE_ACCOUNT_ID ausente'; exit 1; }
           test -n "$CLOUDFLARE_API_TOKEN" || { echo '::error::CLOUDFLARE_API_TOKEN ausente'; exit 1; }
       - name: Download, verify, stage and read back selected bytes
-        if: ${{ inputs.apply == true }}
+        if: >-
+          ${{
+            (github.event_name == 'workflow_dispatch' && inputs.apply == true) ||
+            (github.event_name == 'pull_request' && github.event.action == 'labeled' &&
+             github.event.label.name == 'staging-release' && github.actor == github.repository_owner)
+          }}
         shell: bash
         env:
           SELECTED_SHAS: ${{ steps.selection.outputs.json }}
@@ -188,7 +235,7 @@ jobs:
           mapfile -t shas < <(python -c "import json,os; print('\\n'.join(json.loads(os.environ['SELECTED_SHAS'])))")
           args=()
           for sha in "${shas[@]}"; do args+=(--sha "$sha"); done
-          python tools/stage_external_media.py "${{ inputs.evidence }}" \
+          python tools/stage_external_media.py "$STAGING_EVIDENCE" \
             --source-contract config/external-sources/external-source-001.json \
             "${args[@]}" \
             --checkpoint-root "$RUNNER_TEMP/staging-checkpoint" \
