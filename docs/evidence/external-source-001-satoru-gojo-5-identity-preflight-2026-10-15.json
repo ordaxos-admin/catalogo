@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 23110,
+  "productName": "Satoru Gojo STL 5 — Jujutsu Kaisen",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {
+    "coverage": "6/6",
+    "completeStaging": true,
+    "reverseIndexRunId": 38832237897,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "coverageSnapshot": {
+    "stateBeforeReview": "unreviewed_single_exact_name_candidate",
+    "exactNameCandidates": [
+      {
+        "modelId": "mdl_19191b5f633e12d319c6",
+        "name": "Satoru Gojo",
+        "slug": "jujutsu-kaisen-satoru-gojo-estatua-em-pe"
+      }
+    ]
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "single_textual_candidate_is_review_only_and_visual_identity_not_proven",
+    "notes": "All six source gallery positions are verified in staging. One exact-name production candidate exists, but matching subject/name does not prove the same sculpture or edition. No automatic merge or new-model authorization is allowed without visual or exact-source identity evidence."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "mapExistingAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "visual/catalog identity comparison against mdl_19191b5f633e12d319c6 and historical Gojo records"
+  }
+}
