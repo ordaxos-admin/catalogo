@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 24090,
+  "productName": "Storm 2 — Marvel",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage": "1/1", "completeStaging": true, "reverseIndexRunId": 38835660962, "productionWrites": 0, "stagingWrites": 0},
+  "coverageSnapshot": {"stateBeforeReview": "unreviewed_no_exact_name_candidate", "exactNameCandidates": []},
+  "exactShaProductionCheck": {"matchedRows": 0, "database": "tonecos-catalogo", "readOnly": true},
+  "identityReview": {"decision": "unresolved", "reason": "no_textual_candidate_and_no_exact_sha_identity_proof", "notes": "No exact-name candidate exists and the staged source SHA-256 did not match production model_image_sources. A single staged view is not enough to authorize a distinct new model."},
+  "decision": {"identityResolved": false, "newModelIdentityAuthorized": false, "batchCreationAuthorized": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity review"}
+}
