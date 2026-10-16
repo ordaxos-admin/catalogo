@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 27486,
+  "productName": "Big Boss STL 3 — Metal Gear",
+  "sourceSlug": "big-boss-stl-3-metal-gear",
+  "sourceBrand": "Tanuki Figures",
+  "sourceImages": [
+    {"sourceImageId":"27491","position":1,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_01-scaled.jpg","sha256":"8e39337317bdf55d6af5d98573743e1d76526f341861b93209c88f0bca0dc429","bytes":3321609},
+    {"sourceImageId":"27492","position":2,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_02-scaled.jpg","sha256":"e415f33799a4e5793a72a602f8821a4d203e609f4cf1d7e55db7a65c1672c552","bytes":3298742},
+    {"sourceImageId":"27494","position":3,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_05-scaled.jpg","sha256":"126e76ab839da69ea3a1bf43671c01fecf93f3fc40878ed159a0aecded9333e4","bytes":4806814},
+    {"sourceImageId":"27495","position":4,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_06-scaled.jpg","sha256":"86c3f79238f4de696eede3cad69b05b8fd6af08544903d7fb3b050dd3bf08311","bytes":4572494},
+    {"sourceImageId":"27493","position":5,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_03-scaled.jpg","sha256":"ab4e151f10f72fd843200780de1635b33d6be2f9686d780f9d6e13b6dc58a8fc","bytes":3389820},
+    {"sourceImageId":"27497","position":6,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_08-scaled.jpg","sha256":"c909ee18b61b6a0382ecf91357c76c87d8c9272db26174360aa3fa6deb2ecd05","bytes":4350422},
+    {"sourceImageId":"27496","position":7,"sourcePath":"/wp-content/uploads/2026/05/Big_Boss_TanukiFigures_07-scaled.jpg","sha256":"bb1fea8e42c667b9eb12415d790d6aa71c8330fd6d31bc2093eeb5ea751e1930","bytes":4982245}
+  ],
+  "productionCandidate": {
+    "modelId": "mdl_bccd5cff1c3fafa4763f",
+    "name": "Big Boss",
+    "franchise": "Metal Gear",
+    "slug": "metal-gear-big-boss-metal-gear-big-boss-stl-3-metal-gear-principal",
+    "coverStorageKey": "media/mdl_bccd5cff1c3fafa4763f/img_2bdd9e845f2a6a255498/card.webp",
+    "sourceSha256": "421d02131e25d933623ae6d77eed0f62df756c68b5546c36a2989712fc21503d",
+    "imageCount": 1
+  },
+  "decision": {
+    "identityResolved": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "materialize exact source gallery plus canonical public candidate cover, then perform manual visual identity comparison"
+  }
+}
