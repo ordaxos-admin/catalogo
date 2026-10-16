@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 33808,
+  "productName": "Rayquaza vs Deoxys Diorama STL – Pokemon",
+  "sourceSlug": "rayquaza-vs-deoxys-diorama-stl-pokemon",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Pokemon","franchiseEvidence":"source_catalog_category","creator":"Kaidan 3D","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":6,"stagingVerified":6,"stagingCoverage":"6/6","productionExactShaOwners":0,"sha256":["b197dc7853654749b2563f9ab1eb9cfa8a9a3fe032e23be67063fa477eab2f32","32fe7b6f431249dde33bbb5a37b7042e3f46c33a730f3c413ad24c084928a943","0c6283e8174b9e097fff1797197625b30bf508d3f917659ab2aea9b432be4b72","1a2c044e1174764012e05a170013af31ed14a517d281e5deb5f1a4a9e3946845","767d787a3de658eb2f6694f7cf31a165f786a2d28bd8b8022641fbc082b3668f","bb316e11a89e470dbc63fedfeb97b40a6bd246308a7b7f77f6d996e4f29a42f5"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"No exact-name production candidate and none of the six exact staged source bytes is already owned in production. Absence of a candidate is not sufficient proof of a new model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
