@@ -1,0 +1,34 @@
+{
+  "version": 1,
+  "sourceId": "external-source-001",
+  "sourceProductId": 36978,
+  "creator": "Bulkamancer Sculpts",
+  "creatorCorroborated": true,
+  "creatorEvidence": "source_store_brand_plus_matching_exact_render_branding",
+  "visualAuditComplete": true,
+  "watermarkStatus": "creator_attribution",
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 1,
+    "allCandidatesSemanticallyDistinct": true,
+    "semanticDistinctnessReason": "different_franchise",
+    "notes": "The only published exact-name candidate is Morrigan from DarkStalkers, while source product 36978 is Morrigan from Dragon Age. The cross-franchise identity distinction is explicit and independent of display-name equality."
+  },
+  "sourceSha256": [
+    "8e726473c8942f16cf3ced308fa502ac8ebdb5deeaba8f35512c70e4a4f8406f",
+    "2a7133ae2958a591b25bb0f370e543a83bf5b08d785cc47ca5d62b1e9191bbc8",
+    "7e31f45d92d483891c322a86de8a19df1d19702fcc83afe8cfe9585262f32ed0",
+    "c54d8bfc4d3263cba690ccd3a7d8c574c201bfe6b60b96d3267ea01402c8159b",
+    "8f3bfef29bf5990de21d07f83ebf5a21f1b2d88dbc6a37de0429aded8b127620",
+    "b1527df6e381ce72e95cca6ad35d3f1fb0524f7f98008f7161b5c4f54eb17bde",
+    "fb6f2cfed7460a80f22c046e98a77165f20d1936ab97e368763f0bd6fabd6a98",
+    "64fcfc3cd5258bbc48125c218359d388d2f6d84682b7284f63042096d46a9a7d"
+  ],
+  "decision": {
+    "newModelAuthorized": true,
+    "creatorAttributionPromotable": true,
+    "productionWrites": 0,
+    "notes": "Authorization covers Bulkamancer Sculpts branding only. The visible @VIK3DFIGURES handle is not promoted as independently corroborated authorship."
+  }
+}
