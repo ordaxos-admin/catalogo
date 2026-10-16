@@ -16,6 +16,8 @@ import json
 import os
 import shutil
 import tempfile
+import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -95,8 +97,20 @@ def request_json(url: str, *, token: str | None = None, timeout: int = 45) -> An
     if token:
         headers["Authorization"] = f"Bearer {token}"
     request = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(request, timeout=timeout) as response:
-        return json.loads(response.read().decode("utf-8"))
+    max_attempts = 4
+    for attempt in range(max_attempts):
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            transient = exc.code in {408, 425, 429} or 500 <= exc.code <= 599 or (exc.code == 403 and token is None)
+            if not transient or attempt + 1 >= max_attempts:
+                raise
+        except (urllib.error.URLError, TimeoutError):
+            if attempt + 1 >= max_attempts:
+                raise
+        time.sleep(2**attempt)
+    raise RuntimeError("request_json esgotou tentativas sem resultado")
 
 
 def post_json(url: str, payload: dict[str, Any], *, token: str, timeout: int = 45) -> Any:
