@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 25009,
+  "productName": "Divine Fairy — Fantasy",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {
+    "coverage": "5/5",
+    "completeStaging": true,
+    "reverseIndexRunId": "38857646301",
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "coverageSnapshot": {
+    "stateBeforeReview": "unreviewed_no_exact_name_candidate",
+    "exactNameCandidates": 0
+  },
+  "identityReview": {
+    "decision": "unresolved",
+    "reason": "no_exact_textual_candidate_but_alias_and_visual_history_gate_not_completed",
+    "notes": "No exact-name candidate exists in the published catalog. That absence does not prove this is a distinct unpublished sculpture; alias, alternate naming, generic fantasy naming, and historical catalog identity still require review."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "visual and historical catalog identity comparison"
+  }
+}
