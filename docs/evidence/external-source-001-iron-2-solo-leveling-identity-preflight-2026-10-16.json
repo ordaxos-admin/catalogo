@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 32399,
+  "productName": "Iron STL 2 – Solo Leveling",
+  "scope": "identity_preflight_only",
+  "sourceGallery": {"imageCount": 5, "stagingVerified": 5, "stagingCoverage": "5/5", "productionExactShaOwners": 0},
+  "identityReview": {"decision": "unresolved", "reason": "no_exact_published_sha_proof", "notes": "Complete staging is available, but none of the five exact source SHA-256 values is owned by a published production gallery. Similarity by name/franchise alone cannot authorize identity."},
+  "decision": {"newModelIdentityAuthorized": false, "batchCreationAuthorized": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual and historical catalog identity comparison"}
+}
