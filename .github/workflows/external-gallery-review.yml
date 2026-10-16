@@ -8,13 +8,14 @@ on:
       - 'tools/materialize_external_gallery_review.py'
       - 'tools/test_materialize_external_gallery_review.py'
       - 'docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json'
+      - 'docs/evidence/external-source-001-malevola-dispatch-gallery-review-2026-10-16.json'
       - 'config/external-sources/external-source-001.json'
   workflow_dispatch:
     inputs:
       source_map:
         description: Versioned external gallery review map
         required: true
-        default: docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json
+        default: docs/evidence/external-source-001-malevola-dispatch-gallery-review-2026-10-16.json
         type: string
 
 permissions:
@@ -25,7 +26,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  SOURCE_MAP: ${{ github.event_name == 'workflow_dispatch' && inputs.source_map || 'docs/evidence/external-source-001-sora-gallery-review-2026-10-15.json' }}
+  SOURCE_MAP: ${{ github.event_name == 'workflow_dispatch' && inputs.source_map || 'docs/evidence/external-source-001-malevola-dispatch-gallery-review-2026-10-16.json' }}
 
 jobs:
   review:
