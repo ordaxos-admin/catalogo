@@ -7,6 +7,14 @@ from typing import Any
 CREATOR_ATTRIBUTION = "creator_attribution"
 
 
+def _identity_distinctness_is_proven(identity: dict[str, Any]) -> bool:
+    if identity.get("allCandidatesVisuallyDistinct") is True:
+        return True
+    if identity.get("allCandidatesSemanticallyDistinct") is not True:
+        return False
+    return str(identity.get("semanticDistinctnessReason") or "").strip() == "different_franchise"
+
+
 def validate_creator_attribution_proof(
     data: dict[str, Any],
     descriptor: dict[str, Any],
@@ -32,7 +40,7 @@ def validate_creator_attribution_proof(
         identity.get("decision") != "new_model"
         or int(identity.get("exactProductionShaOwners") or 0) != 0
         or int(identity.get("productionCandidatesReviewed") or 0) < 1
-        or identity.get("allCandidatesVisuallyDistinct") is not True
+        or not _identity_distinctness_is_proven(identity)
     ):
         raise RuntimeError("prova de identidade não autoriza novo modelo")
     decision = data.get("decision") or {}
