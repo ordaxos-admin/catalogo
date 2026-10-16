@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 36978,
+  "sourceEvidence": "docs/evidence/external-source-001-morrigan-dragon-age-gallery-review-2026-10-16.json",
+  "purpose": "bounded_private_staging_only",
+  "images": [
+    {"sourcePosition":1,"sourceObjectPath":"/wp-content/uploads/2026/10/01-Morrigan.webp","sha256":"8e726473c8942f16cf3ced308fa502ac8ebdb5deeaba8f35512c70e4a4f8406f","bytes":549622,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":2,"sourceObjectPath":"/wp-content/uploads/2026/10/02-Morrigan.webp","sha256":"2a7133ae2958a591b25bb0f370e543a83bf5b08d785cc47ca5d62b1e9191bbc8","bytes":444118,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":3,"sourceObjectPath":"/wp-content/uploads/2026/10/03-Morrigan.webp","sha256":"7e31f45d92d483891c322a86de8a19df1d19702fcc83afe8cfe9585262f32ed0","bytes":284714,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":4,"sourceObjectPath":"/wp-content/uploads/2026/10/04-Morrigan.webp","sha256":"c54d8bfc4d3263cba690ccd3a7d8c574c201bfe6b60b96d3267ea01402c8159b","bytes":179306,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":5,"sourceObjectPath":"/wp-content/uploads/2026/10/05-Morrigan.webp","sha256":"8f3bfef29bf5990de21d07f83ebf5a21f1b2d88dbc6a37de0429aded8b127620","bytes":267158,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":6,"sourceObjectPath":"/wp-content/uploads/2026/10/06-Morrigan.webp","sha256":"b1527df6e381ce72e95cca6ad35d3f1fb0524f7f98008f7161b5c4f54eb17bde","bytes":269692,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":7,"sourceObjectPath":"/wp-content/uploads/2026/10/07-Morrigan.webp","sha256":"fb6f2cfed7460a80f22c046e98a77165f20d1936ab97e368763f0bd6fabd6a98","bytes":275116,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":8,"sourceObjectPath":"/wp-content/uploads/2026/10/08-Morrigan.webp","sha256":"64fcfc3cd5258bbc48125c218359d388d2f6d84682b7284f63042096d46a9a7d","bytes":156608,"watermarkStatus":"creator_attribution"},
+    {"sourcePosition":9,"sourceObjectPath":"/wp-content/uploads/2026/10/morrigan-resin-showcase-36981-20261015-211037.webp","sha256":"de481e076f2426f6e571326306c5b68f57a70daa7c139e8571c694f5c1c16ed9","bytes":230890,"watermarkStatus":"clear"}
+  ],
+  "decision": {
+    "sourceReviewComplete": true,
+    "stagingAcquisitionReady": true,
+    "selected": 9,
+    "productionPublicationAuthorized": false,
+    "productionWrites": 0,
+    "nextGate": "bounded private staging dry-run, then explicit apply=true for these nine exact SHAs only"
+  }
+}
