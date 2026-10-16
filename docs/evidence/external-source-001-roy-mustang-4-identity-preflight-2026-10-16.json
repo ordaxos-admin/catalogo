@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 32608,
+  "productName": "Roy Mustang STL 4 – Fullmetal Alchemist",
+  "sourceSlug": "roy-mustang-stl-4-fullmetal-alchemist",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {
+    "franchise": "Fullmetal Alchemist",
+    "franchiseEvidence": "source_catalog_category",
+    "creator": "Bulkamancer Sculpts",
+    "creatorCorroborated": false
+  },
+  "sourceGallery": {
+    "imageCount": 7,
+    "stagingVerified": 7,
+    "stagingCoverage": "7/7",
+    "productionExactShaOwners": 0,
+    "sha256": [
+      "8a3aeb48346adb7e4bd80f2b0a90dca20f8cf48301bb5c538eff3f1980b0f80f",
+      "ae64aa5cd9ab960d54d824424e127515f850cda4948534de2b674666f2d66b15",
+      "be3fd8d4fdbfa6d5b10f8eaedb48b4aa3e1b1864543a886692ee577cb40eea8a",
+      "eca6525f6dc5b590c33038e19c9c11f40ec7989875d0f48e79365827035aca6f",
+      "07082f7d0b20ae6648898c4b945d93aba5aa0609d8b52ae1891eefac5b13f111",
+      "32789f6410375ccdae238dd4f81b9d9db21cc8c53181ca4d1184d08dd4840b57",
+      "274e10f430298917b56f21f24f602175747f50146185221bd8df1e554acbf24f"
+    ]
+  },
+  "productionNameCandidates": [
+    {
+      "modelId": "mdl_7bf9e7b178487e38d314",
+      "name": "Roy Mustang",
+      "slug": "fullmetal-alchemist-roy-mustang-em-diorama-com-chamas",
+      "franchise": "Fullmetal Alchemist"
+    },
+    {
+      "modelId": "mdl_87a6fd52fce8a393fce4",
+      "name": "Roy Mustang",
+      "slug": "fullmetal-alchemist-roy-mustang-com-chama-na-mao",
+      "franchise": "Fullmetal Alchemist"
+    }
+  ],
+  "identityReview": {
+    "decision": "unresolved",
+    "candidateCount": 2,
+    "exactProductionShaOwners": 0,
+    "reason": "multiple_same_franchise_name_candidates_without_exact_sha_proof",
+    "notes": "Both published candidates share the Roy Mustang identity and Fullmetal Alchemist franchise, but none of the seven exact staged source bytes is already owned in production. Textual similarity alone cannot authorize map_existing or new_model."
+  },
+  "decision": {
+    "identityResolved": false,
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "visual and historical identity comparison against both published Roy Mustang candidates"
+  }
+}
