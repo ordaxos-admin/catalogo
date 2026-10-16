@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 31290,
+  "productName": "Wolverine STL 5 + Bust – Marvel",
+  "scope": "identity_preflight_only",
+  "sourceGallery": {"imageCount": 5, "stagingVerified": 5, "stagingCoverage": "5/5"},
+  "coverageBeforeReview": {"state": "unreviewed_multiple_exact_name_candidates"},
+  "productionExactShaReview": {"matchedRows": 0, "productionWrites": 0},
+  "identityReview": {"decision": "unresolved", "reason": "multiple_textual_candidates_without_exact_sha_identity_proof", "notes": "Exact-name candidates exist, but none of the five staged source images matches a published source SHA. Name equality cannot authorize map_existing or a distinct new model."},
+  "decision": {"identityResolved": false, "newModelApproved": false, "galleryPromotionApproved": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity comparison against production candidates"}
+}
