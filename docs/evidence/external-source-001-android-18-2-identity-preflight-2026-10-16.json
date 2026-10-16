@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 24107,
+  "productName": "Android 18 2 — Dragon Ball",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage": "6/6", "completeStaging": true, "reverseIndexRunId": 38835660962, "productionWrites": 0, "stagingWrites": 0},
+  "coverageSnapshot": {"stateBeforeReview": "unreviewed_no_exact_name_candidate", "exactNameCandidates": []},
+  "exactShaProductionCheck": {"matchedRows": 0, "database": "tonecos-catalogo", "readOnly": true},
+  "identityReview": {"decision": "unresolved", "reason": "no_textual_candidate_and_no_exact_sha_identity_proof", "notes": "No exact-name candidate exists and none of the six staged source SHA-256 values matched production model_image_sources. Absence of a textual or SHA match is not sufficient proof of a distinct unpublished sculpture."},
+  "decision": {"identityResolved": false, "newModelIdentityAuthorized": false, "batchCreationAuthorized": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity review"}
+}
