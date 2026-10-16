@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 31739,
+  "productName": "Seto Kaiba STL – Yu Gi Oh!",
+  "scope": "identity_preflight_only",
+  "sourceGallery": {"imageCount": 5, "stagingVerified": 5, "stagingCoverage": "5/5"},
+  "coverageBeforeReview": {"state": "unreviewed_multiple_exact_name_candidates", "candidateModelIds": ["mdl_09808da47103a9ffc542","mdl_7d3c0a978d945b3afb09"]},
+  "productionExactShaReview": {"matchedRows": 0, "productionWrites": 0},
+  "identityReview": {"decision": "unresolved", "reason": "multiple_textual_candidates_without_exact_sha_identity_proof"},
+  "decision": {"identityResolved": false, "newModelApproved": false, "galleryPromotionApproved": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity comparison against production candidates"}
+}
