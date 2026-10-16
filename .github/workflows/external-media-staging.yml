@@ -16,7 +16,7 @@ on:
       evidence:
         description: Reviewed evidence JSON with sourceObjectPath/SHA/bytes/watermark decisions
         required: true
-        default: docs/evidence/external-source-001-morrigan-dragon-age-staging-acquisition-2026-10-16.json
+        default: docs/evidence/external-source-001-malevola-dispatch-staging-acquisition-2026-10-16.json
         type: string
       shas:
         description: Comma-separated reviewed SHA-256 values to stage
@@ -36,7 +36,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  STAGING_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || 'docs/evidence/external-source-001-morrigan-dragon-age-staging-acquisition-2026-10-16.json' }}
+  STAGING_EVIDENCE: ${{ github.event_name == 'workflow_dispatch' && inputs.evidence || 'docs/evidence/external-source-001-malevola-dispatch-staging-acquisition-2026-10-16.json' }}
 
 jobs:
   contract-tests:
