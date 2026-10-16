@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 24094,
+  "productName": "Leeloo — The Fifth Element",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage": "5/5", "completeStaging": true, "reverseIndexRunId": 38835660962, "productionWrites": 0, "stagingWrites": 0},
+  "coverageSnapshot": {"stateBeforeReview": "unreviewed_single_exact_name_candidate", "exactNameCandidates": ["mdl_856e3f6f997cfa789cb7"]},
+  "exactShaProductionCheck": {"matchedRows": 0, "database": "tonecos-catalogo", "readOnly": true},
+  "identityReview": {"decision": "unresolved", "reason": "single_textual_candidate_without_exact_sha_identity_proof", "notes": "The exact-name candidate is review-only metadata. None of the five staged source SHA-256 values matched production model_image_sources, so identity remains fail-closed pending visual/historical comparison."},
+  "decision": {"identityResolved": false, "newModelIdentityAuthorized": false, "batchCreationAuthorized": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity review"}
+}
