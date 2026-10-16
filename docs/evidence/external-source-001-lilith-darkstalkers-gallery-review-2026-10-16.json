@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 13556,
+  "productName": "Lilith STL – DarkStalkers",
+  "sourceSlug": "lilith-stl-darkstalkers",
+  "creator": null,
+  "sourceGallery": {
+    "imageCount": 5,
+    "uniqueSourceImages": 5,
+    "stagingVerified": 5,
+    "stagingCoverage": "5/5",
+    "productionExactShaOwners": 0
+  },
+  "images": [
+    {"position":1,"imageId":"13558","sourcePath":"/wp-content/uploads/2025/07/R1.png","extension":"png","sha256":"09557e3ef5492299dbe0427d4a92b56368d3c9d1129feaaa0fc6bd6074f49410","bytes":3729737,"stagingVerified":true,"watermarkStatus":"clear","promotableMedia":true},
+    {"position":2,"imageId":"13560","sourcePath":"/wp-content/uploads/2025/07/R3.png","extension":"png","sha256":"9a3a5e7986fb28f43cab194301aed139c7be800fe10ebfc3cba82fa65bc0e853","bytes":3386627,"stagingVerified":true,"watermarkStatus":"clear","promotableMedia":true},
+    {"position":3,"imageId":"13561","sourcePath":"/wp-content/uploads/2025/07/R4.png","extension":"png","sha256":"d01e7b9f8d8cc1c60776744e8bccffc963a4ee23bf41cce5e11342c7020a6f05","bytes":3352754,"stagingVerified":true,"watermarkStatus":"clear","promotableMedia":true},
+    {"position":4,"imageId":"13562","sourcePath":"/wp-content/uploads/2025/07/R5.png","extension":"png","sha256":"4fd63a413b23f97996ba5ce991ece7fc36d7c307e537abc466ea250176c281f7","bytes":3553451,"stagingVerified":true,"watermarkStatus":"clear","promotableMedia":true},
+    {"position":5,"imageId":"13559","sourcePath":"/wp-content/uploads/2025/07/R2.png","extension":"png","sha256":"c4bb5a9a8da4707b5b3d039a2ce857b86eb08b4f41aeefb2c05c763e52e9ec76","bytes":3758464,"stagingVerified":true,"watermarkStatus":"clear","promotableMedia":true}
+  ],
+  "watermarkReview": {
+    "visualAuditComplete": true,
+    "blockingThirdPartyBrandingObserved": false,
+    "creatorBrandingObserved": false,
+    "decision": "clear",
+    "notes": "All five exact staged renders were inspected. No repost/piracy watermark, QR code, URL/group handle, reseller/download branding, or unrelated third-party promotion is visible. The word LILITH visible on the tombstone is part of the modeled scene, not an overlay watermark."
+  },
+  "identityReview": {
+    "decision": "new_model",
+    "reason": "same_display_name_but_different_franchise",
+    "productionExactShaOwners": 0,
+    "notes": "The only exact-name published Lilith belongs to Diablo; source product 13556 is explicitly DarkStalkers. DarkStalkers already exists as a Games franchise in production, so this product is a distinct character/model identity."
+  },
+  "decision": {
+    "sourceReviewComplete": true,
+    "identityResolved": true,
+    "galleryMediaReviewApproved": true,
+    "newModelApproved": true,
+    "batchCreationAuthorized": true,
+    "productionWrites": 0,
+    "stagingWrites": 0,
+    "nextGate": "create and run official production release batch"
+  }
+}

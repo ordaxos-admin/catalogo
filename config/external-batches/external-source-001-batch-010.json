@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "sourceId": "external-source-001",
+  "sourceOriginB64": "aHR0cHM6Ly9zdGxmb3JnZS5jbA==",
+  "stagingBucket": "tonecos-catalogo-staging",
+  "stagingPrefixB64": "c3RsZm9yZ2UtY2w=",
+  "productionBucket": "tonecos-catalogo-media",
+  "evidence": "docs/evidence/external-source-001-batch-010-media.jsonl",
+  "expectedProducts": 1,
+  "expectedImages": 5,
+  "products": [
+    {
+      "productId": 13556,
+      "displayName": "Lilith",
+      "publicModelKey": "lilith",
+      "sourceFolders": ["Games", "DarkStalkers", "Lilith"],
+      "expectedImages": 5,
+      "expectedIdentityKey": "Games / DarkStalkers / Lilith / lilith",
+      "expectedModelId": "mdl_f49a9e4caa5e19646979",
+      "expectedSlug": "darkstalkers-lilith",
+      "expectedCode": "TS-F49A9E4CAA5E"
+    }
+  ]
+}

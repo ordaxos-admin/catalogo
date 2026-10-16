@@ -155,24 +155,63 @@ def list_staging_inventory(account_id: str, token: str, bucket: str, prefix: str
     return inventory
 
 
-def fetch_source_image(url: str, destination: Path, max_bytes: int) -> tuple[str, int]:
+def fetch_source_image(
+    url: str,
+    destination: Path,
+    max_bytes: int,
+    max_elapsed_seconds: float = 90.0,
+) -> tuple[str, int]:
     destination.parent.mkdir(parents=True, exist_ok=True)
     request = urllib.request.Request(url, headers={"User-Agent": DEFAULT_USER_AGENT})
-    digest = hashlib.sha256()
-    total = 0
-    with urllib.request.urlopen(request, timeout=60) as response, destination.open("wb") as handle:
-        while True:
-            chunk = response.read(1024 * 1024)
-            if not chunk:
+    deadline = time.monotonic() + max(1.0, float(max_elapsed_seconds))
+    max_attempts = 3
+    last_error: Exception | None = None
+
+    for attempt in range(max_attempts):
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        digest = hashlib.sha256()
+        total = 0
+        try:
+            socket_timeout = max(1.0, min(30.0, remaining))
+            with urllib.request.urlopen(request, timeout=socket_timeout) as response, destination.open("wb") as handle:
+                while True:
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError("source image transfer deadline exceeded")
+                    chunk = response.read(1024 * 1024)
+                    if not chunk:
+                        break
+                    total += len(chunk)
+                    if total > max_bytes:
+                        raise RuntimeError(f"imagem excede limite individual de {max_bytes} bytes")
+                    digest.update(chunk)
+                    handle.write(chunk)
+            if total < 1:
+                raise RuntimeError("imagem vazia")
+            return digest.hexdigest(), total
+        except RuntimeError:
+            destination.unlink(missing_ok=True)
+            raise
+        except urllib.error.HTTPError as exc:
+            destination.unlink(missing_ok=True)
+            last_error = exc
+            transient = exc.code in {403, 408, 425, 429} or 500 <= exc.code <= 599
+            if not transient or attempt + 1 >= max_attempts:
+                raise
+        except (urllib.error.URLError, TimeoutError) as exc:
+            destination.unlink(missing_ok=True)
+            last_error = exc
+            if attempt + 1 >= max_attempts:
                 break
-            total += len(chunk)
-            if total > max_bytes:
-                raise RuntimeError(f"imagem excede limite individual de {max_bytes} bytes")
-            digest.update(chunk)
-            handle.write(chunk)
-    if total < 1:
-        raise RuntimeError("imagem vazia")
-    return digest.hexdigest(), total
+
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        time.sleep(min(float(2**attempt), remaining))
+
+    destination.unlink(missing_ok=True)
+    raise RuntimeError(f"download da imagem excedeu orçamento total de {max_elapsed_seconds:g}s") from last_error
 
 
 def query_production_owners(
