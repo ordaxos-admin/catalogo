@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-15",
+  "sourceId": "external-source-001",
+  "sourceProductId": 12858,
+  "productName": "Gemma 3 — Monster Hunter",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {
+    "coverage": "6/6",
+    "completeStaging": true,
+    "reverseIndexRunId": 38826809638,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  },
+  "productionEvidence": {
+    "modelId": "mdl_03087f436ba0fb2ac272",
+    "modelName": "Gemma 3",
+    "franchise": "Monster Hunter",
+    "published": true,
+    "galleryShaMatch": "6/6",
+    "identityEvidence": "all six staged source SHA-256 values exactly match the six production model_image_sources SHA-256 values",
+    "database": "tonecos-catalogo",
+    "readOnly": true
+  },
+  "identityReview": {
+    "decision": "map_existing",
+    "reason": "exact_gallery_sha_identity_match",
+    "notes": "Identity is proven by exact byte-level SHA-256 agreement across the complete six-image source gallery and the published model gallery; name matching is not used as the deciding proof."
+  },
+  "decision": {
+    "identityResolved": true,
+    "mapExistingAuthorized": true,
+    "canonicalModelId": "mdl_03087f436ba0fb2ac272",
+    "newModelIdentityAuthorized": false,
+    "batchCreationAuthorized": false,
+    "productionWrites": 0,
+    "stagingWrites": 0
+  }
+}
