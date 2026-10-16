@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 32972,
+  "productName": "Evie STL – Stellar Blade",
+  "sourceSlug": "evie-stl-stellar-blade",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Stellar Blade","franchiseEvidence":"source_catalog_category","creator":"3Dmoonn","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":7,"stagingVerified":7,"stagingCoverage":"7/7","productionExactShaOwners":0,"sha256":["14aec04c5f2e0f90d7316a009d2129247df25b67ef8187833dec63d26cb6340d","d7a75698597c50683c88667147bcda47b2dfb894de22e8b7b18e6670e05727fb","47935525f0a7436c6c01e59b6653bfe879c268d3b71df4852872fe949f0905e4","5f7a0bfa8faacef0322874238f8f17c4ae61e64cca5cf97692562d499ce419d6","14d4b1bc9452f0c5ecaa62d0bc61d89c0e399cecbd2b98c25ffe7d317871a8fe","f4b3140e7cde8a17015f392e459223ed6162fa6f4650d799c53106bd522575f2","5dc9fae7d43d67b9cfb9ae56982dd7cccd2aaa9253b96220a2c4c9b83b74dc3d"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"Exact staged source bytes have no owner in production. Candidate names/slugs/categories are review-only and cannot authorize map_existing or new_model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
