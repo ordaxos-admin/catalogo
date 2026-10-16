@@ -8,8 +8,8 @@
   "creator": "Neko Figurines",
   "categories": ["Dispatch", "Videogames"],
   "creatorEvidence": {
-    "state": "source_store_brand_only_pending_visual_corroboration",
-    "notes": "The source product page identifies Neko Figurines as the brand. Creator attribution is not yet promotable until the exact renders are visually audited and any visible branding is confirmed to match this creator rather than a third party."
+    "state": "corroborated_source_brand_and_consistent_creator_render_branding",
+    "notes": "The source page identifies Neko Figurines as the brand. All five bounded exact renders visibly carry Patreon.com | Neko Figurines plus the recurring Presupported and Tested creator mark; the same branding pattern is independently observable on other Neko Figurines products."
   },
   "identityReview": {
     "decision": "new_model",
@@ -20,12 +20,20 @@
     "semanticDistinctnessReason": "different_franchise",
     "notes": "The only published exact-name candidate belongs to the Malévola franchise, while source product 22180 is explicitly categorized as Dispatch."
   },
+  "visualReview": {
+    "method": "manual_visual_review_of_five_exact_sha_and_byte_verified_static_source_images",
+    "result": "creator_attribution",
+    "artifactRunId": 38952325250,
+    "artifactId": 12067804345,
+    "artifactSha256": "91d5c3df55035cb869e3ecf6ee9dabf258843c37f2ad2eaa3eb10855467808bf",
+    "notes": "All five bounded WebP renders show Neko Figurines creator branding and creator Patreon attribution. No QR code, Telegram/group branding, repost/piracy handle, reseller/source URL, @specialstl-style handle or unrelated third-party promotional branding was observed. The recurring Presupported and Tested mark is consistent across independently surfaced Neko Figurines product imagery and is treated as creator-owned technical branding, not third-party promotion."
+  },
   "images": [
-    {"sourceImageId":"22183","position":1,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot1_Logo-1.webp","sha256":"e0014745fcf0845d5fcd9995a5ec09615312d88abad366e00f26afa318ac1c4e","bytes":536188,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
-    {"sourceImageId":"22187","position":2,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Midshot3_Logo.webp","sha256":"11fc20d760d6b3ced07aea018e21b076a53ef2a1f19820601401e87ba444243b","bytes":572816,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
-    {"sourceImageId":"22186","position":3,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Midshot2_Logo.webp","sha256":"6e0beed3e4fac8d719778544568f946a774eafc42fa6db29d4948831e6fc68f5","bytes":578004,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
-    {"sourceImageId":"22184","position":4,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot2_Logo.webp","sha256":"70e55776d6b508002e5af321f35589126b0c88135da7c823375f524017f61a12","bytes":537292,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"},
-    {"sourceImageId":"22185","position":5,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot3_Logo.webp","sha256":"eec044311a238357997ed6e34e4eab6c86b71655574cc5ccdac9110c2e63e0f2","bytes":523800,"stagingVerified":false,"watermarkStatus":"unreviewed","reviewState":"visual_review_required"}
+    {"sourceImageId":"22183","position":1,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot1_Logo-1.webp","sha256":"e0014745fcf0845d5fcd9995a5ec09615312d88abad366e00f26afa318ac1c4e","bytes":536188,"stagingVerified":false,"watermarkStatus":"creator_attribution","visualNotes":"Neko Figurines logo/Patreon attribution plus recurring creator Presupported and Tested mark; no unrelated third-party branding observed.","reviewState":"approved_for_staging"},
+    {"sourceImageId":"22187","position":2,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Midshot3_Logo.webp","sha256":"11fc20d760d6b3ced07aea018e21b076a53ef2a1f19820601401e87ba444243b","bytes":572816,"stagingVerified":false,"watermarkStatus":"creator_attribution","visualNotes":"Neko Figurines logo/Patreon attribution plus recurring creator Presupported and Tested mark; no unrelated third-party branding observed.","reviewState":"approved_for_staging"},
+    {"sourceImageId":"22186","position":3,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Midshot2_Logo.webp","sha256":"6e0beed3e4fac8d719778544568f946a774eafc42fa6db29d4948831e6fc68f5","bytes":578004,"stagingVerified":false,"watermarkStatus":"creator_attribution","visualNotes":"Neko Figurines logo/Patreon attribution plus recurring creator Presupported and Tested mark; no unrelated third-party branding observed.","reviewState":"approved_for_staging"},
+    {"sourceImageId":"22184","position":4,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot2_Logo.webp","sha256":"70e55776d6b508002e5af321f35589126b0c88135da7c823375f524017f61a12","bytes":537292,"stagingVerified":false,"watermarkStatus":"creator_attribution","visualNotes":"Neko Figurines logo/Patreon attribution plus recurring creator Presupported and Tested mark; no unrelated third-party branding observed.","reviewState":"approved_for_staging"},
+    {"sourceImageId":"22185","position":5,"sourcePath":"/wp-content/uploads/2026/01/Malevola_Fullshot3_Logo.webp","sha256":"eec044311a238357997ed6e34e4eab6c86b71655574cc5ccdac9110c2e63e0f2","bytes":523800,"stagingVerified":false,"watermarkStatus":"creator_attribution","visualNotes":"Neko Figurines logo/Patreon attribution plus recurring creator Presupported and Tested mark; no unrelated third-party branding observed.","reviewState":"approved_for_staging"}
   ],
   "excludedSourceMedia": [
     {
@@ -35,17 +43,19 @@
       "bytes":19530896,
       "reason":"source_exceeds_visual_review_max_image_bytes_16777216",
       "state":"review_only_oversize",
-      "promotableMedia":false
+      "promotableMedia":false,
+      "notes":"The source GIF is intentionally excluded rather than recompressed, cropped or bypassed. The five static source renders form the complete eligible subset under the current bounded media policy."
     }
   ],
   "decision": {
-    "sourceReviewComplete": false,
-    "galleryMediaReviewApproved": false,
+    "sourceReviewComplete": true,
+    "galleryMediaReviewApproved": true,
     "eligibleStaticImages": 5,
     "oversizeReviewOnlyImages": 1,
+    "newModelApproved": true,
     "batchApproved": false,
     "productionWrites": 0,
     "stagingWrites": 0,
-    "nextGate": "materialize and visually audit the five bounded exact WebP renders; keep the 19.5 MiB GIF excluded unless the media policy is deliberately revised independently"
+    "nextGate": "stage exactly the five approved static SHAs; keep the oversize GIF excluded; prove private staging coverage 5/5 before batch creation"
   }
 }
