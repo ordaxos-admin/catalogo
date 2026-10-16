@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 31803,
+  "productName": "Omegamon STL Diorama – Digimon",
+  "scope": "identity_preflight_only",
+  "sourceGallery": {"imageCount": 5, "stagingVerified": 5, "stagingCoverage": "5/5"},
+  "coverageBeforeReview": {"state": "unreviewed_no_exact_name_candidate", "candidateModelIds": []},
+  "productionExactShaReview": {"matchedRows": 0, "productionWrites": 0},
+  "identityReview": {"decision": "unresolved", "reason": "no_textual_candidate_and_no_exact_sha_is_not_sufficient_to_establish_distinct_sculpture"},
+  "decision": {"identityResolved": false, "newModelApproved": false, "galleryPromotionApproved": false, "productionWrites": 0, "stagingWrites": 0, "nextGate": "visual/catalog identity review before any new-model authorization"}
+}
