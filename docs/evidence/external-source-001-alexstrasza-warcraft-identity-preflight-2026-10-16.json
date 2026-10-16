@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 33629,
+  "productName": "Alexstrasza STL – World of Warcraft",
+  "sourceSlug": "alexstrasza-stl-world-of-warcraft",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Warcraft","franchiseEvidence":"source_catalog_category","creator":"Bulkamancer Sculpts","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":7,"stagingVerified":7,"stagingCoverage":"7/7","productionExactShaOwners":0,"sha256":["36214f4c5cf6e83d8da5a2451ee65acf5473fc0ea7f666e5c9f087ca4415be17","096dc0415d0a6f4d607a311f535e5fa24b64df59af5fa5f9926da8e1bff27e88","b5e9f045cee3e1fe83fb33c5efd5a817a12c34d2a36de976eb92d597e61dc15c","57f4a050ccc2fe5f983b99a80b326722deb8c12701b0b68a6bb8a984642b0491","ef5a6b645c0adfdd687fb019c6b4ebb0a6a9589020d817a867d36f43ed477661","f33a2489d3015b50eaa0e68a4dea1d71987e4ff2d4918d4ba88d29efd600d1d0","dd3e47460fe3c325ecfe1edbf319ab597cf6a13daacc23b02949b7e64f2f55e5"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"No exact-name production candidate and none of the seven exact staged source bytes is already owned in production. Absence of a candidate is not sufficient proof of a new model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
