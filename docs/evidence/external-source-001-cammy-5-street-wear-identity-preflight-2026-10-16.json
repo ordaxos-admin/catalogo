@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 30385,
+  "productName": "Cammy STL 5 (Street Wear) + Bust + NSFW",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"5/5","completeStaging":true,"reverseIndexRunId":"38867964247","productionWrites":0,"stagingWrites":0},
+  "coverageSnapshot": {"stateBeforeReview":"unreviewed_multiple_exact_name_candidates","exactNameCandidates":21},
+  "identityReview": {"decision":"unresolved","reason":"multiple_textual_candidates_and_no_exact_published_sha_match","notes":"Twenty-one published Cammy candidates exist in Street Fighter, including a title-correlated candidate, but a read-only source_sha256 check found no exact match for the five staged source images. Text/title similarity alone does not authorize map_existing."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"mapExistingAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison plus media suitability review"}
+}
