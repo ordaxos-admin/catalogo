@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 33643,
+  "productName": "Valerie STL – Cyberpunk 2077",
+  "sourceSlug": "valerie-stl-cyberpunk-2077",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Cyberpunk","franchiseEvidence":"source_catalog_category","creator":"Bulkamancer Sculpts","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":7,"stagingVerified":7,"stagingCoverage":"7/7","productionExactShaOwners":0,"sha256":["79d2ca80208f1bc40250de4426dda4b39e21cfe0f411a666cb2953f4516c8850","994b08392ad38f9c473866af4a461b54d8dcca73589c28a7861dd9efa4770723","93860da09f8aa8ce353ee050ac62a01f1375c838bb0bbd503a66b8325ce3f5c6","af5081c2a10270f3dd267adde6da0cf05851d5e79bc0ebfb7c6cf5a1256271ed","19143f5c258f1a500b1ab80a170867041de7f4eb7327eeabfa262c5ad341f3fb","987d2eeff53d1076df1ccdf7901690137e3e3c20d34acbe45993313d35e933cf","9af56221d3f7dee28c8052f3d0fdcb3254e44251b1c9c72539cb96e0e87c24f6"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"No exact-name production candidate and none of the seven exact staged source bytes is already owned in production. Absence of a candidate is not sufficient proof of a new model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
