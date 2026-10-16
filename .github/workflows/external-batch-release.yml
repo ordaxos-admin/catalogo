@@ -18,6 +18,7 @@ on:
       - 'tools/test_external_batch_007_contract.py'
       - 'tools/test_external_batch_008_contract.py'
       - 'tools/test_external_batch_009_contract.py'
+      - 'tools/test_external_batch_010_contract.py'
       - 'tools/test_external_release_verifier.py'
       - 'tools/test_new_only_released_preflight.py'
   workflow_dispatch:
@@ -95,6 +96,7 @@ jobs:
           test_external_batch_007_contract.py
           test_external_batch_008_contract.py
           test_external_batch_009_contract.py
+          test_external_batch_010_contract.py
           test_external_release_verifier.py
           test_new_only_released_preflight.py
       - name: Materialize reviewed bytes from private staging
