@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 34281,
+  "productName": "Yor Forger STL 3 – Spy x Family",
+  "sourceSlug": "yor-forger-stl-3-spy-x-family",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Spy x Family","franchiseEvidence":"source_catalog_category","creator":"myAnimate","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":6,"stagingVerified":6,"stagingCoverage":"6/6","productionExactShaOwners":0,"sha256":["a4c85d156b316a29c9d9c990720ff64430ae9f05753dcc5673bca6946c9af177","692f60418576a0621e4d23a0e78919ae883fe0c81f7b0d8e2e1231045bb55bd5","c035bee9ac3b5dfe46b2ab2e76d45f55f56c0f32b5fb02ffb97658c4033174d2","ed621742952c9ce7938bf865ce3cd3ead3142909952f403155a336744e3b80b7","7b6e7fbca74fcd45c61dd7503adfcdd181d09fb42d7673ebfbd6ee56c15f6e42","eb1b11a48cba63cadf528e5ccd41f1eb815ccd69c49acb558cbe67f40d7db5f5"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"No exact-name production candidate and none of the six exact staged source bytes is already owned in production. Absence of a candidate is not sufficient proof of a new model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
