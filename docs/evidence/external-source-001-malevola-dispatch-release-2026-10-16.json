@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "releasedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 22180,
+  "productName": "Malevola STL — Dispatch",
+  "batch": "config/external-batches/external-source-001-batch-012.json",
+  "model": {
+    "id": "mdl_20fd1bcacf1504630f1d",
+    "name": "Malevola",
+    "slug": "dispatch-malevola",
+    "published": true,
+    "imageCount": 5,
+    "sourceImageCount": 5
+  },
+  "excludedSourceMedia": {
+    "sourceImageId": "22188",
+    "sha256": "ea8003babc287ee4439c6dd361d40cf00042395608bcd33f80049fbc8c036dcb",
+    "bytes": 19530896,
+    "state": "review_only_oversize",
+    "promoted": false
+  },
+  "release": {
+    "workflowRunId": 38953487601,
+    "preflightArtifactId": 12069273666,
+    "preflightArtifactSha256": "aa19d3613faaebdb4895b66907d7317e16cd36c01d1853e47c0c2d90e7037655",
+    "releaseArtifactId": 12069441030,
+    "releaseArtifactSha256": "9975fa63d225d01ccf222aa42da0f28c8a2f55ab586e64e29211fc59d6f58e52",
+    "preflightConclusion": "success",
+    "applyConclusion": "success",
+    "r2Verified": true,
+    "d1AtomicApplyVerified": true,
+    "publicCatalogHealthVerified": true,
+    "publicGalleryVerified": true
+  },
+  "directD1Verification": {
+    "published": 1,
+    "image_count": 5,
+    "model_image_sources": 5,
+    "rows_written_by_verification": 0
+  },
+  "decision": {
+    "releaseComplete": true,
+    "productionReleaseLabelRemoved": true,
+    "stagingReleaseLabelRemoved": true,
+    "nextGate": "none"
+  }
+}
