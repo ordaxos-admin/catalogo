@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 29403,
+  "productName": "Aoi Todo STL 2 — Jujutsu Kaisen",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"6/6","completeStaging":true,"reverseIndexRunId":"38866952599","productionWrites":0,"stagingWrites":0},
+  "coverageSnapshot": {"stateBeforeReview":"unreviewed_single_exact_name_candidate","exactNameCandidates":1},
+  "identityReview": {"decision":"unresolved","reason":"single_textual_candidate_and_no_exact_published_sha_match","notes":"A single textual Aoi Todo candidate exists, but a read-only source_sha256 check found no exact match for the six staged source images. Name/franchise similarity remains review-only."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"mapExistingAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
