@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 31218,
+  "productName": "Edward Kenway STL 2 + Bust — Assassin's Creed",
+  "scope": "identity_preflight_only",
+  "stagingEvidence": {"coverage":"6/6","completeStaging":true,"reverseIndexRunId":"38868947542","productionWrites":0,"stagingWrites":0},
+  "coverageSnapshot": {"stateBeforeReview":"unreviewed_multiple_exact_name_candidates","exactNameCandidates":2},
+  "identityReview": {"decision":"unresolved","reason":"multiple_textual_candidates_and_no_exact_published_sha_match","notes":"Two published Edward Kenway candidates exist, including a title-correlated entry, but a read-only source_sha256 check found no exact match for the six staged source images. Text/title similarity alone does not authorize map_existing."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"mapExistingAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
