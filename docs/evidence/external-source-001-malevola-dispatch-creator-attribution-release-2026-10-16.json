@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "sourceId": "external-source-001",
+  "sourceProductId": 22180,
+  "creator": "Neko Figurines",
+  "creatorCorroborated": true,
+  "creatorEvidence": "source_store_brand_plus_consistent_exact_render_branding",
+  "visualAuditComplete": true,
+  "watermarkStatus": "creator_attribution",
+  "identityReview": {
+    "decision": "new_model",
+    "exactProductionShaOwners": 0,
+    "productionCandidatesReviewed": 1,
+    "allCandidatesSemanticallyDistinct": true,
+    "semanticDistinctnessReason": "different_franchise",
+    "notes": "The only published exact-name candidate belongs to the Malévola franchise, while source product 22180 is Malevola from Dispatch."
+  },
+  "sourceSha256": [
+    "e0014745fcf0845d5fcd9995a5ec09615312d88abad366e00f26afa318ac1c4e",
+    "11fc20d760d6b3ced07aea018e21b076a53ef2a1f19820601401e87ba444243b",
+    "6e0beed3e4fac8d719778544568f946a774eafc42fa6db29d4948831e6fc68f5",
+    "70e55776d6b508002e5af321f35589126b0c88135da7c823375f524017f61a12",
+    "eec044311a238357997ed6e34e4eab6c86b71655574cc5ccdac9110c2e63e0f2"
+  ],
+  "excludedSourceMedia": {
+    "sourceImageId": "22188",
+    "sha256": "ea8003babc287ee4439c6dd361d40cf00042395608bcd33f80049fbc8c036dcb",
+    "bytes": 19530896,
+    "reason": "source_exceeds_visual_review_max_image_bytes_16777216",
+    "promotableMedia": false
+  },
+  "decision": {
+    "newModelAuthorized": true,
+    "creatorAttributionPromotable": true,
+    "productionWrites": 0,
+    "notes": "Authorization is bounded to the five exact static renders. The oversized GIF is not authorized and is not transformed to bypass the media limit."
+  }
+}
