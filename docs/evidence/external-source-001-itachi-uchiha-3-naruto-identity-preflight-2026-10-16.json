@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "reviewedAt": "2026-10-16",
+  "sourceId": "external-source-001",
+  "sourceProductId": 33067,
+  "productName": "Itachi Uchiha STL 3 + Bust – Naruto",
+  "sourceSlug": "itachi-uchiha-stl-3-bust-naruto",
+  "scope": "identity_preflight_only",
+  "sourceMetadata": {"franchise":"Naruto","franchiseEvidence":"source_catalog_category","creator":"Tanuki Figures","creatorCorroborated":false},
+  "sourceGallery": {"imageCount":6,"stagingVerified":6,"stagingCoverage":"6/6","productionExactShaOwners":0,"sha256":["51f3c8453bb0d3deff6b301166079c75ef0b435a4925dbb72f8ecb32b0b589f7","91188450cc77d15d48be18d1cbef0566c34e6a814789ab3616167a6d8913875d","09c4bca82442c22eba01dbcd826344593e6d424ef8dc165d29af397cd18423f1","56edf70a909463d74e4eeaf441a6323573a0d1f15ed37f1d09610bb966eea636","07e75799adfd639491e401279a022ce069525d329540c37ad545c49899984270","35aaa50e026055c8d22602651875a78523f74dfe95ef47cc539a3dc3fd5dcd27"]},
+  "productionNameCandidates": [],
+  "identityReview": {"decision":"unresolved","candidateCount":0,"exactProductionShaOwners":0,"reason":"no_exact_production_sha_proof","notes":"Exact staged source bytes have no owner in production. Candidate names/slugs/categories are review-only and cannot authorize map_existing or new_model."},
+  "decision": {"identityResolved":false,"newModelIdentityAuthorized":false,"batchCreationAuthorized":false,"productionWrites":0,"stagingWrites":0,"nextGate":"visual and historical catalog identity comparison"}
+}
