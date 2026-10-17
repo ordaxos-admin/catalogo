@@ -9,22 +9,6 @@ body {
   color: var(--concept-ink);
 }
 
-/* Section headings */
-.storefront-section { margin-top: 11px; }
-.storefront-section__head { min-height: 48px; }
-.storefront-section__head h2 { color: #17251f; font-size: 17px; }
-.storefront-section__head p { color: #7a8882; font-size: 9px; }
-.storefront-section__head > button { color: var(--concept-green); }
-.storefront-section__icon { color: var(--concept-green); }
-.storefront-section__actions > button {
-  border-color: #dfe6e2;
-  background: #fff;
-  color: #50605a;
-}
-.storefront-section__actions > button:hover:not(:disabled) { border-color: #a9c4b8; color: var(--concept-green); }
-.storefront-section__actions > button.is-secondary { color: #75837d; }
-.storefront-section__actions > span { color: #7b8983; }
-
 /* Product grid */
 .storefront-model-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; }
 .storefront-model-grid.is-results { row-gap: 12px; }

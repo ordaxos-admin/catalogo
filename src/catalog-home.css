@@ -237,14 +237,14 @@
 .storefront-active-filters > span { color: #75827d; font: 730 8px/1 ui-sans-serif, system-ui; text-transform: uppercase; letter-spacing: .8px; white-space: nowrap; }
 .storefront-active-filters button { min-height: 24px; border: 1px solid #d4e2db; border-radius: 999px; background: #eff6f2; color: #315b4d; padding: 0 9px; font: 620 8px/1 ui-sans-serif, system-ui; white-space: nowrap; cursor: pointer; }
 .storefront-active-filters__clear { margin-left: auto; border-color: transparent !important; background: transparent !important; color: var(--concept-green) !important; }
-.storefront-section { margin-top: 8px; }
-.storefront-section__head { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+.storefront-section { margin-top: 11px; }
+.storefront-section__head { min-height: 48px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .storefront-section__head > div:first-child { display: flex; align-items: center; gap: 9px; min-width: 0; }
-.storefront-section__icon { width: 26px; height: 26px; display: grid; place-items: center; color: var(--store-accent); }
+.storefront-section__icon { width: 26px; height: 26px; display: grid; place-items: center; color: var(--concept-green); }
 .storefront-section__icon .storefront-icon { width: 22px; height: 22px; }
-.storefront-section__head h2 { margin: 0; color: #eef7f4; font: 820 16px/1 ui-sans-serif, system-ui; letter-spacing: -.3px; }
-.storefront-section__head p { margin: 3px 0 0; color: #6e8b83; font: 560 9px/1 ui-sans-serif, system-ui; }
-.storefront-section__head > button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--store-accent); font: 700 9px/1 ui-sans-serif, system-ui; cursor: pointer; }
+.storefront-section__head h2 { margin: 0; color: #17251f; font: 820 17px/1 ui-sans-serif, system-ui; letter-spacing: -.3px; }
+.storefront-section__head p { margin: 3px 0 0; color: #7a8882; font: 560 9px/1 ui-sans-serif, system-ui; }
+.storefront-section__head > button { display: inline-flex; align-items: center; gap: 4px; border: 0; background: transparent; color: var(--concept-green); font: 700 9px/1 ui-sans-serif, system-ui; cursor: pointer; }
 .storefront-section__head > button .storefront-icon { width: 13px; height: 13px; }
 .storefront-section__actions {
   display: flex;
@@ -259,17 +259,17 @@
   align-items: center;
   gap: 5px;
   padding: 0 9px;
-  border: 1px solid rgba(88, 183, 158, .2);
+  border: 1px solid #dfe6e2;
   border-radius: 7px;
-  background: rgba(7, 22, 20, .66);
-  color: #bdd1cb;
+  background: #fff;
+  color: #50605a;
   font: 690 8.5px/1 ui-sans-serif, system-ui;
   cursor: pointer;
 }
-.storefront-section__actions > button:hover:not(:disabled) { border-color: rgba(36,240,176,.48); color: var(--store-accent); }
+.storefront-section__actions > button:hover:not(:disabled) { border-color: #a9c4b8; color: var(--concept-green); }
 .storefront-section__actions > button:disabled { opacity: .32; cursor: default; }
-.storefront-section__actions > button.is-secondary { border-color: transparent; background: transparent; color: #7ea097; }
-.storefront-section__actions > span { color: #6f8f87; font: 650 8px/1 ui-sans-serif, system-ui; white-space: nowrap; }
+.storefront-section__actions > button.is-secondary { border-color: transparent; background: transparent; color: #75837d; }
+.storefront-section__actions > span { color: #7b8983; font: 650 8px/1 ui-sans-serif, system-ui; white-space: nowrap; }
 .storefront-section__actions .storefront-icon { width: 12px; height: 12px; }
 .storefront-model-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 10px; }
 .storefront-section--results { margin-top: 10px; }
