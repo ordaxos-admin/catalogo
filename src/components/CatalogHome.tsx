@@ -169,6 +169,7 @@ export function CatalogHome({ catalog, searchInputRef, favorites, quoteList, onO
   const resultsMode = isCatalogResultsMode(homeModeInput)
   const featuredModels = modelsForCatalogHome(models, resultsMode)
   const secondaryModels = models.slice(6, 10).length ? models.slice(6, 10) : models.slice(0, 4)
+  const quotedModels = models.filter((model) => quoteList.includes(model.id)).slice(0, 4)
   const publicCategories = catalog.categories.filter((item) => item.id !== 'all')
   const categoryTiles = publicCategories.slice(0, 6)
   const hasScopeFilters = catalog.category !== 'all' || catalog.franchise !== 'all' || Boolean(catalog.folder)
@@ -484,6 +485,21 @@ export function CatalogHome({ catalog, searchInputRef, favorites, quoteList, onO
         </header>
         <main id="catalogo" className="storefront-content" aria-busy={catalog.loading}>
           {catalog.error && <div className="storefront-alert" role="alert">{catalog.error}</div>}
+
+          <aside className="storefront-quote-rail" aria-label="Resumo da minha lista">
+            <div className="storefront-quote-rail__head"><div><span>Minha lista</span><b>{quoteList.length}</b></div><button type="button" onClick={onOpenQuote} aria-label="Abrir minha lista"><Icon name="chevron" /></button></div>
+            <div className="storefront-quote-rail__items">
+              {quotedModels.length ? quotedModels.map((model) => (
+                <div className="storefront-quote-rail__item" key={model.id}>
+                  <button type="button" className="storefront-quote-rail__preview" onClick={() => onOpenModel(model)}><span>{model.coverUrl ? <img src={model.coverUrl} alt="" loading="lazy" decoding="async" /> : model.name.slice(0, 1)}</span><span><strong>{model.name}</strong><small>{model.variantName || model.franchise || 'Catálogo'}</small></span></button>
+                  <button type="button" className="storefront-quote-rail__remove" onClick={() => onToggleQuote(model.id)} aria-label={`Remover ${model.name} da minha lista`}>×</button>
+                </div>
+              )) : <p className="storefront-quote-rail__empty">Adicione modelos usando o botão + nos cards.</p>}
+            </div>
+            {quoteList.length > quotedModels.length && <button type="button" className="storefront-quote-rail__more" onClick={onOpenQuote}>+{quoteList.length - quotedModels.length} outros selecionados</button>}
+            <button type="button" className="storefront-quote-rail__cta" onClick={onOpenQuote}><Icon name="layers" /> Revisar e solicitar orçamento <Icon name="chevron" /></button>
+            <p className="storefront-quote-rail__hint">Sua seleção fica disponível enquanto você continua explorando o catálogo.</p>
+          </aside>
 
           <section className="storefront-hero" aria-label="Destaque editorial do catálogo">
             <div className="storefront-hero__backdrop">
