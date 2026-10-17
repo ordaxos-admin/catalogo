@@ -221,14 +221,14 @@
   align-items: center;
   gap: 8px;
   margin: 4px 0 -2px;
-  color: #78998f;
+  color: #71817a;
   font: 620 8px/1 ui-sans-serif, system-ui;
 }
 .storefront-loading-line span {
   width: 12px;
   height: 12px;
-  border: 2px solid rgba(36,240,176,.16);
-  border-top-color: var(--store-accent);
+  border: 2px solid rgba(35,102,84,.14);
+  border-top-color: var(--concept-green);
   border-radius: 50%;
   animation: storefront-spin .7s linear infinite;
 }
@@ -375,40 +375,40 @@
 }
 .storefront-model-card__gallery-badge .storefront-icon { width: 11px; height: 11px; color: var(--concept-green); }
 .storefront-mini-grid .storefront-model-card__gallery-badge { display: none; }
-.storefront-category-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
-.storefront-category-tile { position: relative; min-height: 84px; overflow: hidden; display: flex; align-items: flex-end; padding: 10px 11px; border: 1px solid rgba(91,166,147,.2); border-radius: 9px; background: radial-gradient(circle at 60% 30%, rgba(40,198,160,.25), transparent 35%), linear-gradient(135deg, #0c2522, #071412); color: #eef7f4; text-align: left; cursor: pointer; isolation: isolate; }
-.storefront-category-tile:hover, .storefront-category-tile.is-active { border-color: rgba(36,240,176,.52); box-shadow: 0 12px 28px rgba(0,0,0,.22); }
+.storefront-category-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 10px; }
+.storefront-category-tile { position: relative; min-height: 92px; overflow: hidden; display: flex; align-items: flex-end; padding: 10px 11px; border: 1px solid #dfe6e2; border-radius: 12px; background: linear-gradient(135deg, #f1f4f2, #e8efeb); color: #17251f; text-align: left; cursor: pointer; isolation: isolate; box-shadow: 0 5px 15px rgba(31,52,44,.045); }
+.storefront-category-tile:hover, .storefront-category-tile.is-active { border-color: #9dbbad; box-shadow: 0 12px 26px rgba(31,52,44,.08); }
 .storefront-category-tile img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; filter: saturate(.95) contrast(1.04); }
-.storefront-category-tile__shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(3,12,11,.84), rgba(3,12,11,.26)), linear-gradient(180deg, transparent, rgba(2,10,9,.75)); }
+.storefront-category-tile__shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(250,251,250,.9), rgba(250,251,250,.22)), linear-gradient(180deg, transparent, rgba(246,248,247,.7)); }
 .storefront-category-tile > span:last-of-type { display: grid; gap: 3px; min-width: 0; }
-.storefront-category-tile strong { color: #f4faf8; font: 760 10px/1 ui-sans-serif, system-ui; }
-.storefront-category-tile small { color: #b2c4bf; font: 620 8px/1 ui-sans-serif, system-ui; }
-.storefront-category-tile i { position: absolute; right: 9px; bottom: 9px; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.14); border-radius: 50%; background: rgba(4,15,14,.46); color: #d8e7e2; }
+.storefront-category-tile strong { color: #16241e; font: 760 10px/1 ui-sans-serif, system-ui; }
+.storefront-category-tile small { color: #62736c; font: 620 8px/1 ui-sans-serif, system-ui; }
+.storefront-category-tile i { position: absolute; right: 9px; bottom: 9px; width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid #d7e2dc; border-radius: 50%; background: rgba(255,255,255,.75); color: var(--concept-green); }
 .storefront-category-tile i .storefront-icon { width: 12px; height: 12px; }
 .storefront-lower-grid { display: grid; grid-template-columns: 1.05fr .95fr; gap: 18px; margin-top: 6px; }
 .storefront-section--compact { min-width: 0; }
-.storefront-franchise-cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 7px; }
-.storefront-franchise-cards > button { position: relative; min-height: 108px; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; border: 1px solid rgba(91,166,147,.2); border-radius: 9px; background: linear-gradient(145deg, #0c2522, #071412); color: #eff8f5; text-align: left; cursor: pointer; isolation: isolate; }
-.storefront-franchise-cards > button:hover { border-color: rgba(36,240,176,.45); transform: translateY(-2px); }
+.storefront-franchise-cards { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.storefront-franchise-cards > button { position: relative; min-height: 108px; overflow: hidden; display: flex; align-items: flex-end; padding: 10px; border: 1px solid #dfe6e2; border-radius: 12px; background: linear-gradient(145deg, #f2f5f3, #e8eeeb); color: #15231d; text-align: left; cursor: pointer; isolation: isolate; box-shadow: 0 4px 14px rgba(31,52,44,.04); }
+.storefront-franchise-cards > button:hover { border-color: #a3c0b4; transform: translateY(-2px); }
 .storefront-franchise-cards img { position: absolute; inset: 0; z-index: -2; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; }
-.storefront-franchise-cards__shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(2,10,9,.04), rgba(2,10,9,.94)); }
+.storefront-franchise-cards__shade { position: absolute; inset: 0; z-index: -1; background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(248,250,249,.95)); }
 .storefront-franchise-cards > button > span:last-of-type { display: grid; gap: 3px; min-width: 0; }
 .storefront-franchise-cards strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 740 9px/1 ui-sans-serif, system-ui; }
-.storefront-franchise-cards small { color: #91aaa3; font: 600 8px/1 ui-sans-serif, system-ui; }
-.storefront-franchise-cards i { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid rgba(255,255,255,.13); border-radius: 50%; background: rgba(3,14,13,.56); }
+.storefront-franchise-cards small { color: #71807a; font: 600 8px/1 ui-sans-serif, system-ui; }
+.storefront-franchise-cards i { position: absolute; right: 8px; bottom: 8px; width: 22px; height: 22px; display: grid; place-items: center; border: 1px solid #d5e0da; border-radius: 50%; background: rgba(255,255,255,.78); color: var(--concept-green); }
 .storefront-franchise-cards i .storefront-icon { width: 11px; height: 11px; }
 .storefront-mini-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 7px; }
-.storefront-mini-grid .storefront-model-card { height: 108px; }
+.storefront-mini-grid .storefront-model-card { height: 118px; }
 .storefront-mini-grid .storefront-model-card__media img { padding: 5px 5px 32px; }
 .storefront-mini-grid .storefront-model-card__copy strong { font-size: 9px; }
 .storefront-mini-grid .storefront-model-card__copy small { display: none; }
 .storefront-pager { display: flex !important; gap: 5px !important; }
-.storefront-pager button { width: 28px; height: 28px; border: 1px solid rgba(97,171,152,.22); border-radius: 7px; background: rgba(7,21,20,.72); color: #a8bbb6; cursor: pointer; }
+.storefront-pager button { width: 28px; height: 28px; border: 1px solid #dfe6e2; border-radius: 7px; background: #fff; color: #52625b; cursor: pointer; }
 .storefront-pager button:disabled { opacity: .35; cursor: default; }
-.storefront-empty { min-height: 190px; display: grid; place-items: center; align-content: center; gap: 7px; border: 1px dashed rgba(85,173,149,.24); border-radius: 10px; background: rgba(7,22,20,.5); text-align: center; }
-.storefront-empty strong { color: #dfece8; font-size: 12px; }
-.storefront-empty span { color: #78968e; font-size: 9px; }
-.storefront-empty button { min-height: 30px; border: 1px solid rgba(36,240,176,.38); border-radius: 7px; background: rgba(36,240,176,.08); color: var(--store-accent); padding: 0 11px; cursor: pointer; }
+.storefront-empty { min-height: 190px; display: grid; place-items: center; align-content: center; gap: 7px; border: 1px dashed #d7e1dc; border-radius: 10px; background: #fff; text-align: center; }
+.storefront-empty strong { color: #26362f; font-size: 12px; }
+.storefront-empty span { color: #71817a; font-size: 9px; }
+.storefront-empty button { min-height: 30px; border: 1px solid #b5cdc2; border-radius: 7px; background: #edf5f1; color: var(--concept-green); padding: 0 11px; cursor: pointer; }
 .storefront-empty__actions { display: flex; align-items: center; justify-content: center; gap: 7px; margin-top: 3px; }
 .storefront-empty__actions .is-secondary { border-color: rgba(118,164,152,.2); background: rgba(255,255,255,.025); color: #a3bbb4; }
 .storefront-empty__actions .is-secondary:hover { border-color: rgba(36,240,176,.34); color: #e3f2ed; }
@@ -938,7 +938,7 @@
 .storefront-model-card--skeleton {
   position: relative;
   border-color: rgba(92,166,147,.12);
-  background: linear-gradient(145deg, #081816, #061311);
+  background: #fff;
 }
 .storefront-model-card--skeleton::before {
   content: "";
@@ -953,9 +953,7 @@
   position: absolute;
   inset: 10px 12px 48px;
   border-radius: 8px;
-  background:
-    radial-gradient(circle at 50% 28%, rgba(49,167,137,.14), transparent 36%),
-    rgba(75,124,112,.08);
+  background: linear-gradient(90deg, #edf1ee 20%, #f7f9f7 50%, #edf1ee 80%);
 }
 .storefront-model-card--skeleton__line {
   position: absolute;
@@ -963,7 +961,7 @@
   left: 11px;
   height: 7px;
   border-radius: 999px;
-  background: rgba(140,184,173,.13);
+  background: linear-gradient(90deg, #edf1ee 20%, #f7f9f7 50%, #edf1ee 80%);
 }
 .storefront-model-card--skeleton__line--title {
   right: 48px;

@@ -9,61 +9,6 @@ body {
   color: var(--concept-ink);
 }
 
-/* Discovery cards */
-.storefront-category-grid { gap: 10px; }
-.storefront-category-tile {
-  min-height: 92px;
-  border-color: #dfe6e2;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #f1f4f2, #e8efeb);
-  color: #17251f;
-  box-shadow: 0 5px 15px rgba(31,52,44,.045);
-}
-.storefront-category-tile:hover,
-.storefront-category-tile.is-active { border-color: #9dbbad; box-shadow: 0 12px 26px rgba(31,52,44,.08); }
-.storefront-category-tile__shade {
-  background: linear-gradient(90deg, rgba(250,251,250,.9), rgba(250,251,250,.22)), linear-gradient(180deg, transparent, rgba(246,248,247,.7));
-}
-.storefront-category-tile strong { color: #16241e; }
-.storefront-category-tile small { color: #62736c; }
-.storefront-category-tile i {
-  border-color: #d7e2dc;
-  background: rgba(255,255,255,.75);
-  color: var(--concept-green);
-}
-.storefront-franchise-cards { gap: 10px; }
-.storefront-franchise-cards > button {
-  border-color: #dfe6e2;
-  border-radius: 12px;
-  background: linear-gradient(145deg, #f2f5f3, #e8eeeb);
-  color: #15231d;
-  box-shadow: 0 4px 14px rgba(31,52,44,.04);
-}
-.storefront-franchise-cards > button:hover { border-color: #a3c0b4; }
-.storefront-franchise-cards__shade { background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(248,250,249,.95)); }
-.storefront-franchise-cards small { color: #71807a; }
-.storefront-franchise-cards i { border-color: #d5e0da; background: rgba(255,255,255,.78); color: var(--concept-green); }
-.storefront-mini-grid .storefront-model-card { height: 118px; }
-.storefront-pager button {
-  border-color: #dfe6e2;
-  background: #fff;
-  color: #52625b;
-}
-.storefront-empty {
-  border-color: #d7e1dc;
-  background: #fff;
-}
-.storefront-empty strong { color: #26362f; }
-.storefront-empty span { color: #71817a; }
-.storefront-empty button { border-color: #b5cdc2; background: #edf5f1; color: var(--concept-green); }
-
-/* Loading states */
-.storefront-loading-line { color: #71817a; }
-.storefront-loading-line span { border-color: rgba(35,102,84,.14); border-top-color: var(--concept-green); }
-.storefront-model-card--skeleton { background: #fff; }
-.storefront-model-card--skeleton__media,
-.storefront-model-card--skeleton__line { background: linear-gradient(90deg, #edf1ee 20%, #f7f9f7 50%, #edf1ee 80%) !important; }
-
 /* Responsive behaviour: desktop keeps navigation visible, tablet/mobile becomes content-first. */
 @media (min-width: 1800px) {
   .storefront-model-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
