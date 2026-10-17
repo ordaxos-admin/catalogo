@@ -1,0 +1,306 @@
+/*
+ * TONECOS catalog concept R3
+ * Visual fidelity refinements layered after catalog-concept.css.
+ * No runtime state or interaction logic lives here.
+ */
+
+:root {
+  --concept-r3-shadow-soft: 0 10px 28px rgba(24, 48, 39, .055);
+  --concept-r3-shadow-card: 0 7px 22px rgba(24, 48, 39, .055);
+  --concept-r3-shadow-card-hover: 0 18px 42px rgba(24, 48, 39, .115);
+}
+
+/* Header: quieter chrome, stronger search hierarchy. */
+.storefront-topbar {
+  min-height: 68px;
+  grid-template-columns: minmax(230px, auto) minmax(360px, 720px) auto;
+  padding-inline: clamp(14px, 1.55vw, 26px);
+  background: rgba(255,255,255,.965);
+  box-shadow: 0 7px 24px rgba(23, 48, 39, .028);
+}
+.storefront-topbar nav { height: 68px; gap: 2px; }
+.storefront-topbar nav a,
+.storefront-topbar nav button {
+  min-height: 36px;
+  padding-inline: 11px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  font-weight: 680;
+  letter-spacing: .01em;
+}
+.storefront-topbar nav a:hover,
+.storefront-topbar nav button:hover { background: #f3f7f5; }
+.storefront-topbar nav b {
+  min-width: 19px;
+  padding: 4px 6px;
+  border-radius: 999px;
+  background: #edf4f0;
+  color: var(--concept-green);
+  font-size: 8px;
+}
+.storefront-search {
+  min-height: 42px;
+  border-radius: 11px !important;
+  background: #f5f7f6 !important;
+}
+.storefront-search input { font-size: 11px; }
+.storefront-search__shortcut { opacity: .72; }
+.storefront-topbar__status {
+  padding: 8px 10px;
+  border: 1px solid #e7ece9;
+  border-radius: 999px;
+  background: #fafcfb;
+  font-size: 9px;
+}
+
+/* Canvas rhythm. */
+.storefront-content {
+  width: min(1760px, calc(100% - 32px));
+  padding-top: 12px;
+}
+.storefront-section { margin-top: 14px; }
+.storefront-section__head { min-height: 52px; }
+.storefront-section__head h2 { font-size: 18px; letter-spacing: -.015em; }
+.storefront-section__head p { margin-top: 3px; font-size: 9.5px; }
+
+/* Hero: more editorial, less banner-like, with clearer visual split. */
+.storefront-hero {
+  min-height: 286px;
+  overflow: hidden;
+  border-color: #d9e2dc;
+  border-radius: 18px;
+  background: linear-gradient(112deg, #f3f4ed 0%, #f1eee3 52%, #e3ece5 100%);
+  box-shadow: var(--concept-r3-shadow-soft);
+}
+.storefront-hero::before {
+  background:
+    linear-gradient(90deg,
+      rgba(249,250,246,.995) 0%,
+      rgba(248,249,245,.96) 34%,
+      rgba(245,247,241,.77) 51%,
+      rgba(235,241,235,.22) 71%,
+      rgba(229,238,231,.06) 100%);
+}
+.storefront-hero__backdrop {
+  background:
+    radial-gradient(circle at 78% 32%, rgba(112, 143, 126, .20), transparent 28%),
+    radial-gradient(circle at 67% 86%, rgba(213, 197, 159, .23), transparent 35%),
+    linear-gradient(120deg, #f4f3eb, #eaeee7 61%, #dde8df);
+}
+.storefront-hero__backdrop-blur {
+  opacity: .27;
+  filter: blur(36px) saturate(.82) brightness(1.2);
+  transform: scale(1.08);
+}
+.storefront-hero__backdrop-subject {
+  width: 55%;
+  height: 116%;
+  right: 2.5%;
+  object-position: center 45%;
+  filter: saturate(.9) contrast(1.025) brightness(1.035) drop-shadow(0 28px 34px rgba(41,58,50,.13));
+}
+.storefront-hero__copy {
+  width: min(710px, 58%);
+  padding: 39px 0 34px 42px;
+}
+.storefront-hero__eyebrow {
+  gap: 7px;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .145em;
+}
+.storefront-hero h1 {
+  max-width: 14ch;
+  margin: 10px 0 11px;
+  font-size: clamp(34px, 3vw, 50px);
+  line-height: .965;
+  letter-spacing: -2.1px;
+}
+.storefront-hero__copy > p {
+  max-width: 58ch;
+  font-size: 11.5px;
+  line-height: 1.62;
+}
+.storefront-hero__metrics {
+  width: fit-content;
+  margin-top: 15px;
+  border-radius: 10px;
+  background: rgba(255,255,255,.71);
+  backdrop-filter: blur(10px);
+}
+.storefront-hero__metrics > span { min-width: 92px; padding: 8px 12px; }
+.storefront-hero__metrics strong { font-size: 13px; }
+.storefront-hero__metrics small { font-size: 7.5px; letter-spacing: .05em; text-transform: uppercase; }
+.storefront-hero__actions { margin-top: 15px; gap: 8px; }
+.storefront-button {
+  min-height: 39px;
+  padding-inline: 15px;
+  border-radius: 9px;
+  font-size: 9.5px;
+  font-weight: 760;
+}
+.storefront-hero__nav {
+  width: 34px;
+  height: 34px;
+  border: 1px solid rgba(216,226,220,.9);
+  background: rgba(255,255,255,.84);
+  color: #455a51;
+  box-shadow: 0 5px 14px rgba(23,48,39,.06);
+  backdrop-filter: blur(10px);
+}
+.storefront-hero__dots { bottom: 14px; gap: 6px; }
+.storefront-hero__dots button {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(23,79,64,.22);
+}
+.storefront-hero__dots button[aria-current="true"] { width: 20px; background: var(--concept-green); }
+
+/* Make the utility strip feel secondary to the hero. */
+.storefront-commandbar {
+  min-height: 58px;
+  margin-top: 10px;
+  border-radius: 12px;
+  box-shadow: 0 3px 12px rgba(28,53,44,.035);
+}
+.storefront-commandbar__stats span { padding-block: 7px; }
+.storefront-commandbar__stats strong { font-size: 12px; }
+.storefront-commandbar__stats small { font-size: 7.5px; }
+.storefront-commandbar__actions button { min-height: 34px; font-size: 8.5px; }
+.storefront-filterbar { margin-top: 8px; }
+.storefront-filterbar__rail button,
+.storefront-filterbar__filters { min-height: 34px; font-size: 8.5px; }
+
+/* Cards: denser catalog rhythm while preserving image emphasis. */
+.storefront-model-grid { gap: 10px; }
+.storefront-model-grid.is-results { row-gap: 10px; }
+.storefront-model-card,
+.storefront-model-grid.is-results .storefront-model-card {
+  height: 226px;
+  border-radius: 12px;
+  box-shadow: var(--concept-r3-shadow-card);
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+.storefront-model-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--concept-r3-shadow-card-hover);
+}
+.storefront-model-card__media { inset: 0 0 56px; }
+.storefront-model-card__media img {
+  padding: 8px 9px 6px;
+  object-position: center 48%;
+}
+.storefront-model-card__copy {
+  left: 10px;
+  right: 43px;
+  bottom: 9px;
+  gap: 3px;
+}
+.storefront-model-card__copy strong { font-size: 10.5px; line-height: 1.15; }
+.storefront-model-card__copy small { font-size: 8px; }
+.storefront-model-card__meta { gap: 5px; font-size: 7.5px; }
+.storefront-model-card__heart,
+.storefront-model-card__quote { width: 28px; height: 28px; }
+.storefront-model-card__quote { top: 170px; }
+.storefront-model-card__gallery-badge { top: 42px; }
+.storefront-model-card__category { top: 9px; left: 9px; }
+
+/* Discovery blocks follow the same denser radius and shadow language. */
+.storefront-category-grid,
+.storefront-franchise-cards { gap: 9px; }
+.storefront-category-tile,
+.storefront-franchise-cards > button {
+  border-radius: 11px;
+  box-shadow: 0 4px 13px rgba(31,52,44,.038);
+}
+.storefront-category-tile { min-height: 86px; }
+
+/* Quote rail alignment with the new desktop rhythm. */
+@media (min-width: 1500px) {
+  .storefront-content { padding-right: 294px; }
+  .storefront-quote-rail {
+    top: 82px;
+    right: 16px;
+    width: 262px;
+    max-height: calc(100vh - 98px);
+    padding: 13px;
+    border-radius: 13px;
+    box-shadow: 0 14px 36px rgba(28,53,44,.07);
+  }
+}
+
+/* Wide desktop: keep density instead of simply stretching cards. */
+@media (min-width: 1800px) {
+  .storefront-model-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .storefront-hero__copy { padding-left: 46px; }
+}
+
+/* Notebook / tablet. */
+@media (max-width: 1380px) {
+  .storefront-topbar {
+    min-height: 66px;
+    grid-template-columns: auto minmax(300px, 1fr) auto;
+    padding-inline: 13px;
+  }
+  .storefront-topbar nav { height: 66px; }
+  .storefront-hero { min-height: 268px; }
+  .storefront-hero__copy { width: 62%; padding: 34px 0 30px 32px; }
+  .storefront-hero h1 { font-size: clamp(32px, 3.1vw, 44px); }
+  .storefront-model-card,
+  .storefront-model-grid.is-results .storefront-model-card { height: 220px; }
+  .storefront-model-card__quote { top: 164px; }
+}
+
+@media (max-width: 1080px) {
+  .storefront-content { width: min(100% - 22px, 1180px); }
+  .storefront-topbar { min-height: 62px; }
+  .storefront-search { min-height: 40px; }
+  .storefront-hero { min-height: 252px; }
+  .storefront-hero__copy { width: 66%; padding: 30px 0 28px 28px; }
+  .storefront-hero__backdrop-subject { width: 61%; right: -2%; }
+}
+
+/* Mobile: preserve a strong hero without sacrificing browse density. */
+@media (max-width: 760px) {
+  .storefront-content { width: min(100% - 16px, 680px); padding-top: 8px; }
+  .storefront-topbar { min-height: 60px; padding: 7px 9px; }
+  .storefront-search { min-height: 40px; }
+  .storefront-hero {
+    min-height: 248px;
+    border-radius: 14px;
+  }
+  .storefront-hero::before {
+    background: linear-gradient(90deg, rgba(249,250,246,.99), rgba(249,250,246,.94) 62%, rgba(245,248,244,.52));
+  }
+  .storefront-hero__copy { width: 91%; padding: 27px 18px 24px; }
+  .storefront-hero h1 { max-width: 17ch; font-size: clamp(29px, 8.6vw, 35px); letter-spacing: -1.4px; }
+  .storefront-hero__copy > p { max-width: 42ch; font-size: 10.5px; line-height: 1.52; }
+  .storefront-hero__backdrop-subject { width: 78%; right: -31%; opacity: .48; }
+  .storefront-hero__actions { margin-top: 13px; }
+  .storefront-commandbar { margin-top: 8px; }
+  .storefront-model-grid,
+  .storefront-model-grid.is-results { gap: 8px; }
+  .storefront-model-card,
+  .storefront-model-grid.is-results .storefront-model-card { height: 214px; }
+  .storefront-model-card__media { inset-bottom: 54px; }
+  .storefront-model-card__quote { top: 158px; }
+}
+
+@media (max-width: 420px) {
+  .storefront-content { width: calc(100% - 12px); }
+  .storefront-hero { min-height: 236px; border-radius: 12px; }
+  .storefront-hero__copy { padding: 24px 15px 21px; }
+  .storefront-hero h1 { font-size: 27px; }
+  .storefront-hero__copy > p { font-size: 10px; }
+  .storefront-button { min-height: 36px; padding-inline: 11px; font-size: 8.5px; }
+  .storefront-model-card,
+  .storefront-model-grid.is-results .storefront-model-card { height: 198px; }
+  .storefront-model-card__media { inset-bottom: 52px; }
+  .storefront-model-card__quote { top: 146px; }
+  .storefront-model-card__copy strong { font-size: 9.7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-model-card { transition: none; }
+}
