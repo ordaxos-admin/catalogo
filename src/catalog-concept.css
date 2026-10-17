@@ -4,28 +4,6 @@
  * This file intentionally overrides catalog-home.css without changing runtime logic.
  */
 
-:root {
-  --concept-ink: #13211d;
-  --concept-muted: #66756f;
-  --concept-soft: #eef2ef;
-  --concept-line: #dde5e0;
-  --concept-panel: #ffffff;
-  --concept-canvas: #f6f8f6;
-  --concept-green: #174f40;
-  --concept-green-2: #236654;
-  --concept-green-soft: #e7f0eb;
-  --concept-danger: #e95b52;
-  --store-accent: #236654;
-  --store-accent-strong: #174f40;
-  --store-bg: #f6f8f6;
-  --store-panel: #ffffff;
-  --store-panel-2: #f0f4f1;
-  --store-line: rgba(23, 79, 64, .15);
-  --store-line-soft: rgba(23, 79, 64, .09);
-  --store-text: #13211d;
-  --store-muted: #66756f;
-}
-
 body {
   background: var(--concept-canvas);
   color: var(--concept-ink);
@@ -137,41 +115,6 @@ body {
   background: var(--concept-green);
   color: #fff;
 }
-
-/* Header */
-.storefront-topbar {
-  min-height: 72px;
-  grid-template-columns: minmax(250px, auto) minmax(320px, 680px) auto;
-  border-bottom: 1px solid var(--concept-line);
-  background: rgba(255,255,255,.92);
-  box-shadow: 0 8px 28px rgba(28, 53, 44, .035);
-  backdrop-filter: blur(18px) saturate(130%);
-}
-.storefront-topbar nav { height: 72px; }
-.storefront-topbar nav a,
-.storefront-topbar nav button { color: #52615c; font-size: 11px; }
-.storefront-topbar nav a:hover,
-.storefront-topbar nav button:hover,
-.storefront-topbar nav .is-active { color: var(--concept-green); }
-.storefront-topbar nav .is-active::after { background: var(--concept-green); box-shadow: none; }
-.storefront-search {
-  border: 1px solid #dfe6e2 !important;
-  background: #f2f4f3 !important;
-  box-shadow: none !important;
-}
-.storefront-search:focus-within {
-  border-color: #9fbcae !important;
-  background: #fff !important;
-  box-shadow: 0 0 0 3px rgba(35,102,84,.08) !important;
-}
-.storefront-search,
-.storefront-search input { color: #24342e !important; }
-.storefront-search input::placeholder { color: #8b9792 !important; }
-.storefront-search .storefront-icon { color: #44554e !important; }
-.storefront-search__clear { color: #6d7c76 !important; border-color: #dce4e0 !important; background: #fff !important; }
-.storefront-topbar__status { color: #72817b; }
-.storefront-topbar__status span { background: #d1a44f; box-shadow: none; }
-.storefront-topbar__status span.is-live { background: #2c8b6e; box-shadow: none; }
 
 /* Main canvas */
 .storefront-content {
