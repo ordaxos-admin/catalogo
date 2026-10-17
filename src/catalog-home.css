@@ -183,40 +183,28 @@
 .storefront-button--ghost { border: 1px solid #d4ddd8; background: rgba(255,255,255,.82); color: #2a3933; backdrop-filter: blur(10px); }
 .storefront-button:hover { filter: brightness(1.08); }
 .storefront-button:disabled { opacity: .5; cursor: default; }
-.storefront-commandbar { min-height: 62px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 8px; padding: 9px 12px; border: 1px solid rgba(70,214,175,.22); border-radius: 11px; background: linear-gradient(90deg, rgba(8,28,26,.92), rgba(7,24,22,.72)); box-shadow: inset 0 1px 0 rgba(255,255,255,.018); }
+.storefront-commandbar { min-height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 8px; padding: 9px 12px; border: 1px solid var(--concept-line); border-radius: 13px; background: #fff; box-shadow: 0 5px 18px rgba(28, 53, 44, .045); }
 .storefront-commandbar__stats { display: flex; align-items: stretch; min-width: 0; }
-.storefront-commandbar__stats span { min-width: 96px; display: grid; gap: 3px; padding: 2px 14px; border-right: 1px solid rgba(88,185,160,.14); }
+.storefront-commandbar__stats span { min-width: 96px; display: grid; gap: 3px; padding: 2px 14px; border-right: 1px solid #e4e9e6; }
 .storefront-commandbar__stats span:first-child { padding-left: 4px; }
 .storefront-commandbar__stats span:last-child { border-right: 0; }
-.storefront-commandbar__stats strong { color: #effaf6; font: 820 13px/1 ui-sans-serif, system-ui; }
-.storefront-commandbar__stats small { color: #6f9188; font: 650 7.5px/1 ui-sans-serif, system-ui; text-transform: uppercase; letter-spacing: .45px; white-space: nowrap; }
+.storefront-commandbar__stats strong { color: #1f2d27; font: 820 13px/1 ui-sans-serif, system-ui; }
+.storefront-commandbar__stats small { color: #7b8883; font: 650 7.5px/1 ui-sans-serif, system-ui; text-transform: uppercase; letter-spacing: .45px; white-space: nowrap; }
 .storefront-commandbar__actions { display: flex; align-items: center; gap: 7px; }
-.storefront-commandbar__actions button { min-height: 34px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid rgba(88,185,160,.18); border-radius: 8px; background: rgba(255,255,255,.018); color: #afc4be; font: 700 8.5px/1 ui-sans-serif, system-ui; cursor: pointer; white-space: nowrap; }
-.storefront-commandbar__actions button:hover { border-color: rgba(36,240,176,.44); color: #effbf7; background: rgba(36,240,176,.05); }
-.storefront-commandbar__actions button.is-primary { border-color: rgba(36,240,176,.62); background: rgba(36,240,176,.12); color: var(--store-accent); }
+.storefront-commandbar__actions button { min-height: 36px; display: inline-flex; align-items: center; gap: 7px; padding: 0 11px; border: 1px solid #dfe5e2; border-radius: 9px; background: #fff; color: #405049; font: 700 8.5px/1 ui-sans-serif, system-ui; cursor: pointer; white-space: nowrap; }
+.storefront-commandbar__actions button:hover { border-color: #acc7bb; color: var(--concept-green); background: #f7faf8; }
+.storefront-commandbar__actions button.is-primary { border-color: var(--concept-green); background: var(--concept-green); color: #fff; }
 .storefront-commandbar__actions .storefront-icon { width: 13px; height: 13px; }
-.storefront-commandbar__actions b { min-width: 18px; color: #03110d; background: var(--store-accent); border-radius: 999px; padding: 3px 5px; text-align: center; font-size: 8px; }
-.storefront-filterbar { min-height: 44px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 10px; margin-top: 6px; }
-.storefront-filterbar__rail { min-width: 0; display: flex; gap: 7px; overflow-x: auto; scrollbar-width: none; }
+.storefront-commandbar__actions b { min-width: 18px; color: #fff; background: #2e7b64; border-radius: 999px; padding: 3px 5px; text-align: center; font-size: 8px; }
+.storefront-filterbar { min-height: 44px; display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: center; gap: 10px; margin-top: 10px; }
+.storefront-filterbar__rail { min-width: 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
 .storefront-filterbar__rail::-webkit-scrollbar { display: none; }
-.storefront-filterbar__rail button, .storefront-filterbar__filters { min-height: 32px; padding: 0 14px; border: 1px solid rgba(90,169,149,.22); border-radius: 7px; background: rgba(7,21,20,.72); color: #a9bdb7; white-space: nowrap; font: 660 9px/1 ui-sans-serif, system-ui; cursor: pointer; }
-.storefront-filterbar__rail button:hover, .storefront-filterbar__rail button.is-active { border-color: rgba(36,240,176,.55); color: #effaf6; }
-.storefront-filterbar__rail button.is-active { background: var(--store-accent); color: #03110d; border-color: #77ffd3; box-shadow: 0 7px 20px rgba(23,215,151,.13); }
-.storefront-filterbar__filters { display: inline-flex; align-items: center; gap: 7px; padding-inline: 12px; color: #d6e5e0; }
+.storefront-filterbar__rail button, .storefront-filterbar__filters { min-height: 36px; padding: 0 15px; border: 1px solid #dfe5e2; border-radius: 999px; background: #fff; color: #4b5b55; white-space: nowrap; font: 660 9px/1 ui-sans-serif, system-ui; cursor: pointer; box-shadow: 0 2px 5px rgba(35, 59, 50, .025); }
+.storefront-filterbar__rail button:hover, .storefront-filterbar__rail button.is-active { border-color: #a9c3b8; color: var(--concept-green); }
+.storefront-filterbar__rail button.is-active { background: var(--concept-green); color: #fff; border-color: var(--concept-green); box-shadow: 0 6px 14px rgba(23,79,64,.12); }
+.storefront-filterbar__filters { display: inline-flex; align-items: center; gap: 7px; padding-inline: 12px; color: #34443d; border-radius: 9px; }
 .storefront-filterbar__filters .storefront-icon { width: 13px; height: 13px; }
-.storefront-search-hint {
-  min-height: 34px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 1px 0 7px;
-  padding: 0 10px;
-  border: 1px solid rgba(216,166,72,.18);
-  border-radius: 8px;
-  background: rgba(74,54,17,.12);
-  color: #b9a77d;
-  font: 620 8.5px/1.3 ui-sans-serif, system-ui;
-}
+.storefront-search-hint { min-height: 34px; display: flex; align-items: center; gap: 8px; margin: 1px 0 7px; padding: 0 10px; border: 1px solid #eadab8; border-radius: 8px; background: #fff9eb; color: #7d6c49; font: 620 8.5px/1.3 ui-sans-serif, system-ui; }
 .storefront-search-hint .storefront-icon { width: 13px; height: 13px; color: #d5ad61; }
 .storefront-search-hint button {
   margin-left: auto;
@@ -245,10 +233,10 @@
   animation: storefront-spin .7s linear infinite;
 }
 @keyframes storefront-spin { to { transform: rotate(360deg); } }
-.storefront-active-filters { min-height: 38px; display: flex; align-items: center; gap: 6px; margin: 1px 0 9px; padding: 6px 9px; border: 1px solid var(--store-line-soft); border-radius: 9px; background: rgba(5,19,18,.7); overflow-x: auto; }
-.storefront-active-filters > span { color: #6d8f86; font: 730 8px/1 ui-sans-serif, system-ui; text-transform: uppercase; letter-spacing: .8px; white-space: nowrap; }
-.storefront-active-filters button { min-height: 24px; border: 1px solid rgba(36,240,176,.18); border-radius: 999px; background: rgba(36,240,176,.05); color: #b7ccc5; padding: 0 9px; font: 620 8px/1 ui-sans-serif, system-ui; white-space: nowrap; cursor: pointer; }
-.storefront-active-filters__clear { margin-left: auto; border-color: transparent !important; background: transparent !important; color: var(--store-accent) !important; }
+.storefront-active-filters { min-height: 38px; display: flex; align-items: center; gap: 6px; margin: 1px 0 9px; padding: 6px 9px; border: 1px solid var(--concept-line); border-radius: 9px; background: #fff; overflow-x: auto; }
+.storefront-active-filters > span { color: #75827d; font: 730 8px/1 ui-sans-serif, system-ui; text-transform: uppercase; letter-spacing: .8px; white-space: nowrap; }
+.storefront-active-filters button { min-height: 24px; border: 1px solid #d4e2db; border-radius: 999px; background: #eff6f2; color: #315b4d; padding: 0 9px; font: 620 8px/1 ui-sans-serif, system-ui; white-space: nowrap; cursor: pointer; }
+.storefront-active-filters__clear { margin-left: auto; border-color: transparent !important; background: transparent !important; color: var(--concept-green) !important; }
 .storefront-section { margin-top: 8px; }
 .storefront-section__head { min-height: 42px; display: flex; align-items: center; justify-content: space-between; gap: 14px; }
 .storefront-section__head > div:first-child { display: flex; align-items: center; gap: 9px; min-width: 0; }
